@@ -50,7 +50,7 @@ class User(AbstractUser):
 #Student Profile
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name= 'student_profile')
-    reg_number = models.IntegerField(max_length=20, unique=True)
+    reg_number = models.CharField(max_length=20, unique=True)
     program = models.CharField(max_length=100)
 
     def __str__(self):
