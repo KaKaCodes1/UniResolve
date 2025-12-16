@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from organization.models import Department
 
 #User Manager
 class UserManager(BaseUserManager):
@@ -45,6 +46,31 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.get_full_name()} - {self.role}"
+    
+#Student Profile
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name= 'student_profile')
+    reg_number = models.IntegerField(max_length=20, unique=True)
+    program = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.reg_number}"
+    
+#Staff Profile
+class StaffProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name= 'staff_profile')
+    employee_id = models.CharField(max_length=20, unique=True)
+
+    department = models.ForeignKey(
+        Department, 
+        on_delete=models.PROTECT, # Protect prevents deleting a dept that has staff
+        related_name='staff_members',
+    )
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.employee_id} - Department({self.department.name})"
+
+
 
     
 
