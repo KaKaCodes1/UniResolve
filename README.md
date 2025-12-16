@@ -5,7 +5,7 @@
 This project is built as a Minimum Viable Product (MVP) for the ALX Backend Engineering program and serves as the foundation for a Final Year Research Project.
 
 ##  Tech Stack
-* **Language:** Python 3.x
+* **Language:** Python 
 * **Framework:** Django & Django REST Framework (DRF)
 * **Database:** MySQL
 * **Authentication:** Token-based (JWT)
