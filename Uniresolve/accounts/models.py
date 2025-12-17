@@ -45,7 +45,7 @@ class User(AbstractUser):
     objects = UserManager() #connecting the manager with the User model
 
     def __str__(self):
-        return f"{self.get_full_name()} - {self.role}"
+        return f"{self.get_full_name()}"
     
 #Student Profile
 class StudentProfile(models.Model):
