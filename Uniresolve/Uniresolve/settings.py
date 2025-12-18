@@ -11,9 +11,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Load the .env file
 load_dotenv()
@@ -140,3 +140,16 @@ STATIC_URL = 'static/'
 
 #Defining to the project that it must use the custom user model
 AUTH_USER_MODEL = 'accounts.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT ={
+    #Set after how long the Access Token will expire - 60 mins for security.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    #Refresh Token is used to get a new Access Token without logging in again.
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
