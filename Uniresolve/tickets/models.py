@@ -28,10 +28,10 @@ class Ticket(models.Model):
 
 class Resolution(models.Model):
     feedback = models.TextField()
-    ticket = models.OneToOneField(
+    ticket = models.ForeignKey(
         Ticket,
         on_delete=models.PROTECT, # PROTECT means you CANNOT delete a ticket if it has a resolution. For record-keeping
-        related_name='resolution'
+        related_name='resolutions'
     )
     #staff who resolved it
     resolved_by = models.ForeignKey(
