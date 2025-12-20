@@ -10,6 +10,16 @@ class ResolutionSerializer(serializers.ModelSerializer):
         model = Resolution
         fields = ['id', 'ticket', 'feedback', 'resolved_by', 'resolved_at', 'status']
         read_only_fields = [ 'resolved_at']
+
+    def validate_status(self,value):
+        status_input = value.upper()
+        valid_choices = ['PENDING', 'RESOLVED']
+
+        if status_input not in valid_choices:
+            raise serializers.ValidationError(
+                f"Invalid status"
+            )
+        return status_input
 class TicketSerializer(serializers.ModelSerializer):
     # Display the student's name and category name instead of their ID
     owner = serializers.StringRelatedField(read_only=True)
