@@ -31,9 +31,9 @@ This project is built as a Minimum Viable Product (MVP) for the ALX Backend Engi
    ```bash
    pip install -r requirements.txt
 4. **Database Configuration: Create a .env file and add your MySQL credentials:**
-   DB_NAME=uniresolve_db
-   DB_USER=root
-   DB_PASSWORD=yourpassword
+   * DB_NAME=uniresolve_db
+   * DB_USER=root
+   * DB_PASSWORD=yourpassword
 5. **Migrate and Run:**
    ```bash
    python manage.py migrate
