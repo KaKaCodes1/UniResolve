@@ -153,3 +153,16 @@ SIMPLE_JWT ={
     #Refresh Token is used to get a new Access Token without logging in again.
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+if not DEBUG:
+    # Security Headers
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True #Prevents the browser from guessing the content type of assets
+    X_FRAME_OPTIONS = 'DENY' #Prevents the site from being loaded inside an <iframe> on another site, protecting against Clickjacking
+
+    # Session and CSRF Cookies are sent over HTTPS
+    SESSION_COOKIE_SECURE = True 
+    CSRF_COOKIE_SECURE = True
+
+    # Enforce HTTPS
+    SECURE_SSL_REDIRECT = True #Forces all non-HTTPS traffic to redirect to HTTPS.
+
