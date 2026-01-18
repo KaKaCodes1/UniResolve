@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from organization.models import Department
+#Commented to avoid circular imports
+# from organization.models import Department, Course
 
 #User Manager
 class UserManager(BaseUserManager):
@@ -30,7 +31,7 @@ class User(AbstractUser):
         ('Admin','Admin'),
     ]
 
-    role = models.CharField(max_length=50, choices=roles_choices, default='Student')
+    role = models.CharField(max_length=20, choices=roles_choices, default='Student')
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=100, blank=False)
     last_name = models.CharField(max_length=100, blank=False)
@@ -51,24 +52,36 @@ class User(AbstractUser):
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name= 'student_profile')
     reg_number = models.CharField(max_length=20, unique=True)
-    program = models.CharField(max_length=100)
+    course = models.ForeignKey(
+        'organization.Course',
+        on_delete=models.PROTECT,
+        related_name='students',
+        null=True, 
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.reg_number}"
     
 #Staff Profile
 class StaffProfile(models.Model):
+    #Helps with the escalation workflow
+    staff_roles_choices = [
+        ('SENIOR', 'Senior'),
+        ('STAFF', 'Staff'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name= 'staff_profile')
     employee_id = models.CharField(max_length=20, unique=True)
-
+    staff_role = models.CharField(max_length=20, choices=staff_roles_choices, default='STAFF')
     department = models.ForeignKey(
-        Department, 
+        'organization.Department', 
         on_delete=models.PROTECT, # Protect prevents deleting a dept that has staff
         related_name='staff_members',
     )
 
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.employee_id} - Department({self.department.name})"
+        return f"{self.user.get_full_name()} - {self.employee_id} - Department({self.department.department_name})"
 
 
 
