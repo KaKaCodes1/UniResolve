@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import UserRegistrationView
+from .views import (
+    UserRegistrationView, 
+    StudentSignUpView, 
+    StaffSignUpView
+)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -8,4 +12,7 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     #allows a user to send refresh token and get a new access token 
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    path('signup/student/', StudentSignUpView.as_view(), name='student_signup'),
+    path('signup/staff/', StaffSignUpView.as_view(), name='staff_signup'),
 ]
