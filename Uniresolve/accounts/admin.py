@@ -18,7 +18,7 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
-    list_display =('get_user_email', 'get_full_name', 'reg_number', 'program')
+    list_display =('get_user_email', 'get_full_name', 'reg_number', 'course')
     search_fields =('user__email', 'user__first_name', 'reg_number')
     list_select_related =('user',)
 
@@ -35,9 +35,9 @@ class StudentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(StaffProfile)
 class StaffProfileAdmin(admin.ModelAdmin):
-    list_display = ('get_user_email', 'get_full_name', 'employee_id', 'department')
+    list_display = ('get_user_email', 'get_full_name', 'employee_id', 'department','staff_role')
     search_fields = ('user__email', 'employee_id', 'department__name')
-    list_filter = ('department',)
+    list_filter = ('department','staff_role')
     list_select_related = ('user', 'department')
 
     def get_user_email(self,obj):
