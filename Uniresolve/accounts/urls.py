@@ -1,18 +1,21 @@
 from django.urls import path
 from .views import (
     UserRegistrationView, 
-    StudentSignUpView, 
-    StaffSignUpView
+    StudentSignUpPageView, 
+    StaffSignUpPageView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
+    # API Endpoint for registration
     path('register/', UserRegistrationView.as_view(),name='register'),
+    
+    # Frontend Pages
+    path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
+    path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
+
     #user sends email and password and gets access and refresh tokens 
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     #allows a user to send refresh token and get a new access token 
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-    path('signup/student/', StudentSignUpView.as_view(), name='student_signup'),
-    path('signup/staff/', StaffSignUpView.as_view(), name='staff_signup'),
 ]
