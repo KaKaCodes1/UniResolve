@@ -34,3 +34,7 @@ class StaffSignUpPageView(TemplateView):
         context['departments'] = Department.objects.all() # Pass all departments to the template
         return context
 
+# View for the Login Page
+class LoginPageView(TemplateView):
+    template_name = 'accounts/login.html'
+

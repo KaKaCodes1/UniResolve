@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     UserRegistrationView, 
     StudentSignUpPageView, 
-    StaffSignUpPageView
+    StaffSignUpPageView,
+    LoginPageView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -11,6 +12,7 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(),name='register'),
     
     # Frontend Pages
+    path('signin/', LoginPageView.as_view(), name='signin'),
     path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
     path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
 

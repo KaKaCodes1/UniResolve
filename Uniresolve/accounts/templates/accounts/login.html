@@ -1,0 +1,98 @@
+{% extends 'accounts/base_auth.html' %}
+
+{% block title %}Login - UniResolve{% endblock %}
+
+{% block content %}
+<div class="auth-header">
+    <h2>Welcome Back</h2>
+    <p>Login to your account</p>
+</div>
+
+<form id="loginForm">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+        <div id="detail_error" class="error-message"></div> <!-- DRF usually returns 'detail' for auth errors -->
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn-primary" id="submitBtn">Login</button>
+</form>
+
+<div class="auth-footer">
+    Don't have an account? <br>
+    <a href="{% url 'signup_student' %}" style="margin-right: 10px;">Sign up as Student</a>
+    <a href="{% url 'signup_staff' %}">Sign up as Staff</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Logging in...';
+
+        // Clear previous errors
+        document.getElementById('detail_error').style.display = 'none';
+        document.getElementById('detail_error').innerText = '';
+
+        const formData = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            // Note: TokenObtainPairView (the login API) usually lives at /api/accounts/login/ 
+            // Check urls.py to be sure. User said: path('login/', TokenObtainPairView...) under api/accounts/ include
+            const response = await fetch('/api/accounts/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Success! Store tokens.
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+
+                alert('Login Successful!');
+                // Redirect to Dashboard (or Home for now)
+                // Since we don't have a dashboard view yet, we reload or go to root
+                window.location.href = "/";
+            } else {
+                // Handle Errors
+                // DRF SimpleJWT returns {'detail': 'No active account found...'} on failure
+                const errorDiv = document.getElementById('detail_error');
+                if (data.detail) {
+                    errorDiv.innerText = data.detail;
+                    errorDiv.style.display = 'block';
+                } else {
+                    errorDiv.innerText = 'Invalid credentials';
+                    errorDiv.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Login';
+        }
+    });
+</script>
+{% endblock %}

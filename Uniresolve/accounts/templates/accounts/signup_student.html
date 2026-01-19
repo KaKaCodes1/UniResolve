@@ -62,7 +62,7 @@
 </form>
 
 <div class="auth-footer">
-    Already have an account? <a href="{% url 'token_obtain_pair' %}">Log In</a>
+    Already have an account? <a href="{% url 'signin' %}">Log In</a>
 </div>
 {% endblock %}
 
@@ -72,10 +72,12 @@
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
+        // Disable the button and change its text to indicate that the form is being submitted
+        // prevents multiple clicks
         submitBtn.disabled = true;
         submitBtn.innerText = 'Creating Account...';
 
-        // Clear previous errors
+        // Clear previous errors that may have been displayed on the form
         document.querySelectorAll('.error-message').forEach(el => {
             el.innerText = '';
             el.style.display = 'none';
@@ -88,7 +90,7 @@
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
             reg_number: document.getElementById('reg_number').value,
-            course_id: document.getElementById('course').value // Note: Serializer expects course_id
+            course_id: document.getElementById('course').value // Serializer expects course_id
         };
 
         const csrftoken = getCookie('csrftoken');

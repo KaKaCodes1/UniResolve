@@ -62,7 +62,7 @@
 </form>
 
 <div class="auth-footer">
-    Already have an account? <a href="{% url 'token_obtain_pair' %}">Log In</a>
+    Already have an account? <a href="{% url 'signin' %}">Log In</a>
 </div>
 {% endblock %}
 
@@ -72,15 +72,18 @@
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
+        // Disable the button and change its text to indicate that the form is being submitted
+        // prevents multiple clicks
         submitBtn.disabled = true;
         submitBtn.innerText = 'Creating Account...';
 
-        // Clear previous errors
+        // Clear previous errors that may have been displayed on the form
         document.querySelectorAll('.error-message').forEach(el => {
             el.innerText = '';
             el.style.display = 'none';
         });
 
+        // Collect form data
         const formData = {
             role: 'Staff',
             first_name: document.getElementById('first_name').value,
@@ -88,9 +91,10 @@
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
             employee_id: document.getElementById('employee_id').value,
-            department_id: document.getElementById('department').value // Note: Serializer expects department_id
+            department_id: document.getElementById('department').value // Serializer expects department_id
         };
 
+        // Get the CSRF token from the cookie
         const csrftoken = getCookie('csrftoken');
 
         try {
@@ -100,14 +104,14 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData) // Convert the JS object to a JSON string
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 alert('Account created successfully! Redirecting to login...');
-                window.location.href = "{% url 'token_obtain_pair' %}"; // Redirect to login
+                window.location.href = "{% url 'signin' %}"; // Redirect to login
             } else {
                 // Handle Errors
                 for (const [key, value] of Object.entries(data)) {
