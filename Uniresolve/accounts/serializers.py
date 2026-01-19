@@ -3,6 +3,7 @@ from .models import StaffProfile, StudentProfile
 from django.contrib.auth import get_user_model
 from django.db import transaction #Used to enforce atomicity
 from organization.models import Department, Course 
+from django.contrib.auth.password_validation import validate_password # Import standard validator
 
 #Getting the user model defined in the settings.py
 User = get_user_model()
@@ -44,7 +45,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'employee_id', 
             'department_id'
         ]
+
     #Validation
+    def validate_password(self, value):
+        # Enforce Django's password validation rules (length, complexity, etc)
+        validate_password(value)
+        return value
+
     def validate(self,data):
         #Extract the role chosen by the user
         role = data.get('role')
