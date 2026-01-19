@@ -1,185 +1,215 @@
+/* CUEA Branding Colors */
+:root {
+    --primary-red: #D32F2F;
+    /* Approximate CUEA Red */
+    --hover-red: #B71C1C;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --white: #FFFFFF;
+    --bg-light: #F5F5F5;
+    --border-color: #DDDDDD;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-light);
     height: 100vh;
     display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-container {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    background: var(--white);
+    /* border-radius: 12px; */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
-.split-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-.left-panel {
+/* Left Side - Image/Branding */
+.auth-sidebar {
     flex: 1;
-    background: linear-gradient(135deg, #d31010 0%, #760808 100%);
-    color: white;
+    background-color: var(--primary-red);
+    color: var(--white);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden; 
-}
-
-/* Optional: Add a background image overlay if available */
-.left-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/23/Catholic_University_of_Eastern_Africa_Logo.png'); /* Placeholder or path to uploaded asset */
+    padding: 40px;
+    background-image: linear-gradient(135deg, rgba(211, 47, 47, 0.9), rgba(183, 28, 28, 0.95)), url('https://via.placeholder.com/800x1200?text=CUEA+Campus');
+    /* TODO: Replace with real image */
     background-size: cover;
     background-position: center;
-    opacity: 0.1;
-    z-index: 0;
+    text-align: center;
 }
 
-.left-panel-content {
-    z-index: 1;
+.auth-sidebar h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
 }
 
-.left-panel h1 {
-    font-size: 3rem;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.left-panel h2 {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    font-weight: 400;
-}
-
-.left-panel p {
-    font-size: 1.2rem;
+.auth-sidebar p {
+    font-size: 1.1rem;
     opacity: 0.9;
+    max-width: 80%;
 }
 
-.right-panel {
+/* Right Side - Form */
+.auth-content {
     flex: 1;
-    background-color: #f5f5f5;
+    height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+    flex-direction: column;
     overflow-y: auto;
+    /* Scroll container */
 }
 
-.auth-card {
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+/* Wrapper to handle safe centering */
+.auth-wrapper {
     width: 100%;
-    max-width: 500px;
+    max-width: 550px;
+    margin: auto;
+    /* Helper for safe vertical centering in flex */
+    padding: 40px;
 }
 
 .auth-header {
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .auth-header h2 {
-    color: #333;
-    margin-bottom: 10px;
+    color: var(--text-dark);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
 }
 
 .auth-header p {
-    color: #666;
-    font-size: 0.9rem;
+    color: var(--text-light);
 }
 
-.toggle-container {
+.role-switcher {
     display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
     background: #f0f0f0;
-    border-radius: 25px;
-    margin-bottom: 20px;
-    padding: 4px;
+    padding: 5px;
+    border-radius: 8px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.toggle-btn {
-    flex: 1;
-    padding: 10px;
+.role-btn {
+    padding: 8px 24px;
     border: none;
     background: transparent;
-    border-radius: 20px;
     cursor: pointer;
+    border-radius: 6px;
     font-weight: 600;
-    color: #555;
-    text-align: center;
+    color: var(--text-light);
     text-decoration: none;
-    display: block;
+    transition: all 0.3s ease;
 }
 
-.toggle-btn.active {
-    background: white;
-    color: #333;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+.role-btn.active {
+    background: var(--white);
+    color: var(--primary-red);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    color: #333;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .form-control {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: #f9f9f9;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s;
 }
 
 .form-control:focus {
-    border-color: #d31010;
     outline: none;
-    background: white;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
 }
 
-.btn-submit {
+.btn-primary {
     width: 100%;
-    padding: 12px;
-    background: #c90f15;
-    color: white;
+    padding: 14px;
+    background-color: var(--primary-red);
+    color: var(--white);
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
 }
 
-.btn-submit:hover {
-    background: #a00b10;
+.btn-primary:hover {
+    background-color: var(--hover-red);
 }
 
-.role-select {
-    margin-bottom: 20px;
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
 }
 
-.error-list {
-    color: red;
-    font-size: 0.8rem;
-    list-style: none;
+.auth-footer a {
+    color: var(--primary-red);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.error-message {
+    color: #D32F2F;
+    font-size: 0.85rem;
     margin-top: 5px;
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .auth-sidebar {
+        padding: 40px 20px;
+        min-height: 200px;
+    }
+
+    .auth-content {
+        padding: 40px 20px;
+    }
 }

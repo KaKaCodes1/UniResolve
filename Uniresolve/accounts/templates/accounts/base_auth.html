@@ -1,38 +1,55 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CUEA - Sign Up{% endblock %}</title>
+    <title>{% block title %}Sign Up - UniResolve{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
 </head>
+
 <body>
-    <div class="split-container">
-        <div class="left-panel">
-            <div class="left-panel-content">
-                <h1>CUEA</h1>
-                <h2>Catholic University of Eastern Africa</h2>
-                <p>Digital Issue Reporting & Resolution System</p>
-            </div>
+    <div class="auth-container">
+        <!-- Sidebar (Branding) -->
+        <div class="auth-sidebar">
+            <h1>UniResolve</h1>
+            <p>Catholic University of Eastern Africa</p>
+            <p style="margin-top: 20px; font-size: 0.9rem;">Digital Issue Reporting & Resolution System</p>
         </div>
-        <div class="right-panel">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <h2>{% block headertitle %}Create Account{% endblock %}</h2>
-                    <p>{% block headersub %}Fill in your details to create a new account{% endblock %}</p>
-                </div>
 
-                <div class="toggle-container">
-                    <a href="#" class="toggle-btn">Login</a>
-                    <a href="#" class="toggle-btn active">Sign Up</a>
-                </div>
-
+        <!-- content (Form) -->
+        <div class="auth-content">
+            <div class="auth-wrapper">
                 {% block content %}
                 {% endblock %}
             </div>
         </div>
     </div>
+
+    <script>
+        // Check for CSRF Token function (standard Django JS)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
