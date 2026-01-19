@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import StaffProfile, StudentProfile
 from django.contrib.auth import get_user_model
 from django.db import transaction #Used to enforce atomicity
-from organization.models import Department
+from organization.models import Department, Course 
 
 #Getting the user model defined in the settings.py
 User = get_user_model()
@@ -11,7 +11,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     #manually defining fields not in the User model
     #required=False because a Student won't provide Employee ID & department, and Staff won't provide Reg Number & program.
     reg_number = serializers.CharField(max_length=20, required=False, write_only=True)
-    program = serializers.CharField(max_length=100, required=False, write_only=True)
+    course_id = serializers.PrimaryKeyRelatedField(
+        queryset=Course.objects.all(),
+        source='course',
+        required=False,
+        write_only=True
+    )
     employee_id = serializers.CharField(max_length=20, required=False, write_only=True)
     
     # PrimaryKeyRelatedField means the frontend sends an ID, and DRF finds the Department object for us.
@@ -35,7 +40,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'password', 
             'role', 
             'reg_number', 
-            'program', 
+            'course_id', 
             'employee_id', 
             'department_id'
         ]
@@ -45,8 +50,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         role = data.get('role')
 
         if role == 'Student':
-            if not data.get('reg_number') or not data.get('program'):
-                raise serializers.ValidationError("Students must provide a 'reg_number' and 'program'.")
+            # Changed check from 'program' to 'course' (source of course_id)
+            if not data.get('reg_number') or not data.get('course'):
+                raise serializers.ValidationError("Students must provide a 'reg_number' and 'course_id'.")
         
         if role == 'Staff':
             if not data.get('employee_id') or not data.get('department'):
@@ -60,7 +66,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         #.pop is used to remove fields that are not on the User model to prevent errors in creation
         #None is used to prevent the system from crashing when either of these fields is missing depending on the role chosen
         reg_number = validated_data.pop('reg_number', None)
-        program = validated_data.pop('program', None)
+        course = validated_data.pop('course', None)
         employee_id = validated_data.pop('employee_id', None)
         department = validated_data.pop('department', None)
 
@@ -83,7 +89,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 StudentProfile.objects.create(
                     user=user,
                     reg_number=reg_number,
-                    program=program
+                    course=course # Updated to match model field
                 )
             elif user.role == 'Staff':
                 StaffProfile.objects.create(
