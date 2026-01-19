@@ -5,7 +5,7 @@ from .models import User, StudentProfile, StaffProfile
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('first_name', 'last_name', 'email')
+    list_display = ('first_name', 'last_name', 'email','role')
     list_filter = ('role', 'is_staff')
     search_fields = ('first_name', 'last_name', 'email', 'student_profile__reg_number', 'staff_profile__employee_id')
 
