@@ -131,6 +131,23 @@ body {
 
 .form-group {
     margin-bottom: 1.5rem;
+    position: relative;
+    /* For absolute positioning of icon */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 38px;
+    /* Adjust based on label height + input padding */
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+.password-toggle:hover {
+    color: var(--primary-red);
 }
 
 .form-group label {

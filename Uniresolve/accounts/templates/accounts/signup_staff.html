@@ -37,6 +37,8 @@
     <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" class="form-control" required>
+        <i class="fa-solid fa-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
+        <!-- Toggle Switch -->
         <div id="password_error" class="error-message"></div>
     </div>
 
@@ -136,5 +138,19 @@
             submitBtn.innerText = 'Create Account';
         }
     });
+
+    // Password Visibility Toggle
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        }
+    }
 </script>
 {% endblock %}

@@ -19,15 +19,14 @@
     <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" class="form-control" required>
+        <i class="fa-solid fa-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
     </div>
 
     <button type="submit" class="btn-primary" id="submitBtn">Login</button>
 </form>
 
 <div class="auth-footer">
-    Don't have an account? <br>
-    <a href="{% url 'signup_student' %}" style="margin-right: 10px;">Sign up as Student</a>
-    <a href="{% url 'signup_staff' %}">Sign up as Staff</a>
+    Don't have an account? <a href="{% url 'signup_student' %}">Sign up</a>
 </div>
 {% endblock %}
 
@@ -94,5 +93,19 @@
             submitBtn.innerText = 'Login';
         }
     });
+
+    // Password Visibility Toggle
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        }
+    }
 </script>
 {% endblock %}
