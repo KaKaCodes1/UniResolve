@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard - CUEA Issue Portal{% endblock %}</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="{% static 'tickets/css/dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'submit_issue' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'submit_issue' %}active{% endif %}">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Submit Issue</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>My History</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fa-regular fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-logo">
+                    <div class="logo-icon">C</div>
+                    <div class="logo-text">
+                        <h1>CUEA Issue Portal</h1>
+                        <p>Catholic University of Eastern Africa</p>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badg-dot"></span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="welcome-text">Welcome,</span>
+                            <span class="user-name" id="user-name-display">Loading...</span>
+                        </div>
+                        <a href="#" class="logout-link" id="logoutBtn">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+
+    <script>
+        // Helper to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Logout Handler
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = "{% url 'signin' %}";
+            }
+        });
+
+        // Load User Profile
+        document.addEventListener('DOMContentLoaded', async () => {
+            const accessToken = localStorage.getItem('access_token');
+            if (accessToken) {
+                try {
+                    const response = await fetch('/api/accounts/profile/', {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const nameDisplay = document.getElementById('user-name-display');
+                        if (nameDisplay) {
+                            nameDisplay.innerText = `${data.first_name} ${data.last_name}`;
+                        }
+                    } else if (response.status === 401) {
+                        // Token likely expired
+                        // Redirecting to login
+                        window.location.href = "{% url 'signin' %}";
+                    }
+                } catch (error) {
+                    console.error('Failed to load profile:', error);
+                }
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

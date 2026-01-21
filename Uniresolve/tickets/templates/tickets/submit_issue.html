@@ -1,0 +1,220 @@
+{% extends 'tickets/base_dashboard.html' %}
+
+{% block title %}Submit New Issue - UniResolve{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Submit New Issue</h2>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <h3>Issue Details</h3>
+        <p>Fill in the details below to submit your issue</p>
+    </div>
+
+    <form id="submitIssueForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="category">Category</label>
+            <div class="select-wrapper">
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select Issue category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.category_name }}</option>
+                    {% endfor %}
+                </select>
+                <i class="fa-solid fa-chevron-down select-icon"></i>
+            </div>
+            <div id="category_error" class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" placeholder="Enter the title of your issue" required>
+            <div id="title_error" class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Provide detailed information about your issue..."
+                rows="5" required></textarea>
+            <div id="description_error" class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Attachment (Optional)</label>
+            <div class="file-upload-container" id="dropZone">
+                <input type="file" id="attachment" name="attachment" accept=".png, .jpg, .jpeg, .pdf" hidden>
+                <div class="upload-content">
+                    <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
+                    <p><strong>Upload a file</strong> or drag and drop</p>
+                    <span class="upload-hint">PNG, JPG, PDF up to 10MB</span>
+                </div>
+                <!-- File preview area -->
+                <div id="filePreview" class="file-preview" style="display: none;">
+                    <i class="fa-regular fa-file"></i>
+                    <span id="fileName">filename.pdf</span>
+                    <i class="fa-solid fa-xmark remove-file" id="removeFile"></i>
+                </div>
+            </div>
+            <div id="attachment_error" class="error-message"></div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary" id="submitBtn">Submit Issue</button>
+            <button type="button" class="btn-secondary" onclick="window.history.back()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check for authentication
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            window.location.href = "{% url 'signin' %}";
+            return;
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('attachment');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        const removeFile = document.getElementById('removeFile');
+        const uploadContent = document.querySelector('.upload-content');
+
+        // Trigger file input on click
+        dropZone.addEventListener('click', (e) => {
+            if (e.target !== removeFile && e.target !== filePreview) {
+                fileInput.click();
+            }
+        });
+
+        // Handle file selection
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('highlight');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFileSelect();
+        }
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                uploadContent.style.display = 'none';
+                filePreview.style.display = 'flex';
+                fileName.textContent = file.name;
+            } else {
+                resetFile();
+            }
+        }
+
+        // Remove file
+        removeFile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetFile();
+        });
+
+        function resetFile() {
+            fileInput.value = '';
+            uploadContent.style.display = 'flex';
+            filePreview.style.display = 'none';
+            fileName.textContent = '';
+        }
+
+        // Form Submission
+        const form = document.getElementById('submitIssueForm');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Submitting...';
+
+            // Reset errors
+            document.querySelectorAll('.error-message').forEach(el => el.innerText = '');
+
+            const formData = new FormData();
+            formData.append('category', document.getElementById('category').value);
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('status', 'OPEN'); // Default status
+
+            const file = fileInput.files[0];
+            if (file) {
+                formData.append('attachment', file);
+            }
+
+            try {
+                const response = await fetch('/api/v1/tickets/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Issue submitted successfully!');
+                    // Reset form
+                    form.reset();
+                    resetFile();
+                    // Optionally redirect to dashboard or history
+                } else {
+                    const data = await response.json();
+                    // Display errors
+                    for (const [key, value] of Object.entries(data)) {
+                        const errorDiv = document.getElementById(`${key}_error`);
+                        if (errorDiv) {
+                            errorDiv.innerText = Array.isArray(value) ? value[0] : value;
+                        } else {
+                            alert(`Error: ${value}`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Submit Issue';
+            }
+        });
+    });
+</script>
+{% endblock %}

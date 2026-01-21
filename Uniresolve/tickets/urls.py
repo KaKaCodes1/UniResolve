@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import TicketViewSet, ResolutionViewSet
+from .views import TicketViewSet, ResolutionViewSet, SubmitIssuePageView
 from rest_framework.routers import DefaultRouter
 
 #The router will handle creating the appropriate URL patterns
@@ -10,4 +10,5 @@ router.register(r'resolutions', ResolutionViewSet, basename='resolutions')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('submit-issue/', SubmitIssuePageView.as_view(), name='submit_issue'),
 ]
