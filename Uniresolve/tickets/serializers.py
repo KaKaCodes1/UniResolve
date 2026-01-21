@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Ticket, Resolution
+from .validators import validate_file_attachment
 
 class ResolutionSerializer(serializers.ModelSerializer):
     # Display the Staff member's email/name instead of their ID
@@ -24,6 +25,7 @@ class TicketSerializer(serializers.ModelSerializer):
     # Display the student's name and category name instead of their ID
     owner = serializers.StringRelatedField(read_only=True)
     category_name = serializers.StringRelatedField(source = 'category', read_only = True)
+    attachment = serializers.FileField(required=False, validators=[validate_file_attachment])
 
     #Nested serializer to allow a student to see staff's remarks when they view their ticket
     resolutions = ResolutionSerializer(many=True, read_only=True)
