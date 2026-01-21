@@ -10,6 +10,7 @@ class Ticket(models.Model):
     ]
     title = models.CharField(max_length=200)
     description = models.TextField()
+    attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=status_choices, default='OPEN')
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

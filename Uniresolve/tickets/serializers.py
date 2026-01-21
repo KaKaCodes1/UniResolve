@@ -34,6 +34,7 @@ class TicketSerializer(serializers.ModelSerializer):
             'id', 
             'title', 
             'description', 
+            'attachment',
             'status', 
             'category',       # Input: Accepts ID (e.g., 1)
             'category_name',  # Output: distinct name corresponding with the category ID
