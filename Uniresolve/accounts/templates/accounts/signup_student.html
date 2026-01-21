@@ -110,7 +110,7 @@
 
             if (response.ok) {
                 alert('Account created successfully! Redirecting to login...');
-                window.location.href = "{% url 'token_obtain_pair' %}"; // Redirect to login
+                window.location.href = "{% url 'signin' %}"; // Redirect to login
             } else {
                 // Handle Errors
                 for (const [key, value] of Object.entries(data)) {
