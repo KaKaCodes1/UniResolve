@@ -31,9 +31,11 @@ body {
     background-color: var(--card-bg);
     border-right: 1px solid var(--border-color);
     position: fixed;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
+    /* Subtract header height */
     left: 0;
-    top: 0;
+    top: var(--header-height);
+    /* Start below header */
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -70,6 +72,8 @@ body {
 /* Main Content */
 .main-content {
     margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    /* Push down content */
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -115,12 +119,18 @@ body {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    /* Align right */
-    padding: 0 40px;
-    position: sticky;
+    justify-content: space-between;
+    /* Separate Logo and Right Actions */
+    padding: 0 40px 0 0;
+    /* Removing left padding as logo has its own padding */
+    position: fixed;
+    /* Fix to top */
+    width: 100%;
+    left: 0;
     top: 0;
-    z-index: 900;
+    z-index: 1100;
+    /* Higher than sidebar */
+    box-sizing: border-box;
 }
 
 .header-right {

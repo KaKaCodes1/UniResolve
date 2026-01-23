@@ -15,10 +15,36 @@
 </head>
 
 <body>
+    <header class="top-header">
+        <div class="header-logo">
+            <div class="logo-icon">C</div>
+            <div class="logo-text">
+                <h1>CUEA Issue Portal</h1>
+                <p>Catholic University of Eastern Africa</p>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="notification-bell">
+                <i class="fa-regular fa-bell"></i>
+                <span class="badg-dot"></span>
+            </div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="welcome-text">Welcome,</span>
+                    <span class="user-name" id="user-name-display">Loading...</span>
+                </div>
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            
+
 
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item">
@@ -30,7 +56,7 @@
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Submit Issue</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{% url 'my_history' %}" class="nav-item {% if request.resolver_match.url_name == 'my_history' %}active{% endif %}">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>My History</span>
                 </a>
@@ -43,32 +69,9 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="top-header">
-                <div class="header-logo">
-                    <div class="logo-icon">C</div>
-                    <div class="logo-text">
-                        <h1>CUEA Issue Portal</h1>
-                        <p>Catholic University of Eastern Africa</p>
-                    </div>
-                </div>
+            <!-- Header removed from here -->
 
-                <div class="header-right">
-                    <div class="notification-bell">
-                        <i class="fa-regular fa-bell"></i>
-                        <span class="badg-dot"></span>
-                    </div>
-                    <div class="user-profile">
-                        <div class="user-info">
-                            <span class="welcome-text">Welcome,</span>
-                            <span class="user-name" id="user-name-display">Loading...</span>
-                        </div>
-                        <a href="#" class="logout-link" id="logoutBtn">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                        </a>
-                    </div>
-                </div>
-            </header>
+            <!-- Page Content -->
 
             <!-- Page Content -->
             <div class="content-wrapper">
