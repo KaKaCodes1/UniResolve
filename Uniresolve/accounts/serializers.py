@@ -66,6 +66,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Staff must provide an 'employee_id' and 'department_id'.")
         
         return data
+
+    def validate_reg_number(self, value):
+        if StudentProfile.objects.filter(reg_number=value).exists():
+            raise serializers.ValidationError("This registration number is already in use.")
+        return value
+
+    def validate_employee_id(self, value):
+        if StaffProfile.objects.filter(employee_id=value).exists():
+            raise serializers.ValidationError("This employee ID is already in use.")
+        return value
     
     #Creation - runs after validation
     #default create() is overridden because data will be saved in 2 tables: User and Staff/StdentProfile
