@@ -148,8 +148,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT ={
-    #Set after how long the Access Token will expire - 60 mins for security.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    #Set after how long the Access Token will expire - 5 mins for security.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     #Refresh Token is used to get a new Access Token without logging in again.
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
