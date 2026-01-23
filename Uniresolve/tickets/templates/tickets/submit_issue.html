@@ -166,7 +166,10 @@
             submitBtn.innerText = 'Submitting...';
 
             // Reset errors
-            document.querySelectorAll('.error-message').forEach(el => el.innerText = '');
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
 
             const formData = new FormData();
             formData.append('category', document.getElementById('category').value);
@@ -202,6 +205,7 @@
                         const errorDiv = document.getElementById(`${key}_error`);
                         if (errorDiv) {
                             errorDiv.innerText = Array.isArray(value) ? value[0] : value;
+                            errorDiv.style.display = 'block';
                         } else {
                             alert(`Error: ${value}`);
                         }
