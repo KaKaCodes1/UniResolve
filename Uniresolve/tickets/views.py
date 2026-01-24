@@ -4,7 +4,11 @@ from .models import Ticket, Resolution
 from django.db import transaction
 from django.views.generic import TemplateView
 from organization.models import Category
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
+#Preventing page caching to prevent users from accessing pages when they logout
+@method_decorator(never_cache, name='dispatch')
 class SubmitIssuePageView(TemplateView):
     template_name = 'tickets/submit_issue.html'
 
@@ -12,6 +16,16 @@ class SubmitIssuePageView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
         return context
+
+
+@method_decorator(never_cache, name='dispatch')
+class MyHistoryPageView(TemplateView):
+    template_name = 'tickets/my_history.html'
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['tickets'] = Ticket.objects.filter(owner = self.request.user)
+    #     return context
 
 
 class TicketViewSet(viewsets.ModelViewSet):
