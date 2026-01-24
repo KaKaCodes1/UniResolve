@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import TicketViewSet, ResolutionViewSet, SubmitIssuePageView, MyHistoryPageView
+from .views import TicketViewSet, ResolutionViewSet, SubmitIssuePageView, MyHistoryPageView, ProfilePageView
 from rest_framework.routers import DefaultRouter
 
 #The router will handle creating the appropriate URL patterns
@@ -12,4 +12,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('submit-issue/', SubmitIssuePageView.as_view(), name='submit_issue'),
     path('my-history/', MyHistoryPageView.as_view(), name='my_history'),
+    path('profile/', ProfilePageView.as_view(), name='profile'),
 ]

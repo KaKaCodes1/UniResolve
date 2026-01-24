@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework import generics, permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import UserRegistrationSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
 from organization.models import Course, Department 
@@ -17,7 +17,7 @@ class UserRegistrationView(generics.CreateAPIView):
 
 class UserProfileView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserRegistrationSerializer
+    serializer_class = UserProfileSerializer
 
     def get_object(self):
         return self.request.user

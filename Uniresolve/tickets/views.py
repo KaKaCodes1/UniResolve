@@ -17,6 +17,9 @@ class SubmitIssuePageView(TemplateView):
         context['categories'] = Category.objects.all()
         return context
 
+@method_decorator(never_cache, name='dispatch')
+class ProfilePageView(TemplateView):
+    template_name = 'tickets/profile.html'
 
 @method_decorator(never_cache, name='dispatch')
 class MyHistoryPageView(TemplateView):

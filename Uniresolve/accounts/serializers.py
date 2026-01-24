@@ -117,3 +117,42 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         # Return the created user object to the frontend
         return user
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'email',
+            'username',
+            'first_name', 
+            'last_name', 
+            'role',
+            'profile_data'
+        ]
+
+    def get_profile_data(self, obj):
+        if obj.role == 'Student':
+            try:
+                profile = obj.student_profile
+                return {
+                    'reg_number': profile.reg_number,
+                    'course': profile.course.course_name if profile.course else None
+                }
+            except StudentProfile.DoesNotExist:
+                return {}
+        
+        elif obj.role == 'Staff':
+            try:
+                profile = obj.staff_profile
+                return {
+                    'employee_id': profile.employee_id,
+                    'department': profile.department.department_name if profile.department else None,
+                    'staff_role': profile.staff_role
+                }
+            except StaffProfile.DoesNotExist:
+                return {}
+        
+        return {}

@@ -60,7 +60,7 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>My History</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                     <i class="fa-regular fa-user"></i>
                     <span>Profile</span>
                 </a>
