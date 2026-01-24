@@ -1,5 +1,7 @@
 from .serializers import TicketSerializer, ResolutionSerializer
 from rest_framework import viewsets, permissions, serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Ticket, Resolution
 from django.db import transaction
 from django.views.generic import TemplateView
@@ -20,6 +22,34 @@ class SubmitIssuePageView(TemplateView):
 @method_decorator(never_cache, name='dispatch')
 class ProfilePageView(TemplateView):
     template_name = 'tickets/profile.html'
+
+@method_decorator(never_cache, name='dispatch')
+class StudentDashboardPageView(TemplateView):
+    template_name = 'tickets/student_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Initialize default values
+        context['total_tickets'] = 0
+        context['pending_tickets'] = 0
+        context['resolved_tickets'] = 0
+        context['recent_tickets'] = []
+
+        if user.is_authenticated and user.role == 'Student':
+            # Get all tickets for this student
+            tickets = Ticket.objects.filter(owner=user)
+            
+            # Calculate counts
+            context['total_tickets'] = tickets.count()
+            context['pending_tickets'] = tickets.filter(status='PENDING').count()
+            context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
+            
+            # Get 3 most recent tickets
+            context['recent_tickets'] = tickets.order_by('-created_at')[:3]
+            
+        return context
 
 @method_decorator(never_cache, name='dispatch')
 class MyHistoryPageView(TemplateView):
@@ -50,6 +80,22 @@ class TicketViewSet(viewsets.ModelViewSet):
         
         #Admins see all tickets
         return Ticket.objects.all()
+
+    @action(detail=False, methods=['get'])
+    def dashboard_stats(self, request):
+        user = request.user
+        if not user.is_authenticated or user.role != 'Student':
+             return Response({'error': 'Unauthorized'}, status=403)
+        
+        tickets = Ticket.objects.filter(owner=user)
+        
+        stats = {
+            'total_tickets': tickets.count(),
+            'pending_tickets': tickets.filter(status='PENDING').count(),
+            'resolved_tickets': tickets.filter(status='RESOLVED').count(),
+            'recent_tickets': TicketSerializer(tickets.order_by('-created_at')[:3], many=True).data
+        }
+        return Response(stats)
 
     #connects a ticket to a logged in user
     def perform_create(self, serializer):

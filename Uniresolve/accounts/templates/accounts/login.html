@@ -72,7 +72,7 @@
                 alert('Login Successful!');
                 // Redirect to Dashboard (or Home for now)
                 // Since we don't have a dashboard view yet, we reload or go to root
-                window.location.href = "{% url 'submit_issue' %}";
+                window.location.href = "{% url 'student_dashboard' %}";
             } else {
                 // Handle Errors
                 // DRF SimpleJWT returns {'detail': 'No active account found...'} on failure
