@@ -96,6 +96,16 @@
         </div>
     </div>
 
+    <!-- Open Card -->
+    <div class="stat-card">
+        <span class="stat-label">Open</span>
+        <div class="stat-value" id="openTickets">0</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-file-lines"></i>
+            <span>All issues</span>
+        </div>
+    </div>
+
     <!-- Pending Card -->
     <div class="stat-card">
         <span class="stat-label">Pending</span>
@@ -274,6 +284,7 @@
 
                 // Update stats
                 document.getElementById('totalTickets').textContent = data.total_tickets;
+                document.getElementById('openTickets').textContent = data.open_tickets;
                 document.getElementById('pendingTickets').textContent = data.pending_tickets;
                 document.getElementById('resolvedTickets').textContent = data.resolved_tickets;
 

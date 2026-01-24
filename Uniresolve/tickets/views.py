@@ -33,6 +33,7 @@ class StudentDashboardPageView(TemplateView):
         
         # Initialize default values
         context['total_tickets'] = 0
+        context['open_tickets'] = 0
         context['pending_tickets'] = 0
         context['resolved_tickets'] = 0
         context['recent_tickets'] = []
@@ -43,6 +44,7 @@ class StudentDashboardPageView(TemplateView):
             
             # Calculate counts
             context['total_tickets'] = tickets.count()
+            context['open_tickets'] = tickets.filter(status='OPEN').count()
             context['pending_tickets'] = tickets.filter(status='PENDING').count()
             context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
             
@@ -55,10 +57,35 @@ class StudentDashboardPageView(TemplateView):
 class MyHistoryPageView(TemplateView):
     template_name = 'tickets/my_history.html'
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['tickets'] = Ticket.objects.filter(owner = self.request.user)
-    #     return context
+@method_decorator(never_cache, name='dispatch')
+class StaffDashboardPageView(TemplateView):
+    template_name = 'tickets/staff_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Initialize default values
+        context['total_tickets'] = 0
+        context['pending_tickets'] = 0
+        context['inprogress_tickets'] = 0
+        context['resolved_tickets'] = 0
+        context['recent_tickets'] = []
+
+        if user.is_authenticated and user.role == 'Staff':
+            # Get all tickets for this staff member
+            tickets = Ticket.objects.filter(owner=user)
+
+            # Calculate counts
+            context['total_tickets'] = tickets.filter(department=user.staff_profile.department).count()
+            context['pending_tickets'] = tickets.filter(department=user.staff_profile.department,status='PENDING').count()
+            context['inprogress_tickets'] = tickets.filter(department=user.staff_profile.department,status='INPROGRESS').count()
+            context['resolved_tickets'] = tickets.filter(department=user.staff_profile.department,status='RESOLVED').count()
+            
+            # Get 3 most recent tickets
+            context['recent_tickets'] = tickets.order_by('-created_at')[:3]
+
+
 
 
 class TicketViewSet(viewsets.ModelViewSet):
@@ -91,6 +118,7 @@ class TicketViewSet(viewsets.ModelViewSet):
         
         stats = {
             'total_tickets': tickets.count(),
+            'open_tickets': tickets.filter(status='OPEN').count(),
             'pending_tickets': tickets.filter(status='PENDING').count(),
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
             'recent_tickets': TicketSerializer(tickets.order_by('-created_at')[:3], many=True).data
