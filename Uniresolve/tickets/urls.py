@@ -6,6 +6,7 @@ from .views import (
     MyHistoryPageView,
     ProfilePageView,
     StudentDashboardPageView,
+    StaffDashboardPageView,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -21,4 +22,5 @@ urlpatterns = [
     path('my-history/', MyHistoryPageView.as_view(), name='my_history'),
     path('profile/', ProfilePageView.as_view(), name='profile'),
     path('student-dashboard/', StudentDashboardPageView.as_view(), name='student_dashboard'),
+    path('staff-dashboard/', StaffDashboardPageView.as_view(), name='staff_dashboard'),
 ]
