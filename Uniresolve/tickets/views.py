@@ -10,6 +10,7 @@ from django.views.generic import TemplateView
 from organization.models import Category
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.contrib.auth import get_user_model
 
 #Preventing page caching to prevent users from accessing pages when they logout
 @method_decorator(never_cache, name='dispatch')
@@ -124,6 +125,28 @@ class StaffAllIssuesPageView(TemplateView):
              staff_dept = user.staff_profile.department
              context['categories'] = Category.objects.filter(department=staff_dept)
         return context
+
+#Import User model
+User = get_user_model()
+
+@method_decorator(never_cache, name='dispatch')
+class AllResolutionsPageView(TemplateView):
+    template_name = 'tickets/all_resolutions.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Staff' and hasattr(user, 'staff_profile') and user.staff_profile.department:
+             # Pass staff members for the dropdown filter
+             staff_dept = user.staff_profile.department
+             # Assuming we can find other staff by filtering profiles linked to this dept
+             # If `StaffProfile` has `department`, we can query User where staff_profile__department=staff_dept
+             context['staff_members'] = User.objects.filter(staff_profile__department=staff_dept, role='Staff')
+             
+        return context
+        
+        
 
 
 
@@ -304,3 +327,65 @@ class ResolutionViewSet(viewsets.ModelViewSet):
             
             # Refresh from DB to confirm it stuck
             ticket.refresh_from_db()
+
+    @action(detail=False, methods=['get'])
+    def all_resolutions(self, request):
+        """
+        API endpoint for "All Resolutions" page.
+        Filters resolutions by department, status, staff member, and search query.
+        """
+        user = request.user
+        if not user.is_authenticated or user.role != 'Staff':
+             return Response({'error': 'Unauthorized'}, status=403)
+
+        if not hasattr(user, 'staff_profile') or not user.staff_profile.department:
+             return Response({'error': 'Staff profile/department not found'}, status=400)
+
+        staff_dept = user.staff_profile.department
+        
+        # Base Query: Resolutions linked to tickets in the staff's department
+        queryset = Resolution.objects.filter(ticket__category__department=staff_dept).order_by('-resolved_at')
+
+        # Filtering 
+        # 1. Status (of the Ticket)
+        status_param = request.query_params.get('status')
+        if status_param and status_param != 'All Statuses':
+            # Filter based on the current status of the ticket
+            queryset = queryset.filter(ticket__status=status_param.upper())
+
+        # 2. Staff Member
+        staff_param = request.query_params.get('staff')
+        if staff_param and staff_param != 'All Staff':
+            try:
+                queryset = queryset.filter(resolved_by__id=int(staff_param))
+            except ValueError:
+                pass
+
+        # 3. Search (Ticket ID or Title)
+        search_query = request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(ticket__id__icontains=search_query) |
+                Q(ticket__title__icontains=search_query)
+            )
+
+        # Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = ResolutionSerializer(page_obj.object_list, many=True)
+        
+        return Response({
+            'resolutions': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })

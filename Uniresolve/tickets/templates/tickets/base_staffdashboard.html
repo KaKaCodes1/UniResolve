@@ -62,6 +62,13 @@
                     <i class="fa-solid fa-list"></i>
                     <span>All Issues</span>
                 </a>
+
+                <a href="{% url 'staff_all_resolutions' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'staff_all_resolutions' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>All Resolutions</span>
+                </a>
+
                 <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                     <i class="fa-regular fa-user"></i>
                     <span>Profile</span>
