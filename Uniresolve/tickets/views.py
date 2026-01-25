@@ -122,7 +122,7 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         #Students only see tickets they created
         if user.role == 'Student':
-            return Ticket.objects.filter(owner = user)
+            return Ticket.objects.order_by('-created_at').filter(owner = user)
         
         #Departmental filtering
         if user.role == 'Staff':

@@ -76,7 +76,12 @@
                 <h4>Attachment</h4>
                 <div class="attachment-link">
                     <i class="fa-solid fa-paperclip"></i>
-                    <span id="modalAttachmentName">filename.pdf</span>
+                    <span id="modalAttachmentName">
+                        <a id="modalAttachmentLink" href="#" target="_blank"
+                            style="color: #666; text-decoration: underline;">
+                            filename.pdf
+                        </a>
+                    </span>
                 </div>
             </div>
 
@@ -229,12 +234,11 @@
 
         // Attachment
         const attachmentSection = document.getElementById('modalAttachmentSection');
+        const attachmentLink = document.getElementById('modalAttachmentLink');
         if (ticket.attachment) {
-            console.log(ticket.attachment)
             attachmentSection.style.display = 'block';
-            // const link = document.getElementById('modalAttachmentLink');
-            // link.href = ticket.attachment;
-            document.getElementById('modalAttachmentName').textContent = ticket.attachment;
+            attachmentLink.href = ticket.attachment;
+            attachmentLink.textContent = ticket.attachment.split('/').pop(); // Show filename
         } else {
             attachmentSection.style.display = 'none';
         }
