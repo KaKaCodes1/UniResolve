@@ -73,6 +73,249 @@
         font-size: 0.9rem;
     }
 </style>
+<style>
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(5px);
+    /* Background Blur */
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 700px;
+        position: relative;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+        animation: modalSlideIn 0.3s ease;
+        overflow: hidden;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Modal Header - Red Design */
+    .modal-header {
+        background-color: #c41e3a;
+        /* Deep Red */
+        padding: 15px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: white;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .close-btn:hover {
+        opacity: 1;
+    }
+
+    .modal-body {
+        padding: 25px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    /* Info Row */
+    .ticket-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .ticket-title-large {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .status-pill {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pill.resolved {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-item i {
+        color: #888;
+        width: 16px;
+    }
+
+    .info-item b {
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Description Box */
+    .description-box {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 25px;
+        color: #444;
+        line-height: 1.6;
+    }
+
+    .description-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #666;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    /* Staff Response Section */
+    .response-section {
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+
+    /* Footer & Buttons */
+    .modal-footer {
+        padding: 15px 25px;
+        background-color: #f8f9fa;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-escalate {
+        margin-right: auto;
+        /* Pushes to left */
+        background: none;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-escalate:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-cancel {
+        background-color: #e9ecef;
+        color: #333;
+        border: 1px solid #ced4da;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .btn-submit-response {
+        background-color: #c41e3a;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-submit-response:hover {
+        background-color: #a01830;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -141,7 +384,7 @@
             <thead>
                 <tr>
                     <th>Ticket ID</th>
-                    <th>Student Reg</th> <!-- Placeholder for student info -->
+                    <th>Student Name</th>
                     <th>Category</th>
                     <th>Subject</th>
                     <th>Date</th>
@@ -160,10 +403,83 @@
         </table>
     </div>
 </div>
+
+<!-- Resolution Modal -->
+<div id="resolveModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Issue Details</h3>
+            <button class="close-btn" onclick="closeResolveModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="ticket-info-header">
+                <h4 id="modalTicketTitle" class="ticket-title-large">Missing Exam Results</h4>
+                <span id="modalTicketStatusBadge" class="status-pill">Pending</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <i class="fa-solid fa-tag"></i> Category: <b id="modalCategory">Academic</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-user"></i> By: <b id="modalOwner">John Kamau</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-clock"></i> Submitted: <b id="modalDate">2024-01-10</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-file"></i>
+                    <a id="modalAttachmentLink" href="#" target="_blank"
+                        style="color: #666; text-decoration: underline;">view attachment</a>
+                    <span id="modalNoAttachment" style="color: #aaa; font-style: italic;">No attachment</span>
+                </div>
+            </div>
+
+            <div class="description-box">
+                <span class="description-label">Description</span>
+                <p id="modalDescription" style="margin: 0;">My exam results are not showing...</p>
+            </div>
+
+            <div class="response-section">
+                <span class="section-title">Staff Response</span>
+
+                <div class="form-group">
+                    <label for="resolutionStatus">Update Status</label>
+                    <select id="resolutionStatus" class="form-control" style="background-color: #f8f9fa;">
+                        <option value="PENDING">Pending</option>
+                        <option value="RESOLVED">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="resolutionFeedback">Response/Feedback</label>
+                    <textarea id="resolutionFeedback" class="form-control" rows="4"
+                        placeholder="Enter your response or feedback for the student..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-escalate" onclick="alert('Escalation logic coming soon!')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Escalate
+            </button>
+            <button type="button" class="btn-cancel" onclick="closeResolveModal()">Cancel</button>
+            <button type="button" class="btn-submit-response" onclick="submitResolution()">
+                <i class="fa-regular fa-paper-plane"></i> Submit Response
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    // Global variable to store current table data
+    let latestTickets = [];
+    let currentTicketId = null;
+
+    // Execute when the DOM is fully loaded
     // Execute when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', loadStaffDashboardData);
 
@@ -189,6 +505,7 @@
 
             if (response.ok) {
                 const data = await response.json();
+                latestTickets = data.new_tickets; // Store for modal access
 
                 // --- Update Statistics Cards ---
                 updateElementText('totalTickets', data.total_tickets);
@@ -213,13 +530,10 @@
                     data.new_tickets.forEach(ticket => {
                         const row = document.createElement('tr');
 
-                        // Format the date (e.g., Jan 25, 2026)
                         const date = new Date(ticket.created_at).toLocaleDateString(undefined, {
-                            year: 'numeric', month: 'short', day: 'numeric'
+                            year: 'numeric', month: 'numeric', day: 'numeric'
                         });
 
-                        // Construct the row HTML
-                        // Note: 'ticket.owner' is the student name/reg based on serializer
                         row.innerHTML = `
                             <td><span class="ticket-id">#${ticket.id}</span></td>
                             <td>${ticket.owner || 'N/A'}</td> 
@@ -232,7 +546,7 @@
                                 </span>
                             </td>
                             <td>
-                                <button class="btn-primary btn-sm" onclick="alert('Resolve functionality coming soon for Ticket #${ticket.id}')">
+                                <button class="btn-primary btn-sm" onclick="openResolveModal(${ticket.id})">
                                     Resolve
                                 </button>
                             </td>
@@ -246,6 +560,110 @@
             }
         } catch (e) {
             console.error("Error loading dashboard data:", e);
+        }
+    }
+
+    /**
+     * Opens the resolution modal for a specific ticket
+     */
+    function openResolveModal(ticketId) {
+        const ticket = latestTickets.find(t => t.id === ticketId);
+        if (!ticket) return;
+
+        currentTicketId = ticket.id;
+
+        // Populate fields
+        document.getElementById('modalTicketTitle').textContent = ticket.title;
+        document.getElementById('modalCategory').textContent = ticket.category_name;
+        document.getElementById('modalOwner').textContent = ticket.owner || 'N/A';
+
+        // Format Date
+        const date = new Date(ticket.created_at).toLocaleDateString(undefined, {
+            year: 'numeric', month: 'numeric', day: 'numeric'
+        });
+        document.getElementById('modalDate').textContent = date;
+
+        document.getElementById('modalDescription').textContent = ticket.description;
+        document.getElementById('resolutionFeedback').value = '';
+        document.getElementById('resolutionStatus').value = 'RESOLVED'; // Default
+
+        // Handle Status Badge styling
+        const statusBadge = document.getElementById('modalTicketStatusBadge');
+        statusBadge.textContent = ticket.status;
+        if (ticket.status === 'RESOLVED') {
+            statusBadge.classList.add('resolved');
+        } else {
+            statusBadge.classList.remove('resolved');
+        }
+
+        // Handle attachment
+        const attachmentLink = document.getElementById('modalAttachmentLink');
+        const noAttachment = document.getElementById('modalNoAttachment');
+
+        if (ticket.attachment) {
+            attachmentLink.style.display = 'inline';
+            attachmentLink.href = ticket.attachment;
+            attachmentLink.textContent = ticket.attachment.split('/').pop(); // Show filename
+            noAttachment.style.display = 'none';
+        } else {
+            attachmentLink.style.display = 'none';
+            noAttachment.style.display = 'inline';
+        }
+
+        const modal = document.getElementById('resolveModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeResolveModal() {
+        document.getElementById('resolveModal').style.display = 'none';
+        currentTicketId = null;
+    }
+
+    // Close modal if clicking outside
+    window.onclick = function (event) {
+        const modal = document.getElementById('resolveModal');
+        if (event.target == modal) {
+            closeResolveModal();
+        }
+    }
+
+    async function submitResolution() {
+        if (!currentTicketId) return;
+
+        const feedback = document.getElementById('resolutionFeedback').value;
+        const status = document.getElementById('resolutionStatus').value;
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!feedback.trim()) {
+            alert('Please provide feedback.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/resolutions/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ticket: currentTicketId,
+                    feedback: feedback,
+                    status: status
+                })
+            });
+
+            if (response.ok) {
+                alert('Ticket updated successfully!');
+                closeResolveModal();
+                loadStaffDashboardData(); // Refresh the table
+            } else {
+                const errorData = await response.json();
+                alert('Error updating ticket: ' + JSON.stringify(errorData));
+            }
+        } catch (error) {
+            console.error('Error submitting resolution:', error);
+            alert('An error occurred while submitting.');
         }
     }
 
