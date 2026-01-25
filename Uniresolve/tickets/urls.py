@@ -7,6 +7,7 @@ from .views import (
     ProfilePageView,
     StudentDashboardPageView,
     StaffDashboardPageView,
+    StaffAllIssuesPageView,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -23,4 +24,5 @@ urlpatterns = [
     path('profile/', ProfilePageView.as_view(), name='profile'),
     path('student-dashboard/', StudentDashboardPageView.as_view(), name='student_dashboard'),
     path('staff-dashboard/', StaffDashboardPageView.as_view(), name='staff_dashboard'),
+    path('staff-dashboard/all-issues/', StaffAllIssuesPageView.as_view(), name='staff_all_issues'),
 ]

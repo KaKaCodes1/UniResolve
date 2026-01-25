@@ -1,0 +1,375 @@
+{% extends 'tickets/base_staffdashboard.html' %}
+
+{% block title %}All Issues - Staff Dashboard{% endblock %}
+
+
+
+{% block content %}
+<div class="page-header">
+    <h2>All Issues</h2>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter department issues</p>
+    </div>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" class="search-input"
+            placeholder="Search by ticket ID, subject, student name or reg number...">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                <option value="OPEN">Open</option>
+                <option value="PENDING">Pending</option>
+                <option value="RESOLVED">Resolved</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="categoryFilter">Category</label>
+            <select id="categoryFilter" class="filter-select">
+                <option value="All Categories">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Issues List -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Issues List</h3>
+        <span class="issues-count" id="issuesCount">Loading...</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Student Name</th>
+                    <th>Category</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="ticketTableBody">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading tickets...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
+    </div>
+</div>
+
+<!-- Resolution Modal (Duplicated) -->
+<div id="resolveModal" class="staff-modal">
+    <div class="staff-modal-content">
+        <div class="staff-modal-header">
+            <h3>Issue Details</h3>
+            <button class="close-btn" onclick="closeResolveModal()">&times;</button>
+        </div>
+
+        <div class="staff-modal-body">
+            <div class="ticket-info-header">
+                <h4 id="modalTicketTitle" class="ticket-title-large">Title</h4>
+                <span id="modalTicketStatusBadge" class="status-pill">Pending</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <i class="fa-solid fa-tag"></i> Category: <b id="modalCategory">Category</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-user"></i> By: <b id="modalOwner">Owner</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-clock"></i> Submitted: <b id="modalDate">Date</b>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-file"></i>
+                    <a id="modalAttachmentLink" href="#" target="_blank" class="attachment-badge">
+                        View Attachment <i class="fa-solid fa-arrow-up-right-from-square"
+                            style="font-size: 0.7em; margin-left: 4px;"></i>
+                    </a>
+                    <span id="modalNoAttachment" style="font-style: italic; color: #aaa;">No attachment</span>
+                </div>
+            </div>
+
+            <div class="description-box">
+                <span class="description-label">Description</span>
+                <p id="modalDescription" style="margin: 0;">Description...</p>
+            </div>
+
+            <div class="response-section">
+                <span class="section-title">Staff Response</span>
+
+                <div class="form-group">
+                    <label for="resolutionStatus">Update Status</label>
+                    <select id="resolutionStatus" class="form-control" style="background-color: #f8f9fa;">
+                        <option value="PENDING">Pending</option>
+                        <option value="RESOLVED">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="resolutionFeedback">Response/Feedback</label>
+                    <textarea id="resolutionFeedback" class="form-control" rows="4"
+                        placeholder="Enter your response or feedback for the student..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-escalate" onclick="alert('Escalation logic coming soon!')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Escalate
+            </button>
+            <button type="button" class="btn-cancel" onclick="closeResolveModal()">Cancel</button>
+            <button type="button" class="btn-submit-response" onclick="submitResolution()">
+                <i class="fa-regular fa-paper-plane"></i> Submit Response
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let allTickets = [];
+    let currentTicketId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTickets();
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadTickets, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
+        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
+    });
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    /**
+     * Main function to fetch tickets based on current filters.
+     * Called on page load, search, filter change, or pagination.
+     */
+    async function loadTickets(page = 1) {
+        currentPage = page;
+        // 1. Gather current state from DOM elements
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const category = document.getElementById('categoryFilter').value;
+
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) return; // Handler redirect or error
+
+        // 2. Build Query Parameters for the API
+        const params = new URLSearchParams({ page: currentPage });
+        if (search) params.append('search', search);
+        if (status !== 'All Statuses') params.append('status', status);
+        if (category !== 'All Categories') params.append('category', category);
+
+        try {
+            // 3. Fetch Data from the API
+            const response = await fetch(`/api/v1/tickets/all_issues/?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                allTickets = data.tickets; // Store for modal access
+
+                // 4. Update UI Elements
+                // Update Count
+                document.getElementById('issuesCount').textContent = `${data.total_count} issue${data.total_count !== 1 ? 's' : ''} found`;
+
+                renderTable(data.tickets);
+                renderPagination(data);
+            } else {
+                console.error("Failed to load tickets");
+            }
+        } catch (e) {
+            console.error("Error:", e);
+        }
+    }
+
+    function renderTable(tickets) {
+        const tbody = document.getElementById('ticketTableBody');
+        tbody.innerHTML = '';
+
+        if (tickets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px;">No tickets found matching your criteria.</td></tr>`;
+            return;
+        }
+
+        tickets.forEach(ticket => {
+            const row = document.createElement('tr');
+            const date = new Date(ticket.created_at).toLocaleDateString();
+
+            row.innerHTML = `
+                <td><span class="ticket-id">#${ticket.id}</span></td>
+                <td>${ticket.owner || 'N/A'}</td>
+                <td>${ticket.category_name}</td>
+                <td class="ticket-subject">${ticket.title}</td>
+                <td>${date}</td>
+                <td>
+                    <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
+                </td>
+                <td>
+                    <button class="btn-primary btn-sm" onclick="openResolveModal(${ticket.id})">Resolve</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderPagination(data) {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (data.total_pages <= 1) return;
+
+        // Previous
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Previous';
+        prevBtn.className = 'page-btn';
+        prevBtn.disabled = !data.has_previous;
+        prevBtn.onclick = () => loadTickets(data.current_page - 1);
+        container.appendChild(prevBtn);
+
+        // Page number
+        const pageInd = document.createElement('span');
+        pageInd.style.alignSelf = 'center';
+        pageInd.style.color = '#666';
+        pageInd.innerText = ` Page ${data.current_page} of ${data.total_pages} `;
+        container.appendChild(pageInd);
+
+        // Next
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.className = 'page-btn';
+        nextBtn.disabled = !data.has_next;
+        nextBtn.onclick = () => loadTickets(data.current_page + 1);
+        container.appendChild(nextBtn);
+    }
+
+    // --- Modal Logic (Identical to Dashboard) ---
+    function openResolveModal(ticketId) {
+        const ticket = allTickets.find(t => t.id === ticketId);
+        if (!ticket) return;
+
+        currentTicketId = ticket.id;
+
+        // Populate fields
+        document.getElementById('modalTicketTitle').textContent = ticket.title;
+        document.getElementById('modalCategory').textContent = ticket.category_name;
+        document.getElementById('modalOwner').textContent = ticket.owner || 'N/A';
+
+        const date = new Date(ticket.created_at).toLocaleDateString();
+        document.getElementById('modalDate').textContent = date;
+
+        document.getElementById('modalDescription').textContent = ticket.description;
+        document.getElementById('resolutionFeedback').value = '';
+        document.getElementById('resolutionStatus').value = 'RESOLVED';
+
+        const statusBadge = document.getElementById('modalTicketStatusBadge');
+        statusBadge.textContent = ticket.status;
+        statusBadge.className = `status-pill ${ticket.status === 'RESOLVED' ? 'resolved' : ''}`;
+
+        // Attachment
+        const attachmentLink = document.getElementById('modalAttachmentLink');
+        const noAttachment = document.getElementById('modalNoAttachment');
+
+        if (ticket.attachment) {
+            attachmentLink.style.display = 'inline-flex';
+            attachmentLink.href = ticket.attachment;
+            noAttachment.style.display = 'none';
+        } else {
+            attachmentLink.style.display = 'none';
+            noAttachment.style.display = 'inline';
+        }
+
+        document.getElementById('resolveModal').style.display = 'flex';
+    }
+
+    function closeResolveModal() {
+        document.getElementById('resolveModal').style.display = 'none';
+        currentTicketId = null;
+    }
+
+    window.onclick = function (event) {
+        if (event.target == document.getElementById('resolveModal')) {
+            closeResolveModal();
+        }
+    }
+
+    async function submitResolution() {
+        if (!currentTicketId) return;
+
+        const feedback = document.getElementById('resolutionFeedback').value;
+        const status = document.getElementById('resolutionStatus').value;
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!feedback.trim()) {
+            alert('Please provide feedback.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/resolutions/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ticket: currentTicketId,
+                    feedback: feedback,
+                    status: status
+                })
+            });
+
+            if (response.ok) {
+                alert('Ticket updated successfully!');
+                closeResolveModal();
+                loadTickets(currentPage); // Refresh list
+            } else {
+                const errorData = await response.json();
+                alert('Error updating ticket: ' + JSON.stringify(errorData));
+            }
+        } catch (error) {
+            console.error('Error submitting resolution:', error);
+            alert('An error occurred while submitting.');
+        }
+    }
+</script>
+{% endblock %}
