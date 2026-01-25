@@ -22,6 +22,18 @@ class SubmitIssuePageView(TemplateView):
 @method_decorator(never_cache, name='dispatch')
 class ProfilePageView(TemplateView):
     template_name = 'tickets/profile.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        if user.is_authenticated and user.role == 'Staff':
+            base_template = 'tickets/base_staffdashboard.html'
+        else:
+            base_template = 'tickets/base_dashboard.html'
+        
+        context['base_template'] = base_template
+        return context
 
 @method_decorator(never_cache, name='dispatch')
 class StudentDashboardPageView(TemplateView):
