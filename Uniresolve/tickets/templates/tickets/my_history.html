@@ -252,6 +252,16 @@
             document.getElementById('modalFeedback').textContent = resolution.feedback;
             document.getElementById('modalResolvedBy').textContent = resolution.resolved_by;
             document.getElementById('modalResolvedAt').textContent = new Date(resolution.resolved_at).toLocaleDateString();
+
+            // Styling for Pending
+            if (ticket.status === 'PENDING') {
+                feedbackSection.classList.add('status-pending');
+                feedbackSection.querySelector('.feedback-meta').classList.add('status-pending');
+            } else {
+                feedbackSection.classList.remove('status-pending');
+                feedbackSection.querySelector('.feedback-meta').classList.remove('status-pending');
+            }
+
         } else {
             feedbackSection.style.display = 'none';
         }

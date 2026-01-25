@@ -1100,3 +1100,19 @@ select {
     border-radius: 0 0 12px 12px;
 }
 
+
+/* Pending Status Feedback Styling */
+.feedback-section.status-pending {
+    background: #fff8e1;
+    border: 1px solid #ffe0b2;
+}
+
+.feedback-section.status-pending p {
+    color: #e65100;
+}
+
+.feedback-meta.status-pending {
+    color: #ef6c00;
+    border-top: 1px solid #ffe0b2;
+}
+

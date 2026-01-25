@@ -134,6 +134,12 @@
                     <textarea id="resolutionFeedback" class="form-control" rows="4"
                         placeholder="Enter your response or feedback for the student..."></textarea>
                 </div>
+                <!-- Read Only Feedback Display -->
+                <div id="readOnlyFeedback"
+                    style="display: none; padding: 15px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; color: #2e7d32;">
+                    <p id="readOnlyFeedbackText" style="margin: 0;"></p>
+                    <small id="readOnlyFeedbackBy" style="display: block; margin-top: 8px; color: #1b5e20;"></small>
+                </div>
             </div>
         </div>
 
@@ -245,7 +251,9 @@
                     <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
                 </td>
                 <td>
-                    <button class="btn-primary btn-sm" onclick="openResolveModal(${ticket.id})">Resolve</button>
+                    <button class="btn-${ticket.status === 'RESOLVED' ? 'secondary' : 'primary'} btn-sm" onclick="openResolveModal(${ticket.id})">
+                        ${ticket.status === 'RESOLVED' ? 'View' : 'Resolve'}
+                    </button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -298,8 +306,55 @@
         document.getElementById('modalDate').textContent = date;
 
         document.getElementById('modalDescription').textContent = ticket.description;
-        document.getElementById('resolutionFeedback').value = '';
-        document.getElementById('resolutionStatus').value = 'RESOLVED';
+
+        const feedbackInput = document.getElementById('resolutionFeedback');
+        const statusSelect = document.getElementById('resolutionStatus');
+        const readOnlyDiv = document.getElementById('readOnlyFeedback');
+        const submitBtn = document.querySelector('.btn-submit-response');
+
+        feedbackInput.value = '';
+        statusSelect.value = 'RESOLVED';
+
+        // Reset States
+        feedbackInput.parentNode.style.display = 'block';
+        statusSelect.parentNode.style.display = 'block';
+        readOnlyDiv.style.display = 'none';
+        submitBtn.style.display = 'flex';
+        feedbackInput.readOnly = false;
+
+        // --- LOGIC: Handle Different Statuses ---
+        if (ticket.status === 'RESOLVED') {
+            // VIEW ONLY MODE (Green Theme)
+            feedbackInput.parentNode.style.display = 'none';
+            statusSelect.parentNode.style.display = 'none';
+            submitBtn.style.display = 'none'; // Hide submit button
+            readOnlyDiv.style.display = 'block';
+
+            // Populate Read Only Data (Assuming ticket has resolutions data)
+            if (ticket.resolutions && ticket.resolutions.length > 0) {
+                const res = ticket.resolutions[0];
+                document.getElementById('readOnlyFeedbackText').textContent = res.feedback;
+                document.getElementById('readOnlyFeedbackBy').textContent = `Resolved by: ${res.resolved_by} on ${new Date(res.resolved_at).toLocaleDateString()}`;
+            } else {
+                document.getElementById('readOnlyFeedbackText').textContent = "No feedback recorded.";
+            }
+
+        } else if (ticket.status === 'PENDING') {
+            // EDIT MODE (Orange Theme)
+            // Pre-fill existing feedback if available
+            if (ticket.resolutions && ticket.resolutions.length > 0) {
+                feedbackInput.value = ticket.resolutions[0].feedback;
+            }
+            // Set styles for pending
+            feedbackInput.style.backgroundColor = '#fff8e1';
+            feedbackInput.style.borderColor = '#ffe0b2';
+            statusSelect.value = 'PENDING';
+
+        } else {
+            // OPEN MODE (Standard)
+            feedbackInput.style.backgroundColor = '#fff';
+            feedbackInput.style.borderColor = '#ddd';
+        }
 
         const statusBadge = document.getElementById('modalTicketStatusBadge');
         statusBadge.textContent = ticket.status;
