@@ -126,7 +126,7 @@
                             nameDisplay.innerText = `${data.first_name} ${data.last_name}`;
                         }
                         if (departmentDisplay) {
-                            departmentDisplay.innerText = data.department;
+                            departmentDisplay.innerText = `Department: ${data.profile_data.department}`;
                         }
                     } else if (response.status === 401) {
                         // Token likely expired
