@@ -211,6 +211,8 @@ body {
     display: none;
 }
 
+
+
 /* Responsive */
 @media (max-width: 768px) {
     .auth-container {
@@ -229,4 +231,30 @@ body {
     .auth-content {
         padding: 40px 20px;
     }
+}
+
+/* Password Checklist Styles */
+.password-checklist {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.checklist-item i {
+    margin-right: 8px;
+    width: 16px;
+}
+
+.checklist-item.valid {
+    color: #28a745;
+}
+
+.checklist-item.invalid {
+    color: #dc3545;
 }

@@ -27,3 +27,32 @@ function togglePassword(inputId, icon) {
         icon.classList.add("fa-eye-slash");
     }
 }
+
+// Password Strength Checklist
+document.getElementById('password').addEventListener('input', function () {
+    const password = this.value;
+
+    // Checklist Logic
+    updateChecklist('length-check', password.length >= 8);
+    updateChecklist('number-check', /[0-9]/.test(password));
+    updateChecklist('upper-check', /[A-Z]/.test(password));
+    updateChecklist('lower-check', /[a-z]/.test(password));
+    updateChecklist('symbol-check', /[!@#$%^&*(),.?":{}|<>]/.test(password));
+});
+
+function updateChecklist(elementId, isValid) {
+    const el = document.getElementById(elementId);
+    const icon = el.querySelector('i');
+
+    if (isValid) {
+        el.classList.remove('invalid');
+        el.classList.add('valid');
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-check');
+    } else {
+        el.classList.remove('valid');
+        el.classList.add('invalid');
+        icon.classList.remove('fa-check');
+        icon.classList.add('fa-xmark');
+    }
+}
