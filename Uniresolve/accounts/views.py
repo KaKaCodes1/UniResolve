@@ -2,10 +2,11 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework import generics, permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import UserRegistrationSerializer, UserProfileSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
 from organization.models import Course, Department 
+from rest_framework_simplejwt.views import TokenObtainPairView 
 
 User = get_user_model()
 
@@ -47,4 +48,7 @@ class StaffSignUpPageView(TemplateView):
 # View for the Login Page
 class LoginPageView(TemplateView):
     template_name = 'accounts/login.html'
+
+class CustomLoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 

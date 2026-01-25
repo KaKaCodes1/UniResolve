@@ -3,8 +3,10 @@ from .views import (
     UserRegistrationView,
     StudentSignUpPageView,
     StaffSignUpPageView,
+    StaffSignUpPageView,
     LoginPageView,
     UserProfileView,
+    CustomLoginView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -21,7 +23,7 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user_profile'),
 
     #user sends email and password and gets access and refresh tokens 
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', CustomLoginView.as_view(), name='token_obtain_pair'),
     #allows a user to send refresh token and get a new access token 
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

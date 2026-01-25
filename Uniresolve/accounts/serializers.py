@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import StaffProfile, StudentProfile
 from django.contrib.auth import get_user_model
 from django.db import transaction #Used to enforce atomicity
@@ -156,3 +157,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 return {}
         
         return {}
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        # Add extra responses
+        data['role'] = self.user.role
+        data['first_name'] = self.user.first_name
+        data['user_id'] = self.user.id
+        
+        return data
