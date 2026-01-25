@@ -1,0 +1,244 @@
+{% extends 'tickets/base_admindashboard.html' %}
+
+{% block title %}Dashboard - Admin UniResolve{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+</div>
+
+<!-- Admin Stats Cards -->
+<div class="admin-stats-grid">
+    <!-- Total Issues -->
+    <div class="admin-stat-card pink">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Total Issues</span>
+                <div class="stat-value">{{ total_tickets_count }}</div>
+                <div class="stat-trend trend-up">
+                    <i class="fa-solid fa-arrow-up"></i> 15% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolution Rate -->
+    <div class="admin-stat-card green">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Resolution Rate</span>
+                <div class="stat-value">{{ resolution_rate }}%</div>
+                <div class="stat-trend trend-up">
+                    <i class="fa-solid fa-arrow-up"></i> 5% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="admin-stat-card beige">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Active Users</span>
+                <div class="stat-value">{{ active_users_count }}</div>
+                <div class="stat-trend">
+                    Synced with registry
+                </div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fa-solid fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Issues -->
+    <div class="admin-stat-card yellow">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Pending Issues</span>
+                <div class="stat-value">{{ pending_tickets_count }}</div>
+                <div class="stat-trend trend-down">
+                    <i class="fa-solid fa-arrow-down"></i> 3% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Staff Approvals Section -->
+<div class="content-card approvals-card">
+    <div class="card-header">
+        <div class="header-title-group">
+            <i class="fa-solid fa-user-check"></i>
+            <h3>Pending Staff Approvals</h3>
+        </div>
+        <p>Review and approve staff registration requests</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Employee ID</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in pending_staff %}
+                <tr>
+                    <td>{{ staff.get_full_name }}</td>
+                    <td>{{ staff.email }}</td>
+                    <td>{{ staff.staff_profile.employee_id }}</td>
+                    <td>{{ staff.staff_profile.department.department_name }}</td>
+                    <td class="action-buttons">
+                        <button class="btn-approve"
+                            onclick="openApprovalModal({{ staff.id }}, '{{ staff.get_full_name }}')">
+                            <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button class="btn-reject" onclick="rejectStaff({{ staff.id }})">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                        No pending staff approvals at this time.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div id="approvalModal" class="staff-modal">
+    <div class="staff-modal-content approval-modal-content">
+        <div class="staff-modal-header">
+            <h3>Approve Staff Registration</h3>
+            <button class="close-btn" onclick="closeApprovalModal()">&times;</button>
+        </div>
+        <div class="staff-modal-body">
+            <p>Assign a role for <b id="approveStaffName">Staff Member</b> to complete the approval.</p>
+
+            <div class="role-selection-group">
+                <label class="role-option">
+                    <input type="radio" name="staffRole" value="STAFF" checked>
+                    <div class="role-card">
+                        <div class="role-icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <div class="role-text">
+                            <span class="role-title">Regular Staff</span>
+                            <p>Can view and resolve department tickets.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <label class="role-option">
+                    <input type="radio" name="staffRole" value="SENIOR">
+                    <div class="role-card">
+                        <div class="role-icon"><i class="fa-solid fa-user-gear"></i></div>
+                        <div class="role-text">
+                            <span class="role-title">Senior Staff</span>
+                            <p>Access to advanced ticket management and escalations.</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeApprovalModal()">Cancel</button>
+            <button type="button" class="btn-submit-approve" onclick="submitApproval()">
+                Complete Approval
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedStaffId = null;
+
+    function openApprovalModal(id, name) {
+        selectedStaffId = id;
+        document.getElementById('approveStaffName').textContent = name;
+        document.getElementById('approvalModal').style.display = 'flex';
+    }
+
+    function closeApprovalModal() {
+        document.getElementById('approvalModal').style.display = 'none';
+        selectedStaffId = null;
+    }
+
+    async function submitApproval() {
+        const role = document.querySelector('input[name="staffRole"]:checked').value;
+        const accessToken = localStorage.getItem('access_token');
+
+        try {
+            const response = await fetch('/api/v1/admin/approve_staff/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: selectedStaffId,
+                    staff_role: role
+                })
+            });
+
+            if (response.ok) {
+                alert('Staff member approved successfully!');
+                location.reload();
+            } else {
+                const data = await response.json();
+                alert('Error: ' + (data.error || 'Failed to approve'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        }
+    }
+
+    async function rejectStaff(id) {
+        if (!confirm('Are you sure you want to reject this registration? The account will be permanently deleted.')) return;
+
+        const accessToken = localStorage.getItem('access_token');
+        try {
+            const response = await fetch('/api/v1/admin/reject_staff/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: id
+                })
+            });
+
+            if (response.ok) {
+                alert('Request rejected and account deleted.');
+                location.reload();
+            } else {
+                alert('Failed to reject registration.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+{% endblock %}

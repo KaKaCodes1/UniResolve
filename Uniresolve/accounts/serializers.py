@@ -105,6 +105,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             #User Instance
             user = User.objects.create(**validated_data)
 
+            # Staff members are created as inactive until approved by an admin
+            if user.role == 'Staff':
+                user.is_active = False
+
             #hashing the password
             user.set_password(password)
 

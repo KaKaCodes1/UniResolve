@@ -73,6 +73,8 @@
                     window.location.href = "{% url 'student_dashboard' %}";
                 } else if (data.role === 'Staff') {
                     window.location.href = "{% url 'staff_dashboard' %}";
+                } else if (data.role === 'Admin') {
+                    window.location.href = "{% url 'admin_dashboard' %}";
                 } else {
                     // Fallback in case of unexpected role
                     alert('Unknown role: ' + data.role);

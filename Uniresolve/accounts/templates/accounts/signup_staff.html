@@ -133,7 +133,7 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert('Account created successfully! Redirecting to login...');
+                alert('Account created successfully! Await approval from admin');
                 window.location.href = "{% url 'signin' %}"; // Redirect to login
             } else {
                 // Handle Errors
