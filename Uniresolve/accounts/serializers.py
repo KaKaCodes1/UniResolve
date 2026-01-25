@@ -49,8 +49,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     #Validation
     def validate_password(self, value):
-        # Enforce Django's password validation rules (length, complexity, etc)
-        validate_password(value)
+        # a temporary user to check for attribute similarity
+        # self.initial_data contains the raw input data
+        user_data = self.initial_data
+        user = User(
+            first_name=user_data.get('first_name'),
+            last_name=user_data.get('last_name'),
+            email=user_data.get('email'),
+            username=user_data.get('email') # Username is email in this system
+        )
+        # Enforce Django's password validation rules (length, complexity, similarity, etc)
+        validate_password(value, user=user)
         return value
 
     def validate(self,data):

@@ -14,6 +14,33 @@
     <a href="{% url 'signup_staff' %}" class="role-btn">Staff</a>
 </div>
 
+<style>
+    .password-checklist {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .checklist-item i {
+        margin-right: 8px;
+        width: 16px;
+    }
+
+    .checklist-item.valid {
+        color: #28a745;
+    }
+
+    .checklist-item.invalid {
+        color: #dc3545;
+    }
+</style>
+
 <form id="studentSignupForm">
     {% csrf_token %}
     <div class="form-group">
@@ -39,6 +66,25 @@
         <input type="password" id="password" name="password" class="form-control" required>
         <i class="fa-solid fa-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
         <div id="password_error" class="error-message"></div>
+
+        <!-- Password Strength Checklist -->
+        <div class="password-checklist">
+            <div class="checklist-item invalid" id="length-check">
+                <i class="fa-solid fa-xmark"></i> At least 8 characters
+            </div>
+            <div class="checklist-item invalid" id="number-check">
+                <i class="fa-solid fa-xmark"></i> At least one number
+            </div>
+            <div class="checklist-item invalid" id="upper-check">
+                <i class="fa-solid fa-xmark"></i> At least one uppercase letter
+            </div>
+            <div class="checklist-item invalid" id="lower-check">
+                <i class="fa-solid fa-xmark"></i> At least one lowercase letter
+            </div>
+            <div class="checklist-item invalid" id="symbol-check">
+                <i class="fa-solid fa-xmark"></i> At least one special symbol
+            </div>
+        </div>
     </div>
 
     <!-- Student Specific Fields -->
@@ -139,5 +185,32 @@
     });
 
 
+    document.getElementById('password').addEventListener('input', function () {
+        const password = this.value;
+
+        // Checklist Logic
+        updateChecklist('length-check', password.length >= 8);
+        updateChecklist('number-check', /[0-9]/.test(password));
+        updateChecklist('upper-check', /[A-Z]/.test(password));
+        updateChecklist('lower-check', /[a-z]/.test(password));
+        updateChecklist('symbol-check', /[!@#$%^&*(),.?":{}|<>]/.test(password));
+    });
+
+    function updateChecklist(elementId, isValid) {
+        const el = document.getElementById(elementId);
+        const icon = el.querySelector('i');
+
+        if (isValid) {
+            el.classList.remove('invalid');
+            el.classList.add('valid');
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-check');
+        } else {
+            el.classList.remove('valid');
+            el.classList.add('invalid');
+            icon.classList.remove('fa-check');
+            icon.classList.add('fa-xmark');
+        }
+    }
 </script>
 {% endblock %}
