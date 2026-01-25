@@ -144,6 +144,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 #Defining to the project that it must use the custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
