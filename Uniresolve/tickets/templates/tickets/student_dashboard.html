@@ -142,35 +142,13 @@
             <thead>
                 <tr>
                     <th>Ticket ID</th>
-                    <th>Subject</th>
+                    <th>Title</th>
                     <th>Category</th>
                     <th>Status</th>
                     <th>Date</th>
                 </tr>
             </thead>
-            <!-- <tbody>
-                {% for ticket in recent_tickets %}
-                <tr onclick="openTicketModal({{ ticket.id }})">
-                    <td><span class="ticket-id">#{{ ticket.id }}</span></td>
-                    <td class="ticket-subject">{{ ticket.title }}</td>
-                    <td>{{ ticket.category.department.department_name }}</td>
-                    <td>
-                        <span class="status-badge status-{{ ticket.status|lower }}">
-                            {{ ticket.status }}
-                        </span>
-                    </td>
-                    <td>{{ ticket.created_at|date:"M j, Y" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p>No recent tickets found.</p>
-                        <a href="{% url 'submit_issue' %}" class="btn-primary"
-                            style="margin-top: 10px; display: inline-block;">Submit an Issue</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody> -->
+
             <tbody id="ticketTableBody">
                 <!-- Tickets will be dynamically inserted here via javascript-->
                 <tr>

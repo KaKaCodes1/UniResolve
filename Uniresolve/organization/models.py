@@ -12,7 +12,7 @@ class Category(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='categories')
 
     def __str__(self):
-        return f"{self.category_name} - Department({self.department.department_name})"
+        return f"{self.category_name}"
     
 
 class Course(models.Model):
