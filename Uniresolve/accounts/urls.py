@@ -1,16 +1,28 @@
-from django.urls import path
+from django.urls import path, include
+
 from .views import (
     UserRegistrationView,
     StudentSignUpPageView,
     StaffSignUpPageView,
-    StaffSignUpPageView,
     LoginPageView,
     UserProfileView,
     CustomLoginView,
+    AdminDashboardPageView,
+    AdminAllUsersPageView,
+    AdminViewSet,
+    UserViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'admin', AdminViewSet, basename='admin')
+router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
+    # Router URLs
+    path('', include(router.urls)),
+
     # API Endpoint for registration
     path('register/', UserRegistrationView.as_view(),name='register'),
 
@@ -18,6 +30,9 @@ urlpatterns = [
     path('signin/', LoginPageView.as_view(), name='signin'),
     path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
     path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
+    path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
+    path('admin-dashboard/all-users/', AdminAllUsersPageView.as_view(), name='admin_all_users'),
+
 
     # Profile Endpoint
     path('profile/', UserProfileView.as_view(), name='user_profile'),

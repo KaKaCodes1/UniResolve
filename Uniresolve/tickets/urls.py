@@ -1,7 +1,6 @@
 from django.urls import path, include
 from .views import (
     TicketViewSet,
-    AdminViewSet,
     ResolutionViewSet,
     SubmitIssuePageView,
     MyHistoryPageView,
@@ -10,7 +9,6 @@ from .views import (
     StaffDashboardPageView,
     StaffAllIssuesPageView,
     AllResolutionsPageView,
-    AdminDashboardPageView,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -19,7 +17,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'tickets',TicketViewSet, basename='ticket')
 router.register(r'resolutions', ResolutionViewSet, basename='resolutions')
-router.register(r'admin', AdminViewSet, basename='admin')
+
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -30,5 +28,4 @@ urlpatterns = [
     path('staff-dashboard/', StaffDashboardPageView.as_view(), name='staff_dashboard'),
     path('staff-dashboard/all-issues/', StaffAllIssuesPageView.as_view(), name='staff_all_issues'),
     path('staff-dashboard/all-resolutions/', AllResolutionsPageView.as_view(), name='staff_all_resolutions'),
-    path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
 ]
