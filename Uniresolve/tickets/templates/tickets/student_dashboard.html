@@ -300,14 +300,26 @@
         // Resolutions
         const feedbackSection = document.getElementById('modalFeedbackSection');
         if (ticket.resolutions && ticket.resolutions.length > 0) {
-            const resolution = ticket.resolutions[0];
+            // Show the latest resolution
+            const resolution = ticket.resolutions[0]; // Assuming latest is first or singular
             feedbackSection.style.display = 'block';
             document.getElementById('modalFeedback').textContent = resolution.feedback;
             document.getElementById('modalResolvedBy').textContent = resolution.resolved_by;
             document.getElementById('modalResolvedAt').textContent = new Date(resolution.resolved_at).toLocaleDateString();
+
+            // Styling for Pending
+            if (ticket.status === 'PENDING') {
+                feedbackSection.classList.add('status-pending');
+                feedbackSection.querySelector('.feedback-meta').classList.add('status-pending');
+            } else {
+                feedbackSection.classList.remove('status-pending');
+                feedbackSection.querySelector('.feedback-meta').classList.remove('status-pending');
+            }
+
         } else {
             feedbackSection.style.display = 'none';
         }
+
     }
 </script>
 {% endblock %}
