@@ -153,7 +153,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 profile = obj.student_profile
                 return {
                     'reg_number': profile.reg_number,
-                    'course': profile.course.course_name if profile.course else None
+                    'course': profile.course.course_name if profile.course else None,
+                    'department': profile.course.department.department_name if profile.course and profile.course.department else None
                 }
             except StudentProfile.DoesNotExist:
                 return {}
