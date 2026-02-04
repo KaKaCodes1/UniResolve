@@ -13,6 +13,8 @@ from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from tickets.models import Ticket, Resolution
 from rest_framework.decorators import action
+from django.core.paginator import Paginator
+
 
 
 # router = DefaultRouter()
@@ -158,8 +160,25 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(staff_profile__employee_id__icontains=search_query)
             )
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        # Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'users': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
 
 class AdminViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
