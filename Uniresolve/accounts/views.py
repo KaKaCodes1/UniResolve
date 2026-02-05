@@ -310,3 +310,34 @@ class AdminViewSet(viewsets.GenericViewSet):
             'total_count': paginator.count
         })
 
+    @action(detail=False, methods=['get'])
+    def all_resolutions(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__category__department').order_by('-created_at')
+
+        #Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'resolutions': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+
+        
+        
+        
+

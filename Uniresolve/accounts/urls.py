@@ -10,6 +10,7 @@ from .views import (
     AdminDashboardPageView,
     AdminAllUsersPageView,
     AdminAllIssuesPageView,
+    AdminAllResolutionsPageView,
     AdminViewSet,
     UserViewSet,
 )
@@ -34,7 +35,7 @@ urlpatterns = [
     path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
     path('admin-dashboard/all-users/', AdminAllUsersPageView.as_view(), name='admin_all_users'),
     path('admin-dashboard/all-issues/', AdminAllIssuesPageView.as_view(), name='admin_all_issues'),
-
+    path('admin-dashboard/all-resolutions/', AdminAllResolutionsPageView.as_view(), name='admin_all_resolutions'),
 
     # Profile Endpoint
     path('profile/', UserProfileView.as_view(), name='user_profile'),

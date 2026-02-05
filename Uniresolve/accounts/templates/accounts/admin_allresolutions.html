@@ -1,0 +1,107 @@
+{% extends 'accounts/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}All Resolutions - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>All Resolutions</h2>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter all resolutions</p>
+    </div>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" class="search-input"
+            placeholder="Search by ticket ID, title, staff name">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="RESOLVED">Resolved</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="departmentFilter">Department</label>
+            <select id="departmentFilter" class="filter-select">
+                <option value="All Departments">All Departments</option>
+                {% for department in departments %}
+                <option value="{{ department.id }}">{{ department.department_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Resolutions List -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Resolutions List</h3>
+        <span class="issues-count" id="resolutionsCount">Loading...</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Ticket Title</th>
+                    <th>Staff Name</th>
+                    <th>Department</th>
+                    <th>Feedback</th>
+                    <th>Status</th>
+                    <th>Date Resolved</th>
+                </tr>
+            </thead>
+            <tbody id="resolutionTableBody">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading resolutions...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadResolutions();
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadResolutions, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        document.getElementById('departmentFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+    });
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    
