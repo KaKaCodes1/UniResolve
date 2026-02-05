@@ -9,6 +9,7 @@ from .views import (
     CustomLoginView,
     AdminDashboardPageView,
     AdminAllUsersPageView,
+    AdminAllIssuesPageView,
     AdminViewSet,
     UserViewSet,
 )
@@ -32,6 +33,7 @@ urlpatterns = [
     path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
     path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
     path('admin-dashboard/all-users/', AdminAllUsersPageView.as_view(), name='admin_all_users'),
+    path('admin-dashboard/all-issues/', AdminAllIssuesPageView.as_view(), name='admin_all_issues'),
 
 
     # Profile Endpoint

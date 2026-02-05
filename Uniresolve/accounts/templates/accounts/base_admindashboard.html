@@ -54,7 +54,7 @@
                     <i class="fa-solid fa-users"></i>
                     <span>All Users</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{% url 'admin_all_issues' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">
                     <i class="fa-solid fa-list"></i>
                     <span>All Issues</span>
                 </a>

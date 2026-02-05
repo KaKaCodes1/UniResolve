@@ -184,10 +184,10 @@
         };
     }
 
-    /**
-     * Main function to fetch tickets based on current filters.
-     * Called on page load, search, filter change, or pagination.
-     */
+    /*
+      Main function to fetch tickets based on current filters.
+      Called on page load, search, filter change, or pagination.
+    */
     async function loadTickets(page = 1) {
         currentPage = page;
         // 1. Gather current state from DOM elements
