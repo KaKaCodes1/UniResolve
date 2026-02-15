@@ -251,7 +251,7 @@
                     <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
                 </td>
                 <td>
-                    <button class="btn-${ticket.status === 'RESOLVED' ? 'secondary' : 'primary'} btn-sm" onclick="openResolveModal(${ticket.id})">
+                    <button class="btn-primary btn-sm" onclick="openResolveModal(${ticket.id})">
                         ${ticket.status === 'RESOLVED' ? 'View' : 'Resolve'}
                     </button>
                 </td>
