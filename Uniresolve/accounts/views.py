@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from tickets.models import Ticket, Resolution
-from tickets.serializers import TicketSerializer
+from tickets.serializers import TicketSerializer, ResolutionSerializer
 from rest_framework.decorators import action
 from django.core.paginator import Paginator
 
@@ -146,7 +146,7 @@ class AdminAllResolutionsPageView(TemplateView):
         
         if user.is_authenticated and user.role == 'Admin':
             context['departments'] = Department.objects.all()
-            context['status'] = [choice[0] for choice in Resolution.status_choices]
+            context['status'] = [choice[0] for choice in Ticket.status_choices]
         return context
             
 #Viewsets
@@ -310,12 +310,40 @@ class AdminViewSet(viewsets.GenericViewSet):
             'total_count': paginator.count
         })
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='all-resolutions')
     def all_resolutions(self, request):
         if not self.check_admin(request.user):
             return Response({'error': 'Unauthorized'}, status=403)
 
-        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__category__department').order_by('-created_at')
+        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__category__department').order_by('-resolved_at')
+
+        # Filters
+        status_param = request.query_params.get('status')
+        if status_param and status_param != 'All Statuses':
+            queryset = queryset.filter(ticket__status=status_param.upper())
+
+        # category_param = request.query_params.get('category')
+        # if category_param and category_param != 'All Categories':
+        #     try:
+        #         queryset = queryset.filter(category_id=int(category_param))
+        #     except ValueError:
+        #         pass
+
+        department_param = request.query_params.get('department')
+        if department_param and department_param != 'All Departments':
+            try:
+                queryset = queryset.filter(ticket__category__department_id=int(department_param))
+            except ValueError:
+                pass
+            
+        # Search (Ticket ID, staff or Title)
+        search_query = request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(ticket__id__icontains=search_query) |
+                Q(ticket__title__icontains=search_query) |
+                Q(resolved_by__first_name__icontains=search_query)
+            )
 
         #Pagination
         page_number = request.query_params.get('page', 1)
@@ -327,7 +355,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         except Exception:
             page_obj = paginator.page(1)
 
-        serializer = self.get_serializer(page_obj, many=True)
+        serializer = ResolutionSerializer(page_obj, many=True)
         return Response({
             'resolutions': serializer.data,
             'has_next': page_obj.has_next(),

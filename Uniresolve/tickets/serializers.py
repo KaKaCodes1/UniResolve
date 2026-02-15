@@ -9,10 +9,11 @@ class ResolutionSerializer(serializers.ModelSerializer):
     status = serializers.CharField(write_only=True, required=False)
     ticket_title = serializers.CharField(source='ticket.title', read_only=True)
     ticket_status = serializers.CharField(source='ticket.status', read_only=True)
-    
+    department_name = serializers.StringRelatedField(source='ticket.category.department', read_only=True)
+
     class Meta:
         model = Resolution
-        fields = ['id', 'ticket', 'ticket_title', 'ticket_status', 'feedback', 'resolved_by', 'resolved_at', 'status']
+        fields = ['id', 'ticket', 'ticket_title', 'ticket_status', 'feedback', 'resolved_by', 'resolved_at', 'status','department_name']
         read_only_fields = ['resolved_at']
 
     def validate_status(self,value):
