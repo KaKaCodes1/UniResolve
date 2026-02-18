@@ -36,7 +36,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=100, blank=False)
     last_name = models.CharField(max_length=100, blank=False)
     
-    #Keeping username optional
+    #username optional
     username = models.CharField(max_length=100, unique=True, null=True, blank=True)
 
     # Use email as the login field instead of username

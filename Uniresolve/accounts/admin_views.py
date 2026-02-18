@@ -1,0 +1,304 @@
+from django.shortcuts import render
+from rest_framework import generics
+from rest_framework import generics, permissions, viewsets, serializers
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
+from django.contrib.auth import get_user_model, login
+from django.views.generic import TemplateView 
+from organization.models import Course, Department, Category 
+from rest_framework_simplejwt.views import TokenObtainPairView 
+from rest_framework.response import Response 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.db.models import Q
+from tickets.models import Ticket, Resolution
+from tickets.serializers import TicketSerializer, ResolutionSerializer
+from rest_framework.decorators import action
+from django.core.paginator import Paginator
+
+User = get_user_model()
+
+@method_decorator(never_cache, name='dispatch')
+class AdminDashboardPageView(TemplateView):
+    template_name = 'accounts/admin_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            # Dashboard Stats
+            total_tickets = Ticket.objects.count()
+            resolved_tickets = Ticket.objects.filter(status='RESOLVED').count()
+            
+            context['total_tickets_count'] = total_tickets
+            context['pending_tickets_count'] = Ticket.objects.filter(status='PENDING').count()
+            context['active_users_count'] = User.objects.filter(is_active=True).count()
+            
+            # Resolution Rate Calculation
+            if total_tickets > 0:
+                context['resolution_rate'] = round((resolved_tickets / total_tickets) * 100)
+            else:
+                context['resolution_rate'] = 0
+
+            # Pending Staff Approvals
+            context['pending_staff'] = User.objects.filter(role='Staff', is_active=False).select_related('staff_profile', 'staff_profile__department')
+             
+        return context
+
+@method_decorator(never_cache, name='dispatch')
+class AdminAllUsersPageView(TemplateView):
+    template_name = 'accounts/admin_allusers.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            context['roles'] = [choice[0] for choice in User.roles_choices]
+            context['departments'] = Department.objects.all()
+        return context
+
+@method_decorator(never_cache, name='dispatch')
+class AdminAllIssuesPageView(TemplateView):
+    template_name = 'accounts/admin_allissues.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            context['departments'] = Department.objects.all()
+            context['status'] = [choice[0] for choice in Ticket.status_choices]
+            context['categories'] = Category.objects.all()
+        return context
+
+@method_decorator(never_cache, name='dispatch')
+class AdminAllResolutionsPageView(TemplateView):
+    template_name = 'accounts/admin_allresolutions.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            context['departments'] = Department.objects.all()
+            context['status'] = [choice[0] for choice in Ticket.status_choices]
+        return context
+            
+#Viewsets
+class UsersViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserProfileSerializer
+
+    def check_admin(self, user):
+        return user.is_authenticated and user.role == 'Admin'
+
+    @action(detail=False, methods=['get'])
+    def all_users(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        queryset = User.objects.all().select_related('student_profile', 'staff_profile', 'staff_profile__department', 'student_profile__course__department')
+
+        # Filters
+        role = request.query_params.get('role')
+        department_id = request.query_params.get('department')
+        search_query = request.query_params.get('search')
+
+        if role:
+            queryset = queryset.filter(role=role)
+        
+        if department_id:
+            queryset = queryset.filter(
+                Q(staff_profile__department_id=department_id) | 
+                Q(student_profile__course__department_id=department_id)
+            )
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(student_profile__reg_number__icontains=search_query) |
+                Q(staff_profile__employee_id__icontains=search_query)
+            )
+
+        # Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'users': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+
+class AdminViewSet(viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TicketSerializer
+
+    def check_admin(self, user):
+        return user.is_authenticated and user.role == 'Admin'
+
+    @action(detail=False, methods=['post'])
+    def approve_staff(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        user_id = request.data.get('user_id')
+        staff_role = request.data.get('staff_role', 'STAFF') # STAFF or SENIOR
+
+        try:
+            user = User.objects.get(id=user_id, role='Staff')
+            user.is_active = True
+            user.save()
+
+            if hasattr(user, 'staff_profile'):
+                profile = user.staff_profile
+                profile.staff_role = staff_role
+                profile.save()
+            
+            return Response({'message': f'Staff member {user.get_full_name()} approved as {staff_role}.'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found or not a staff member'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def reject_staff(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        user_id = request.data.get('user_id')
+        try:
+            user = User.objects.get(id=user_id, role='Staff', is_active=False)
+            user.delete()
+            return Response({'message': 'Registration request rejected and account deleted.'})
+        except User.DoesNotExist:
+            return Response({'error': 'Pending staff request not found'}, status=404)
+
+    @action(detail=False, methods=['get'], url_path='all-issues')
+    def get_all_issues(self, request):
+        """
+        Get all tickets with filters and pagination.
+        """
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        queryset = Ticket.objects.all().select_related('owner', 'category', 'category__department').order_by('-created_at')
+        
+        # Filters
+        status_param = request.query_params.get('status')
+        if status_param and status_param != 'All Statuses':
+            queryset = queryset.filter(status=status_param.upper())
+
+        category_param = request.query_params.get('category')
+        if category_param and category_param != 'All Categories':
+            try:
+                queryset = queryset.filter(category_id=int(category_param))
+            except ValueError:
+                pass
+
+        department_param = request.query_params.get('department')
+        if department_param and department_param != 'All Departments':
+            try:
+                queryset = queryset.filter(category__department_id=int(department_param))
+            except ValueError:
+                pass
+
+        #Search
+        search_query = request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(id__icontains=search_query) |
+                Q(owner__first_name__icontains=search_query) |
+                Q(owner__last_name__icontains=search_query) |
+                Q(category__category_name__icontains=search_query) 
+            )
+        
+        #Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'tickets': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+
+    @action(detail=False, methods=['get'], url_path='all-resolutions')
+    def all_resolutions(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__category__department').order_by('-resolved_at')
+
+        # Filters
+        status_param = request.query_params.get('status')
+        if status_param and status_param != 'All Statuses':
+            queryset = queryset.filter(ticket__status=status_param.upper())
+
+        # category_param = request.query_params.get('category')
+        # if category_param and category_param != 'All Categories':
+        #     try:
+        #         queryset = queryset.filter(category_id=int(category_param))
+        #     except ValueError:
+        #         pass
+
+        department_param = request.query_params.get('department')
+        if department_param and department_param != 'All Departments':
+            try:
+                queryset = queryset.filter(ticket__category__department_id=int(department_param))
+            except ValueError:
+                pass
+            
+        # Search (Ticket ID, staff or Title)
+        search_query = request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(ticket__id__icontains=search_query) |
+                Q(ticket__title__icontains=search_query) |
+                Q(resolved_by__first_name__icontains=search_query)
+            )
+
+        #Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = ResolutionSerializer(page_obj, many=True)
+        return Response({
+            'resolutions': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+

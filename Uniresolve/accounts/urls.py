@@ -7,19 +7,22 @@ from .views import (
     LoginPageView,
     UserProfileView,
     CustomLoginView,
+
+)
+from .admin_views import (
+    AdminViewSet,
+    UsersViewSet,
     AdminDashboardPageView,
     AdminAllUsersPageView,
     AdminAllIssuesPageView,
     AdminAllResolutionsPageView,
-    AdminViewSet,
-    UserViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'admin', AdminViewSet, basename='admin')
-router.register(r'users', UserViewSet, basename='user')
+router.register(r'users', UsersViewSet, basename='user')
 
 urlpatterns = [
     # Router URLs
