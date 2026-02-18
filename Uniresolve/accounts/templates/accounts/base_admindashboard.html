@@ -50,15 +50,30 @@
                     <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{% url 'admin_all_users' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_all_users' %}active{% endif %}">
-                    <i class="fa-solid fa-users"></i>
-                    <span>All Users</span>
-                </a>
-                <a href="{% url 'admin_all_issues' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">
+
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_users' %}open{% endif %}">
+                    <div class="nav-dropdown-toggle" id="usersDropdown">
+                        <div>
+                            <i class="fa-solid fa-users"></i>
+                            <span>Users</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'admin_all_users' %}" class="sub-nav-item">View Students</a>
+                        <a href="{% url 'admin_all_users' %}" class="sub-nav-item">View Staff</a>
+                        <a href="#" class="sub-nav-item">Add Single User</a>
+                        <a href="#" class="sub-nav-item">Bulk Import</a>
+                    </div>
+                </div>
+
+                <a href="{% url 'admin_all_issues' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">
                     <i class="fa-solid fa-list"></i>
                     <span>All Issues</span>
                 </a>
-                <a href="{% url 'admin_all_resolutions' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_all_resolutions' %}active{% endif %}">
+                <a href="{% url 'admin_all_resolutions' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_all_resolutions' %}active{% endif %}">
                     <i class="fa-solid fa-circle-check"></i>
                     <span>All Resolutions</span>
                 </a>
@@ -78,6 +93,22 @@
     </div>
 
     <script>
+        // Sidebar Dropdown Toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const usersDropdown = document.getElementById('usersDropdown');
+            if (usersDropdown) {
+                usersDropdown.addEventListener('click', () => {
+                    usersDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            // Sync name display
+            const firstName = localStorage.getItem('first_name');
+            if (firstName) {
+                document.getElementById('user-name-display').innerText = `${firstName} (Admin)`;
+            }
+        });
+
         // Logout Handler
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
@@ -85,14 +116,6 @@
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 window.location.href = "{% url 'signin' %}";
-            }
-        });
-
-        // Basic Profile Injection (Sync name from localStorage or similar if needed)
-        document.addEventListener('DOMContentLoaded', () => {
-            const firstName = localStorage.getItem('first_name');
-            if (firstName) {
-                document.getElementById('user-name-display').innerText = `${firstName} (Admin)`;
             }
         });
     </script>

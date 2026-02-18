@@ -404,6 +404,14 @@
     deptFilter.addEventListener('change', () => fetchUsers(1));
 
     // Initial Fetch
+    // document.addEventListener('DOMContentLoaded', () => {
+    //     const urlParams = new URLSearchParams(window.location.search);
+    //     const roleParam = urlParams.get('role');
+    //     if (roleParam) {
+    //         roleFilter.value = roleParam;
+    //     }
+    //     fetchUsers();
+    // });
     document.addEventListener('DOMContentLoaded', fetchUsers);
 </script>
 {% endblock %}
