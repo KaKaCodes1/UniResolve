@@ -58,6 +58,10 @@ class AdminAllUsersPageView(TemplateView):
         return context
 
 @method_decorator(never_cache, name='dispatch')
+class AdminBulkImportPageView(TemplateView):
+    template_name = 'accounts/bulk_import.html'
+
+@method_decorator(never_cache, name='dispatch')
 class AdminAllIssuesPageView(TemplateView):
     template_name = 'accounts/admin_allissues.html'
 

@@ -16,6 +16,7 @@ from .admin_views import (
     AdminAllUsersPageView,
     AdminAllIssuesPageView,
     AdminAllResolutionsPageView,
+    AdminBulkImportPageView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
@@ -39,6 +40,7 @@ urlpatterns = [
     path('admin-dashboard/all-users/', AdminAllUsersPageView.as_view(), name='admin_all_users'),
     path('admin-dashboard/all-issues/', AdminAllIssuesPageView.as_view(), name='admin_all_issues'),
     path('admin-dashboard/all-resolutions/', AdminAllResolutionsPageView.as_view(), name='admin_all_resolutions'),
+    path('admin-dashboard/bulk-import/', AdminBulkImportPageView.as_view(), name='admin_bulk_import'),
 
     # Profile Endpoint
     path('profile/', UserProfileView.as_view(), name='user_profile'),
