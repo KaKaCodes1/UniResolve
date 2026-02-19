@@ -1,13 +1,11 @@
-from django.shortcuts import render
-from rest_framework import generics
-from rest_framework import generics, permissions, viewsets, serializers
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
-from django.contrib.auth import get_user_model, login
+from rest_framework import permissions, viewsets
+from .serializers import UserProfileSerializer
+from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
-from organization.models import Course, Department, Category 
-from rest_framework_simplejwt.views import TokenObtainPairView 
+from organization.models import Department, Category 
 from rest_framework.response import Response 
+from django.http import HttpResponse
+from .excel_generator import generate_template_workbook
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
@@ -150,6 +148,23 @@ class AdminViewSet(viewsets.GenericViewSet):
 
     def check_admin(self, user):
         return user.is_authenticated and user.role == 'Admin'
+
+    @action(detail=False, methods=['get'])
+    def download_template(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        role = request.query_params.get('role', 'Student') # Default to Student
+        if role not in ['Student', 'Staff']:
+             return Response({'error': 'Invalid role. Must be Student or Staff.'}, status=400)
+
+        wb = generate_template_workbook(role)
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={role}_Import_Template.xlsx'
+        
+        wb.save(response)
+        return response
 
     @action(detail=False, methods=['post'])
     def approve_staff(self, request):

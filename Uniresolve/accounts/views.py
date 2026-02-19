@@ -1,24 +1,11 @@
-from django.shortcuts import render
-from rest_framework import generics
-from rest_framework import generics, permissions, viewsets, serializers
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import generics, permissions
+from rest_framework.permissions import AllowAny
 from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
 from django.contrib.auth import get_user_model, login
 from django.views.generic import TemplateView 
-from organization.models import Course, Department, Category 
+from organization.models import Course, Department
 from rest_framework_simplejwt.views import TokenObtainPairView 
 from rest_framework.response import Response 
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.db.models import Q
-from tickets.models import Ticket, Resolution
-from tickets.serializers import TicketSerializer, ResolutionSerializer
-from rest_framework.decorators import action
-from django.core.paginator import Paginator
-
-
-
-# router = DefaultRouter()
 
 User = get_user_model()
 

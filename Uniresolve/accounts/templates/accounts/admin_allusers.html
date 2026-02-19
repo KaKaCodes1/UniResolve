@@ -238,6 +238,21 @@
                 </select>
             </div>
         </div>
+
+        <div class="data-management-section"
+            style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+            <h4 style="font-size: 0.95rem; margin-bottom: 1rem; color: #444;">Bulk Import Templates</h4>
+            <div style="display: flex; gap: 1rem;">
+                <button onclick="downloadTemplate('Student')" class="btn-secondary"
+                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-file-excel" style="color: #1D6F42;"></i> Download Student Template
+                </button>
+                <button onclick="downloadTemplate('Staff')" class="btn-secondary"
+                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-file-excel" style="color: #1D6F42;"></i> Download Staff Template
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="users-list-section">
@@ -391,6 +406,37 @@
         if (isLoading) {
             usersTable.style.display = 'none';
             emptyState.style.display = 'none';
+        }
+    }
+
+    async function downloadTemplate(role) {
+        try {
+            const response = await fetch(`/api/accounts/admin/download_template/?role=${role}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+
+            if (response.status === 401) {
+                alert('Session expired. Please login again.');
+                window.location.href = "{% url 'signin' %}";
+                return;
+            }
+
+            if (!response.ok) throw new Error('Failed to download template');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${role}_Import_Template.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Error downloading template. Please try again.');
         }
     }
 
