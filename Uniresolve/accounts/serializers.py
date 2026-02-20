@@ -180,5 +180,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['role'] = self.user.role
         data['first_name'] = self.user.first_name
         data['user_id'] = self.user.id
+        data['must_change_password'] = self.user.must_change_password
         
         return data
