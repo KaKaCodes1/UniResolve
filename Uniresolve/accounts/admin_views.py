@@ -1,5 +1,6 @@
 from rest_framework import permissions, viewsets
 import openpyxl
+from .validators import validate_excel_file
 from .serializers import UserProfileSerializer
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
@@ -185,6 +186,11 @@ class AdminViewSet(viewsets.GenericViewSet):
         if not file:
             return Response({'error': 'No file provided'}, status=400)
         
+        try:
+            validate_excel_file(file)
+        except ValidationError as e:
+            return Response({'error': e.messages[0]}, status=400)
+
         role = request.data.get('role')
         if not role:
             return Response({'error': 'Role not specified'}, status=400)
