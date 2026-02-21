@@ -56,18 +56,36 @@
     <div class="import-step">
         <div class="step-header">
             <h4 class="step-title">Step 2: Upload Data</h4>
-            <p class="step-desc">Upload your formatted file to import users</p>
+            <p class="step-desc">Select the user role and upload your formatted file to import users</p>
         </div>
 
-        <div class="upload-zone" id="dropZone">
-            <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
-            <p class="upload-text">Drag and drop your file here</p>
-            <p class="upload-subtext">or click to browse</p>
-            <p class="upload-formats">Supported formats: CSV, Excel (.xlsx, .xls)</p>
+        <!-- Role Selection -->
+        <div class="role-selector">
+            <input type="radio" id="roleStudent" name="importRole" value="Student" class="role-radio" hidden>
+            <label for="roleStudent" class="role-label">Student</label>
+
+            <input type="radio" id="roleStaff" name="importRole" value="Staff" class="role-radio" hidden>
+            <label for="roleStaff" class="role-label">Staff</label>
+        </div>
+
+        <div class="file-upload-container" id="dropZone">
             <input type="file" id="fileInput" hidden accept=".csv, .xlsx, .xls">
-        </div>
 
-        <button class="import-btn">
+            <div class="upload-content" id="uploadContent">
+                <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
+                <p><strong>Upload a file</strong> or drag and drop</p>
+                <span class="upload-hint">Supported formats: CSV, Excel (.xlsx, .xls)</span>
+            </div>
+
+            <!-- File preview area (hidden by default) -->
+            <div id="filePreview" class="file-preview" style="display: none;">
+                <i class="fa-regular fa-file"></i>
+                <span id="selectedFileName">filename.xlsx</span>
+                <i class="fa-solid fa-xmark remove-file" id="removeFile"></i>
+            </div>
+        </div>
+        <div id="file_upload_error" class="error-message"></div>
+        <button class="import-btn" id="importBtn" disabled>
             <i class="fa-solid fa-upload"></i> Upload & Import Users
         </button>
     </div>
@@ -107,29 +125,119 @@
         }
     }
 
-    // Dropzone functionality (visual only for now)
+    // Upload Data Logic
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
+    const importBtn = document.getElementById('importBtn');
+    const uploadContent = document.getElementById('uploadContent');
+    const filePreview = document.getElementById('filePreview');
+    const selectedFileNameDisplay = document.getElementById('selectedFileName');
+    const removeFile = document.getElementById('removeFile');
+    const roleRadios = document.querySelectorAll('input[name="importRole"]');
 
-    dropZone.addEventListener('click', () => fileInput.click());
+    let selectedRole = null;
+    let selectedFile = null;
+
+    // Check if form is ready to submit
+    function checkImportReady() {
+        if (selectedRole && selectedFile) {
+            importBtn.disabled = false;
+        } else {
+            importBtn.disabled = true;
+        }
+    }
+
+    // Handle Role Selection
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedRole = e.target.value;
+            checkImportReady();
+        });
+    });
+
+    // Trigger file input on click
+    dropZone.addEventListener('click', (e) => {
+        // Only trigger click if we aren't clicking the remove button or the preview container itself
+        if (e.target !== removeFile && e.target !== filePreview && e.target !== selectedFileNameDisplay) {
+            fileInput.click();
+        }
+    });
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#1976d2';
-        dropZone.style.background = '#f5f9ff';
+        if (!selectedFile) {
+            dropZone.classList.add('highlight');
+        }
     });
 
     dropZone.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#e0e0e0';
-        dropZone.style.background = 'white';
+        dropZone.classList.remove('highlight');
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#e0e0e0';
-        dropZone.style.background = 'white';
-        // Handle file drop here
+        dropZone.classList.remove('highlight');
+
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files[0]);
+            fileInput.files = e.dataTransfer.files; // Sync to input
+        }
+    });
+
+    // Handle File Selection via click
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        selectedFile = file;
+
+        // Toggle visibility
+        uploadContent.style.display = 'none';
+        filePreview.style.display = 'flex';
+
+        // Display file name
+        selectedFileNameDisplay.textContent = selectedFile.name;
+
+        checkImportReady();
+    }
+
+    // Remove file
+    removeFile.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent triggering the dropZone click
+
+        // Reset file state
+        fileInput.value = '';
+        selectedFile = null;
+
+        // Toggle visibility back
+        uploadContent.style.display = 'flex'; // Uses flex from dashboard.css
+        filePreview.style.display = 'none';
+        selectedFileNameDisplay.textContent = '';
+
+        checkImportReady();
+    });
+
+    // Handle Import Button Click (API integration pending)
+    importBtn.addEventListener('click', () => {
+        if (!selectedRole || !selectedFile) return;
+
+        // Visual feedback (simulating pending API work)
+        const originalText = importBtn.innerHTML;
+        importBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready to Import...';
+        importBtn.disabled = true;
+
+        console.log(`Ready to import! Role: ${selectedRole}, File: ${selectedFile.name}`);
+
+        // --- API Integration point paused per user request ---
+        setTimeout(() => {
+            alert('UI validation passed and ready to integrate API! Check console for simulated payload.');
+            importBtn.innerHTML = originalText;
+            importBtn.disabled = false;
+        }, 1000);
     });
 </script>
 {% endblock %}

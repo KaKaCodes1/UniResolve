@@ -236,8 +236,8 @@
 }
 
 .upload-zone:hover {
-    border-color: #1976d2;
-    background: #f5f9ff;
+    border-color: #CC0000;
+    background: #fcebeb;
 }
 
 .upload-icon {
@@ -283,6 +283,47 @@
     font-family: inherit;
 }
 
-.import-btn:hover {
+.import-btn:hover:not(:disabled) {
     background: #b71c1c;
+}
+
+.import-btn:disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* --- Role Selection (Segmented Control) --- */
+.role-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.role-label {
+    padding: 0.75rem 2rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    user-select: none;
+}
+
+.role-label:hover {
+    border-color: #bcccdc;
+    background: #f8f9fa;
+}
+
+.role-radio:checked+.role-label {
+    background: #CC0000;
+    border-color: #CC0000;
+    color: white;
+    box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2);
 }
