@@ -22,6 +22,15 @@ class Ticket(models.Model):
         on_delete=models.PROTECT, #Prevent deletion of a category and yet there are tickets in that category
         related_name='tickets'
     )
+    current_department = models.ForeignKey(
+        'organization.Department',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='active_tickets',
+        help_text="The department currently responsible for reviewing this ticket."
+    )
+    due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
