@@ -11,6 +11,8 @@ from organization.models import Category
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
 
 #Import User model
 User = get_user_model()
@@ -96,9 +98,8 @@ class StaffDashboardPageView(TemplateView):
             if hasattr(user, 'staff_profile') and user.staff_profile.department:
                 staff_dept = user.staff_profile.department
                 
-                # Filter tickets that belong to categories within this department
-                # Note: 'category__department' traces the relationship Ticket -> Category -> Department
-                tickets = Ticket.objects.filter(category__department=staff_dept)
+                # Filter tickets that belong to this department's current queue
+                tickets = Ticket.objects.filter(current_department=staff_dept)
 
                 # Calculate counts based on status
                 context['total_tickets'] = tickets.count()
@@ -162,7 +163,7 @@ class TicketViewSet(viewsets.ModelViewSet):
         #Departmental filtering
         if user.role == 'Staff':
             staff_dept = user.staff_profile.department
-            return Ticket.objects.filter(category__department = staff_dept)
+            return Ticket.objects.filter(current_department=staff_dept)
         
         #Admins see all tickets
         return Ticket.objects.all()
@@ -196,8 +197,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         staff_dept = user.staff_profile.department
 
-        # Filter tickets by the department via the category
-        tickets = Ticket.objects.filter(category__department=staff_dept)
+        # Filter tickets by the department's current queue
+        tickets = Ticket.objects.filter(current_department=staff_dept)
         
         # Prepare statistics
         stats = {
@@ -213,12 +214,31 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     #connects a ticket to a logged in user
     def perform_create(self, serializer):
+        user = self.request.user
+        
         #Check if the user is a student first
-        if self.request.user.role != 'Student':
+        if user.role != 'Student':
             raise serializers.ValidationError("Only students are allowed to raise tickets")
         
+        category = serializer.validated_data.get('category')
+        
+        # Calculate dynamic due date
+        due_date = timezone.now() + timedelta(hours=category.resolution_timeframe)
+
+        # Dynamic Department Routing
+        if category.is_academic:
+            # Route to student's home department
+            current_dept = user.student_profile.course.department
+        else:
+            # Route to category's regular department
+            current_dept = category.department
+
         #preventing impersonation, a ticket is associated with the person logged in
-        serializer.save(owner= self.request.user)
+        serializer.save(
+            owner=user, 
+            current_department=current_dept,
+            due_date=due_date
+        )
 
     @action(detail=False, methods=['get'])
     def all_issues(self, request):
@@ -238,8 +258,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         staff_dept = user.staff_profile.department
         
-        # 3. Base Query: Get all tickets linked to categories in this department
-        queryset = Ticket.objects.filter(category__department=staff_dept).order_by('-created_at')
+        # 3. Base Query: Get all tickets currently in this department's queue
+        queryset = Ticket.objects.filter(current_department=staff_dept).order_by('-created_at')
 
         # Filtering Logic
         # If a specific status is requested (and not "All"), filter by it
@@ -339,8 +359,8 @@ class ResolutionViewSet(viewsets.ModelViewSet):
 
         staff_dept = user.staff_profile.department
         
-        # Base Query: Resolutions linked to tickets in the staff's department
-        queryset = Resolution.objects.filter(ticket__category__department=staff_dept).order_by('-resolved_at')
+        # Base Query: Resolutions linked to tickets currently in the staff's department
+        queryset = Resolution.objects.filter(ticket__current_department=staff_dept).order_by('-resolved_at')
 
         # Filtering 
         # 1. Status (of the Ticket)
