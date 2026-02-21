@@ -78,10 +78,25 @@
                     <i class="fa-solid fa-circle-check"></i>
                     <span>All Resolutions</span>
                 </a>
-                <a href="#" class="nav-item">
+                <!-- <a href="#" class="nav-item">
                     <i class="fa-solid fa-gear"></i>
                     <span>Configuration</span>
-                </a>
+                </a> -->
+
+                <div class="nav-dropdown">
+                    <div class="nav-dropdown-toggle" id="SettingsDropdown">
+                        <div>
+                            <i class="fa-solid fa-gear"></i>
+                            <span>System Settings</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="#" class="sub-nav-item">Departments Management</a>
+                        <a href="#" class="sub-nav-item">Courses Management</a>
+                        <a href="#" class="sub-nav-item">Issues Configuration</a>
+                    </div>
+                </div>
             </nav>
         </aside>
 
@@ -100,6 +115,13 @@
             if (usersDropdown) {
                 usersDropdown.addEventListener('click', () => {
                     usersDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            const settingsDropdown = document.getElementById('SettingsDropdown');
+            if (settingsDropdown) {
+                settingsDropdown.addEventListener('click', () => {
+                    settingsDropdown.parentElement.classList.toggle('open');
                 });
             }
 

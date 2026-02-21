@@ -12,6 +12,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import get_user_model
 
+#Import User model
+User = get_user_model()
+
 #Preventing page caching to prevent users from accessing pages when they logout
 @method_decorator(never_cache, name='dispatch')
 class SubmitIssuePageView(TemplateView):
@@ -126,8 +129,6 @@ class StaffAllIssuesPageView(TemplateView):
              context['categories'] = Category.objects.filter(department=staff_dept)
         return context
 
-#Import User model
-User = get_user_model()
 
 @method_decorator(never_cache, name='dispatch')
 class AllResolutionsPageView(TemplateView):

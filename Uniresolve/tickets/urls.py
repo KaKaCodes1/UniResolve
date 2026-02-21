@@ -13,7 +13,7 @@ from .views import (
 from rest_framework.routers import DefaultRouter
 
 #The router will handle creating the appropriate URL patterns
-#for all CRUD operations on the Ticket model.
+#for all CRUD operations on the Ticket and Resolution model.
 router = DefaultRouter()
 router.register(r'tickets',TicketViewSet, basename='ticket')
 router.register(r'resolutions', ResolutionViewSet, basename='resolutions')
