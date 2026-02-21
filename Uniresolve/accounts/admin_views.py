@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets
+import openpyxl
 from .serializers import UserProfileSerializer
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
@@ -13,6 +14,11 @@ from tickets.models import Ticket, Resolution
 from tickets.serializers import TicketSerializer, ResolutionSerializer
 from rest_framework.decorators import action
 from django.core.paginator import Paginator
+from django.db import transaction
+from .models import StudentProfile, StaffProfile
+from organization.models import Department, Category, Course 
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -171,39 +177,169 @@ class AdminViewSet(viewsets.GenericViewSet):
         return response
 
     @action(detail=False, methods=['post'])
-    def approve_staff(self, request):
+    def bulk_import(self, request):
         if not self.check_admin(request.user):
             return Response({'error': 'Unauthorized'}, status=403)
         
-        user_id = request.data.get('user_id')
-        staff_role = request.data.get('staff_role', 'STAFF') # STAFF or SENIOR
-
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file provided'}, status=400)
+        
+        role = request.data.get('role')
+        if not role:
+            return Response({'error': 'Role not specified'}, status=400)
+        
+        if role not in ['Student', 'Staff']:
+            return Response({'error': 'Invalid role. Must be Student or Staff.'}, status=400)
+        
         try:
-            user = User.objects.get(id=user_id, role='Staff')
-            user.is_active = True
-            user.save()
+            #Open the excel file and get the visible sheet
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
 
-            if hasattr(user, 'staff_profile'):
-                profile = user.staff_profile
-                profile.staff_role = staff_role
-                profile.save()
+            # Read all rows, skipping the header (Row 1), and extract just the values
+            rows = list(ws.iter_rows(min_row=2, values_only=True))
+
+            if not rows:
+                return Response({'error': 'The uploaded file is empty.'}, status=400)
+
+            # Initialize counters and error list
+            success_count = 0
+            error_details = []
+            generic_password = "Cuea@2026"
+
+            try:
+                with transaction.atomic():
+                    for index, row in enumerate(rows, start=2):
+                        if not any(row):
+                            continue # Skip empty rows at the end of the file
+
+                        try:
+                            first_name, last_name, email, unique_id, target_name = row[:5]
+                            
+                            # Check for missing fields
+                            if not all([first_name, last_name, email, unique_id, target_name]):
+                                error_details.append(f"Row {index}: Missing required fields.")
+                                continue
+
+                            #Check if email is actually an email
+                            try:
+                                validate_email(email)
+                            except ValidationError:
+                                error_details.append(f"Row {index}: '{email}' is not a valid email address.")
+                                continue
+
+                            # Check for duplicate emails
+                            if User.objects.filter(email=email).exists():
+                                error_details.append(f"Row {index}: User with email {email} already exists.")
+                                continue
+
+                            # Check for duplicate unique_id
+                            if role == 'Student':
+                                if StudentProfile.objects.filter(reg_number=unique_id).exists():
+                                    error_details.append(f"Row {index}: Student with reg number {unique_id} already exists.")
+                                    continue
+                            elif role == 'Staff':
+                                if StaffProfile.objects.filter(employee_id=unique_id).exists():
+                                    error_details.append(f"Row {index}: Staff with employee id {unique_id} already exists.")
+                                    continue
+                            
+                            # Create user
+                            user = User.objects.create(
+                                email=email,
+                                first_name=first_name,
+                                last_name=last_name,
+                                role=role,
+                                must_change_password=True
+                            )
+                            user.set_password(generic_password)
+                            user.save()
+
+                            # Create profile
+                            if role == 'Student':
+                                # __iexact makes it case-insensitive while first() returns the first object that matches the query
+                                course = Course.objects.filter(course_name__iexact=target_name).first()
+                                if not course:
+                                    error_details.append(f"Row {index}: Course {target_name} not found.")
+                                    continue
+                                StudentProfile.objects.create(
+                                    user=user,
+                                    reg_number=unique_id,
+                                    course=course
+                                )
+
+                            elif role == 'Staff':
+                                dept = Department.objects.filter(department_name__iexact=target_name).first()
+                                if not dept:
+                                    error_details.append(f"Row {index}: Department {target_name} not found.")
+                                    continue
+                                StaffProfile.objects.create(
+                                    user=user,
+                                    employee_id=unique_id,
+                                    department=dept
+                                )
+
+                            success_count += 1
+
+                        # This catches errors if the row doesn't have the expected number of columns
+                        except ValueError:
+                            error_details.append(f"Row {index}: Invalid data format. Please follow the official template")
+                    
+                    # If there are any errors on the error list, stop creating users and delete the created users in the transaction
+                    if error_details:
+                        raise ValueError("Validation Failed")
+
+            # Returns the error details if there are any errors    
+            except ValueError:
+                return Response({
+                    'error': 'Import failed due to data errors. No users were saved. Please fix the following rows:',
+                    'details': error_details,
+                }, status=400)
             
-            return Response({'message': f'Staff member {user.get_full_name()} approved as {staff_role}.'})
-        except User.DoesNotExist:
-            return Response({'error': 'User not found or not a staff member'}, status=404)
+            # Returns the success message if there are no errors
+            return Response({
+                'message': f'Successfully imported {success_count} {role}s.',
+                'errors': []
+            }, status=201)
 
-    @action(detail=False, methods=['post'])
-    def reject_staff(self, request):
-        if not self.check_admin(request.user):
-            return Response({'error': 'Unauthorized'}, status=403)
+        # Catches any server errors that may occor
+        except Exception as e:
+            return Response({'error': f'Failed to process file: {str(e)}'}, status=500)
+
+    # @action(detail=False, methods=['post'])
+    # def approve_staff(self, request):
+    #     if not self.check_admin(request.user):
+    #         return Response({'error': 'Unauthorized'}, status=403)
         
-        user_id = request.data.get('user_id')
-        try:
-            user = User.objects.get(id=user_id, role='Staff', is_active=False)
-            user.delete()
-            return Response({'message': 'Registration request rejected and account deleted.'})
-        except User.DoesNotExist:
-            return Response({'error': 'Pending staff request not found'}, status=404)
+    #     user_id = request.data.get('user_id')
+    #     staff_role = request.data.get('staff_role', 'STAFF') # STAFF or SENIOR
+
+    #     try:
+    #         user = User.objects.get(id=user_id, role='Staff')
+    #         user.is_active = True
+    #         user.save()
+
+    #         if hasattr(user, 'staff_profile'):
+    #             profile = user.staff_profile
+    #             profile.staff_role = staff_role
+    #             profile.save()
+            
+    #         return Response({'message': f'Staff member {user.get_full_name()} approved as {staff_role}.'})
+    #     except User.DoesNotExist:
+    #         return Response({'error': 'User not found or not a staff member'}, status=404)
+
+    # @action(detail=False, methods=['post'])
+    # def reject_staff(self, request):
+    #     if not self.check_admin(request.user):
+    #         return Response({'error': 'Unauthorized'}, status=403)
+        
+    #     user_id = request.data.get('user_id')
+    #     try:
+    #         user = User.objects.get(id=user_id, role='Staff', is_active=False)
+    #         user.delete()
+    #         return Response({'message': 'Registration request rejected and account deleted.'})
+    #     except User.DoesNotExist:
+    #         return Response({'error': 'Pending staff request not found'}, status=404)
 
     @action(detail=False, methods=['get'], url_path='all-issues')
     def get_all_issues(self, request):
