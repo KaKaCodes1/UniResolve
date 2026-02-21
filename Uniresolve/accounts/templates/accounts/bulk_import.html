@@ -10,7 +10,7 @@
 <div class="bulk-import-container">
     <h3 class="bulk-import-title">Bulk Import Users</h3>
 
-    <!-- Step 1: Download Templates -->
+    <!-- Download Templates -->
     <div class="import-step">
         <div class="step-header">
             <h4 class="step-title">Step 1: Download Templates</h4>
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Step 2: Upload Data -->
+    <!-- Upload Data -->
     <div class="import-step">
         <div class="step-header">
             <h4 class="step-title">Step 2: Upload Data</h4>
@@ -69,22 +69,23 @@
         </div>
 
         <div class="file-upload-container" id="dropZone">
-            <input type="file" id="fileInput" hidden accept=".csv, .xlsx, .xls">
+            <input type="file" id="fileInput" hidden accept=".xlsx">
 
             <div class="upload-content" id="uploadContent">
                 <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
                 <p><strong>Upload a file</strong> or drag and drop</p>
-                <span class="upload-hint">Supported formats: CSV, Excel (.xlsx, .xls)</span>
+                <span class="upload-hint">Supported formats: Excel (.xlsx)</span>
             </div>
 
             <!-- File preview area (hidden by default) -->
             <div id="filePreview" class="file-preview" style="display: none;">
-                <i class="fa-regular fa-file"></i>
+                <i class="fa-regular fa-file-excel"></i>
                 <span id="selectedFileName">filename.xlsx</span>
                 <i class="fa-solid fa-xmark remove-file" id="removeFile"></i>
             </div>
         </div>
         <div id="file_upload_error" class="error-message"></div>
+        {% csrf_token %}
         <button class="import-btn" id="importBtn" disabled>
             <i class="fa-solid fa-upload"></i> Upload & Import Users
         </button>
@@ -193,6 +194,14 @@
     });
 
     function handleFileSelection(file) {
+        // Basic frontend validation for extension
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            document.getElementById('file_upload_error').innerText = "Please upload an Excel (.xlsx) file.";
+            document.getElementById('file_upload_error').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('file_upload_error').style.display = 'none';
         selectedFile = file;
 
         // Toggle visibility
@@ -214,30 +223,79 @@
         selectedFile = null;
 
         // Toggle visibility back
-        uploadContent.style.display = 'flex'; // Uses flex from dashboard.css
+        uploadContent.style.display = 'flex';
         filePreview.style.display = 'none';
         selectedFileNameDisplay.textContent = '';
+        document.getElementById('file_upload_error').style.display = 'none';
 
         checkImportReady();
     });
 
-    // Handle Import Button Click (API integration pending)
-    importBtn.addEventListener('click', () => {
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Handle Import Button Click
+    importBtn.addEventListener('click', async () => {
         if (!selectedRole || !selectedFile) return;
 
-        // Visual feedback (simulating pending API work)
+        // Visual feedback
         const originalText = importBtn.innerHTML;
-        importBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready to Import...';
+        importBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Importing Users...';
         importBtn.disabled = true;
 
-        console.log(`Ready to import! Role: ${selectedRole}, File: ${selectedFile.name}`);
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('role', selectedRole);
 
-        // --- API Integration point paused per user request ---
-        setTimeout(() => {
-            alert('UI validation passed and ready to integrate API! Check console for simulated payload.');
+        try {
+            const response = await fetch('/api/accounts/admin/bulk_import/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`Success: ${data.message}`);
+                // Reset form state
+                removeFile.click();
+                document.querySelectorAll('.role-radio').forEach(r => r.checked = false);
+                selectedRole = null;
+                document.getElementById('file_upload_error').style.display = 'none';
+                checkImportReady();
+            } else {
+                let errorMsg = `Error: ${data.error || 'Failed to import users.'}`;
+                if (data.details && data.details.length > 0) {
+                    errorMsg += '\n\nDetails:\n' + data.details.join('\n');
+                    document.getElementById('file_upload_error').innerText = errorMsg;
+                }
+                alert(errorMsg);
+                document.getElementById('file_upload_error').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Import error:', error);
+            alert('An unexpected error occurred during the import.');
+        } finally {
             importBtn.innerHTML = originalText;
-            importBtn.disabled = false;
-        }, 1000);
+            checkImportReady(); // Ensure button state matches selection state
+        }
     });
 </script>
 {% endblock %}
