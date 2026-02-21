@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
     department_name = serializers.ReadOnlyField(source='department.department_name')
     class Meta:
         model = Category
-        fields = ['id', 'category_name', 'department', 'department_name']
+        fields = ['id', 'category_name', 'department', 'department_name','is_academic', 'resolution_timeframe']
 
 class CourseSerializer(serializers.ModelSerializer):
     department_name = serializers.ReadOnlyField(source='department.department_name')
