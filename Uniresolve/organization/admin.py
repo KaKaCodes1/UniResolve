@@ -14,8 +14,8 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('category_name', 'department')
-    list_filter = ('department',)
+    list_display = ('category_name', 'department', 'is_academic', 'resolution_timeframe')
+    list_filter = ('department','is_academic','resolution_timeframe')
     search_fields = ('category_name',)
 
 
