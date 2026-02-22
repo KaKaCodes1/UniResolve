@@ -1,7 +1,7 @@
 {% extends 'accounts/base_admindashboard.html' %}
 {% load static %}
 
-{% block title %}All Users - Admin Dashboard{% endblock %}
+{% block title %}All Staff - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="all-users-container">
@@ -12,7 +12,7 @@
         </div>
 
         <div class="search-row">
-            <input type="text" id="userSearch" placeholder="Search by name, email, admission number or employee ID...">
+            <input type="text" id="userSearch" placeholder="Search by name, email, or employee ID...">
         </div>
 
         <div class="filters-row">
@@ -41,13 +41,13 @@
 
     <div class="users-list-section">
         <div class="section-header">
-            <h3>Users List</h3>
-            <span class="users-count" id="usersCount">0 users found</span>
+            <h3>Staff List</h3>
+            <span class="users-count" id="usersCount">0 staff found</span>
         </div>
 
         <div id="loadingOverlay" class="loading-overlay">
             <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
-            <p>Loading users...</p>
+            <p>Loading staff...</p>
         </div>
 
         <table class="users-table" id="usersTable">
@@ -56,7 +56,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th>ID Number</th>
+                    <th>Employee ID</th>
                     <th>Department</th>
                     <th>Status</th>
                 </tr>
@@ -101,7 +101,7 @@
         const role = roleFilter.value;
         const dept = deptFilter.value;
 
-        let url = `/api/accounts/users/all_users/?search=${encodeURIComponent(search)}&page=${page}`;
+        let url = `/api/accounts/users/all_staff/?search=${encodeURIComponent(search)}&page=${page}`;
         if (role) url += `&role=${encodeURIComponent(role)}`;
         if (dept) url += `&department=${encodeURIComponent(dept)}`;
 
@@ -127,7 +127,7 @@
     }
 
     function renderUsers(users, totalCount) {
-        usersCount.innerText = `${totalCount} user${totalCount !== 1 ? 's' : ''} found`;
+        usersCount.innerText = `${totalCount} staff member${totalCount !== 1 ? 's' : ''} found`;
         usersTableBody.innerHTML = '';
 
         if (users.length === 0) {
@@ -143,7 +143,7 @@
             const row = document.createElement('tr');
 
             const roleBadge = `<span class="user-badge badge-${user.role.toLowerCase()}">${user.role}</span>`;
-            const idNumber = user.profile_data.reg_number || user.profile_data.employee_id || 'N/A';
+            const idNumber = user.profile_data.employee_id || 'N/A';
             const department = user.profile_data.department || 'N/A';
             const status = user.is_active ?
                 '<span class="status-active">Active</span>' :

@@ -13,11 +13,11 @@ from .admin_views import (
     AdminViewSet,
     UsersViewSet,
     AdminDashboardPageView,
-    AdminAllUsersPageView,
     AdminAllIssuesPageView,
     AdminAllResolutionsPageView,
     AdminBulkImportPageView,
     AdminAllStudentsPageView,
+    AdminAllStaffPageView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
@@ -38,7 +38,7 @@ urlpatterns = [
     path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
     path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
     path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
-    path('admin-dashboard/all-users/', AdminAllUsersPageView.as_view(), name='admin_all_users'),
+    path('admin-dashboard/all-staff/', AdminAllStaffPageView.as_view(), name='admin_all_staff'),
     path('admin-dashboard/all-students/', AdminAllStudentsPageView.as_view(), name='admin_all_students'),
     path('admin-dashboard/all-issues/', AdminAllIssuesPageView.as_view(), name='admin_all_issues'),
     path('admin-dashboard/all-resolutions/', AdminAllResolutionsPageView.as_view(), name='admin_all_resolutions'),

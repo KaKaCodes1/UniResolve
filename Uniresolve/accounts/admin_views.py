@@ -52,8 +52,8 @@ class AdminDashboardPageView(TemplateView):
         return context
 
 @method_decorator(never_cache, name='dispatch')
-class AdminAllUsersPageView(TemplateView):
-    template_name = 'accounts/admin_allusers.html'
+class AdminAllStaffPageView(TemplateView):
+    template_name = 'accounts/admin_allstaff.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,11 +117,11 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         return user.is_authenticated and user.role == 'Admin'
 
     @action(detail=False, methods=['get'])
-    def all_users(self, request):
+    def all_staff(self, request):
         if not self.check_admin(request.user):
             return Response({'error': 'Unauthorized'}, status=403)
 
-        queryset = User.objects.all().select_related('student_profile', 'staff_profile', 'staff_profile__department', 'student_profile__course__department')
+        queryset = User.objects.filter(role='Staff').select_related('staff_profile', 'staff_profile__department')
 
         # Filters
         role = request.query_params.get('role')
@@ -133,8 +133,7 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         
         if department_id:
             queryset = queryset.filter(
-                Q(staff_profile__department_id=department_id) | 
-                Q(student_profile__course__department_id=department_id)
+                Q(staff_profile__department_id=department_id) 
             )
 
         if search_query:
@@ -142,7 +141,6 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(first_name__icontains=search_query) |
                 Q(last_name__icontains=search_query) |
                 Q(email__icontains=search_query) |
-                Q(student_profile__reg_number__icontains=search_query) |
                 Q(staff_profile__employee_id__icontains=search_query)
             )
 
@@ -184,7 +182,6 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         
         if department_id:
             queryset = queryset.filter(
-                # Q(staff_profile__department_id=department_id) | 
                 Q(student_profile__course__department_id=department_id)
             )
         
@@ -199,7 +196,6 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(last_name__icontains=search_query) |
                 Q(email__icontains=search_query) |
                 Q(student_profile__reg_number__icontains=search_query) 
-                # Q(staff_profile__employee_id__icontains=search_query)
             )
 
         # Pagination
