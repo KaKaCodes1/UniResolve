@@ -1,0 +1,252 @@
+{% extends 'accounts/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}All Students - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="all-users-container">
+    <div class="filters-card">
+        <div class="filters-header">
+            <h3 class="filters-title">Filters</h3>
+            <p class="filters-subtitle">Search and filter system users</p>
+        </div>
+
+        <div class="search-row">
+            <input type="text" id="userSearch" placeholder="Search by name, email or admission number...">
+        </div>
+
+        <div class="filters-row">
+            <div class="filter-group">
+                <label for="courseFilter">Course</label>
+                <select id="courseFilter" class="filter-select">
+                    <option value="">All Courses</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.course_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="deptFilter">Department</label>
+                <select id="deptFilter" class="filter-select">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.department_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="users-list-section">
+        <div class="section-header">
+            <h3>Students List</h3>
+            <span class="users-count" id="usersCount">0 students found</span>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay">
+            <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            <p>Loading students...</p>
+        </div>
+
+        <table class="users-table" id="usersTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Reg Number</th>
+                    <th>Course</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <!-- Data injected by JS -->
+            </tbody>
+        </table>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-users-slash fa-3x" style="margin-bottom: 1rem;"></i>
+            <p>No users found matching your criteria.</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" id="paginationControls">
+            <!-- Buttons injected by JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const userSearch = document.getElementById('userSearch');
+    // const roleFilter = document.getElementById('roleFilter');
+    const deptFilter = document.getElementById('deptFilter');
+    const courseFilter = document.getElementById('courseFilter');
+    const usersTableBody = document.getElementById('usersTableBody');
+    const usersCount = document.getElementById('usersCount');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const emptyState = document.getElementById('emptyState');
+    const usersTable = document.getElementById('usersTable');
+    const paginationControls = document.getElementById('paginationControls');
+
+    let debounceTimer;
+    let currentPage = 1;
+
+    async function fetchUsers(page = 1) {
+        showLoading(true);
+        currentPage = page;
+        const search = userSearch.value;
+        // const role = roleFilter.value;
+        const dept = deptFilter.value;
+        const course = courseFilter.value;
+
+        let url = `/api/accounts/users/all_students/?search=${encodeURIComponent(search)}&page=${page}`;
+        // if (role) url += `&role=${encodeURIComponent(role)}`;
+        if (dept) url += `&department=${encodeURIComponent(dept)}`;
+        if (course) url += `&course=${encodeURIComponent(course)}`;
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch users');
+
+            const data = await response.json();
+            renderUsers(data.users, data.total_count);
+            renderPagination(data);
+        } catch (error) {
+            console.error('Error:', error);
+            usersTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: red;">Error loading users. Please try again later.</td></tr>`;
+            paginationControls.innerHTML = '';
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function renderUsers(users, totalCount) {
+        usersCount.innerText = `${totalCount} student${totalCount !== 1 ? 's' : ''} found`;
+        usersTableBody.innerHTML = '';
+
+        if (users.length === 0) {
+            emptyState.style.display = 'block';
+            usersTable.style.display = 'none';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        usersTable.style.display = 'table';
+
+        users.forEach(user => {
+            const row = document.createElement('tr');
+
+            // const roleBadge = `<span class="user-badge badge-${user.role.toLowerCase()}">${user.role}</span>`;
+            const idNumber = user.profile_data.reg_number || 'N/A';
+            const department = user.profile_data.department || 'N/A';
+            const course = user.profile_data.course || 'N/A';
+            const status = user.is_active ?
+                '<span class="status-active">Active</span>' :
+                '<span class="status-inactive">Inactive</span>';
+
+            row.innerHTML = `
+                <td><strong>${user.first_name} ${user.last_name}</strong></td>
+                <td>${user.email}</td>
+                <td>${idNumber}</td>
+                <td>${course}</td>
+                <td>${department}</td>
+                <td>${status}</td>
+            `;
+            usersTableBody.appendChild(row);
+        });
+    }
+
+    function renderPagination(data) {
+        paginationControls.innerHTML = '';
+        if (data.total_pages <= 1) return;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Previous';
+        prevBtn.disabled = !data.has_previous;
+        prevBtn.onclick = () => fetchUsers(data.current_page - 1);
+        paginationControls.appendChild(prevBtn);
+
+        const pageInfo = document.createElement('span');
+        pageInfo.className = 'page-info';
+        pageInfo.innerText = `Page ${data.current_page} of ${data.total_pages}`;
+        paginationControls.appendChild(pageInfo);
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right"></i>';
+        nextBtn.disabled = !data.has_next;
+        nextBtn.onclick = () => fetchUsers(data.current_page + 1);
+        paginationControls.appendChild(nextBtn);
+    }
+
+    function showLoading(isLoading) {
+        loadingOverlay.style.display = isLoading ? 'block' : 'none';
+        if (isLoading) {
+            usersTable.style.display = 'none';
+            emptyState.style.display = 'none';
+        }
+    }
+
+    // async function downloadTemplate(role) {
+    //     try {
+    //         const response = await fetch(`/api/accounts/admin/download_template/?role=${role}`, {
+    //             headers: {
+    //                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+    //             }
+    //         });
+
+    //         if (response.status === 401) {
+    //             alert('Session expired. Please login again.');
+    //             window.location.href = "{% url 'signin' %}";
+    //             return;
+    //         }
+
+    //         if (!response.ok) throw new Error('Failed to download template');
+
+    //         const blob = await response.blob();
+    //         const url = window.URL.createObjectURL(blob);
+    //         const a = document.createElement('a');
+    //         a.href = url;
+    //         a.download = `${role}_Import_Template.xlsx`;
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         window.URL.revokeObjectURL(url);
+    //         document.body.removeChild(a);
+    //     } catch (error) {
+    //         console.error('Download error:', error);
+    //         alert('Error downloading template. Please try again.');
+    //     }
+    // }
+
+    // Event Listeners
+    userSearch.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fetchUsers(1), 300);
+    });
+
+    // roleFilter.addEventListener('change', () => fetchUsers(1));
+    deptFilter.addEventListener('change', () => fetchUsers(1));
+    courseFilter.addEventListener('change', () => fetchUsers(1));
+
+    // Initial Fetch
+    // document.addEventListener('DOMContentLoaded', () => {
+    //     const urlParams = new URLSearchParams(window.location.search);
+    //     const roleParam = urlParams.get('role');
+    //     if (roleParam) {
+    //         roleFilter.value = roleParam;
+    //     }
+    //     fetchUsers();
+    // });
+    document.addEventListener('DOMContentLoaded', fetchUsers);
+</script>
+{% endblock %}

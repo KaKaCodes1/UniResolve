@@ -65,6 +65,19 @@ class AdminAllUsersPageView(TemplateView):
         return context
 
 @method_decorator(never_cache, name='dispatch')
+class AdminAllStudentsPageView(TemplateView):
+    template_name = 'accounts/admin_allstudents.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            context['courses'] = Course.objects.all()
+            context['departments'] = Department.objects.all()
+        return context
+
+@method_decorator(never_cache, name='dispatch')
 class AdminBulkImportPageView(TemplateView):
     template_name = 'accounts/bulk_import.html'
 
@@ -131,6 +144,62 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(email__icontains=search_query) |
                 Q(student_profile__reg_number__icontains=search_query) |
                 Q(staff_profile__employee_id__icontains=search_query)
+            )
+
+        # Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'users': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+
+    @action(detail=False, methods=['get'])
+    def all_students(self, request):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        queryset = User.objects.all().filter(role='Student').select_related('student_profile', 'student_profile__course', 'student_profile__course__department')
+
+        # Filters
+        # role = request.query_params.get('role')
+        department_id = request.query_params.get('department')
+        course_id = request.query_params.get('course')
+        search_query = request.query_params.get('search')
+
+        # if role:
+        #     queryset = queryset.filter(role=role)
+        
+        if department_id:
+            queryset = queryset.filter(
+                # Q(staff_profile__department_id=department_id) | 
+                Q(student_profile__course__department_id=department_id)
+            )
+        
+        if course_id:
+            queryset = queryset.filter(
+                Q(student_profile__course_id=course_id)
+            )
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(student_profile__reg_number__icontains=search_query) 
+                # Q(staff_profile__employee_id__icontains=search_query)
             )
 
         # Pagination
