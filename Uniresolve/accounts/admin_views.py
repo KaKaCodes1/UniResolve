@@ -60,7 +60,7 @@ class AdminAllStaffPageView(TemplateView):
         user = self.request.user
         
         if user.is_authenticated and user.role == 'Admin':
-            context['roles'] = [choice[0] for choice in User.roles_choices]
+            context['staff_roles'] = [choice[0] for choice in StaffProfile.staff_roles_choices]
             context['departments'] = Department.objects.all()
         return context
 
@@ -124,12 +124,12 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = User.objects.filter(role='Staff').select_related('staff_profile', 'staff_profile__department')
 
         # Filters
-        role = request.query_params.get('role')
+        staff_role = request.query_params.get('staff_role')
         department_id = request.query_params.get('department')
         search_query = request.query_params.get('search')
 
-        if role:
-            queryset = queryset.filter(role=role)
+        if staff_role:
+            queryset = queryset.filter(staff_profile__staff_role=staff_role)
         
         if department_id:
             queryset = queryset.filter(

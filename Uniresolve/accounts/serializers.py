@@ -144,6 +144,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'first_name', 
             'last_name', 
             'role',
+            'is_active',
             'profile_data'
         ]
 
