@@ -62,6 +62,7 @@
                 <th>Course</th>
                 <th>Department</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody id="usersTableBody">
@@ -80,6 +81,58 @@
     </div>
 </div>
 
+<!-- Restricted Edit Modal -->
+<div id="editUserModal" class="staff-modal">
+    <div class="staff-modal-content admin-edit-modal-content">
+        <div class="staff-modal-header">
+            <h3><i class="fa-solid fa-user-pen"></i> Edit Student Account</h3>
+            <button class="close-btn" onclick="closeEditModal()">&times;</button>
+        </div>
+
+        <div class="staff-modal-body">
+            <!-- Read-Only Section -->
+            <div class="response-section admin-edit-response-section">
+                <span class="section-title">Personal Details (Read Only)</span>
+
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="editFirstName" class="form-control admin-edit-readonly-input" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="editLastName" class="form-control admin-edit-readonly-input" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="editEmail" class="form-control admin-edit-readonly-input" disabled>
+                </div>
+            </div>
+
+            <!-- Editable Controls Section -->
+            <div class="response-section">
+                <span class="section-title">Account Controls</span>
+
+                <div class="form-group">
+                    <label for="editStatus">Account Status</label>
+                    <select id="editStatus" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <!-- Staff Role deliberately omitted for students -->
+            </div>
+        </div>
+
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+            <button type="button" class="btn-submit-response" onclick="submitUserEdit()">
+                <i class="fa-solid fa-floppy-disk"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -97,6 +150,8 @@
 
     let debounceTimer;
     let currentPage = 1;
+    let latestUsers = []; // Cache for modal access
+    let currentEditUserId = null;
 
     async function fetchUsers(page = 1) {
         showLoading(true);
@@ -142,6 +197,7 @@
             return;
         }
 
+        latestUsers = users; // Store globally for the modal
         emptyState.style.display = 'none';
         usersTable.style.display = 'table';
 
@@ -163,6 +219,11 @@
                 <td>${course}</td>
                 <td>${department}</td>
                 <td>${status}</td>
+                <td style="text-align: center;">
+                    <button class="btn-icon" onclick="openEditModal(${user.id})" title="Edit User" style="background: none; border: none; cursor: pointer; color: #555;">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </td>
             `;
             usersTableBody.appendChild(row);
         });
@@ -230,6 +291,72 @@
     //         alert('Error downloading template. Please try again.');
     //     }
     // }
+
+    // EDIT MODAL LOGIC
+    function openEditModal(userId) {
+        const user = latestUsers.find(u => u.id === userId);
+        if (!user) return;
+
+        currentEditUserId = user.id;
+
+        // Populate Read-Only Fields
+        document.getElementById('editFirstName').value = user.first_name;
+        document.getElementById('editLastName').value = user.last_name;
+        document.getElementById('editEmail').value = user.email;
+
+        // Populate Active Controls
+        const statusSelect = document.getElementById('editStatus');
+        statusSelect.value = user.is_active ? 'active' : 'suspended';
+
+        document.getElementById('editUserModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editUserModal').style.display = 'none';
+        currentEditUserId = null;
+    }
+
+    window.onclick = function (event) {
+        const modal = document.getElementById('editUserModal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    }
+
+    async function submitUserEdit() {
+        if (!currentEditUserId) return;
+
+        const isActive = document.getElementById('editStatus').value === 'active';
+
+        const payload = {
+            is_active: isActive
+        };
+
+        try {
+            const response = await fetch(`/api/accounts/users/${currentEditUserId}/update_user/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(data.message || 'Student updated successfully');
+                closeEditModal();
+                fetchUsers(currentPage); // Refresh backend to see badge change
+            } else {
+                const errorData = await response.json();
+                alert('Error: ' + JSON.stringify(errorData));
+            }
+        } catch (error) {
+            console.error('Error updating student:', error);
+            alert('An error occurred while communicating with the server.');
+        }
+    }
+
 
     // Event Listeners
     userSearch.addEventListener('input', () => {

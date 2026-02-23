@@ -218,6 +218,43 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
             'total_count': paginator.count
         })
 
+    @action(detail=True, methods=['patch'])
+    def update_user(self, request, pk=None):
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        try:
+            user_to_update = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+        # 1. Update Global Active Status
+        is_active = request.data.get('is_active')
+        if is_active is not None:
+            # Convert string to boolean if necessary
+            if isinstance(is_active, str):
+                is_active = is_active.lower() == 'true'
+            user_to_update.is_active = is_active
+
+        # 2. Update Staff Role (Only applicable to Staff)
+        if user_to_update.role == 'Staff':
+            staff_role = request.data.get('staff_role')
+            if staff_role and hasattr(user_to_update, 'staff_profile'):
+                if staff_role in [choice[0] for choice in StaffProfile.staff_roles_choices]:
+                    user_to_update.staff_profile.staff_role = staff_role
+                    user_to_update.staff_profile.save()
+                else:
+                    return Response({'error': 'Invalid staff role provided.'}, status=400)
+
+        user_to_update.save()
+        
+        # Return updated serialized data
+        serializer = self.get_serializer(user_to_update)
+        return Response({
+            'message': 'User updated successfully', 
+            'user': serializer.data
+        })
+
 class AdminViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TicketSerializer

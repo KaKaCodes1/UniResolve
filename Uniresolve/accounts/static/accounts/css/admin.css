@@ -58,6 +58,7 @@
     background: #e3f2fd;
     color: #1976d2;
 }
+
 .badge-senior {
     background: #e3f2fd;
     color: #1976d2;
@@ -330,4 +331,26 @@
     border-color: #CC0000;
     color: white;
     box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2);
+}
+
+/* --- Restricted Edit Modal --- */
+ .admin-edit-modal-content {
+    max-width: 500px;
+}
+/*
+.admin-edit-modal-header {
+    background-color: #f8f9fa;
+}
+
+.admin-edit-modal-header h3 {
+    color: #333;
+} */
+
+.admin-edit-response-section {
+    margin-bottom: 20px;
+}
+
+.admin-edit-readonly-input {
+    background-color: #e9ecef;
+    cursor: not-allowed;
 }
