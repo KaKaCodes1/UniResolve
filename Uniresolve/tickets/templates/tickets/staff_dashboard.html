@@ -1,4 +1,5 @@
 {% extends 'tickets/base_staffdashboard.html' %}
+{% load static %}
 
 {% block title %}Staff Dashboard - UniResolve{% endblock %}
 
@@ -153,8 +154,8 @@
         </div>
 
         <div class="staff-modal-footer">
-            <button type="button" class="btn-escalate" onclick="alert('Escalation logic coming soon!')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Escalate
+            <button type="button" class="btn-escalate" onclick="openEscalateModal()">
+                <i class="fa-solid fa-triangle-exclamation"></i> Escalate/Transfer
             </button>
             <button type="button" class="btn-cancel" onclick="closeResolveModal()">Cancel</button>
             <button type="button" class="btn-submit-response" onclick="submitResolution()">
@@ -163,15 +164,64 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
+<!-- Escalate/Transfer Modal -->
+<div id="escalateModal" class="staff-modal">
+    <div class="staff-modal-content">
+        <div class="staff-modal-header">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Escalate or Transfer Issue</h3>
+            <button class="close-btn" onclick="closeEscalateModal()">&times;</button>
+        </div>
+
+        <div class="staff-modal-body">
+            <div class="ticket-info-header">
+                <h4 id="escTicketTitle" class="ticket-title-large">Title</h4>
+                <!-- <span class="status-pill" style="background: #ffebee; color: #c62828;">Action Required</span> -->
+            </div>
+
+            <div class="response-section">
+                <span class="section-title">Escalation Details</span>
+
+                <div class="form-group" id="escalationActionGroup">
+                    <label for="escalationAction">Action Type</label>
+                    <select id="escalationAction" class="form-control" onchange="toggleDepartmentDropdown()">
+                        <option value="internal">Escalate Internally to Senior Staff</option>
+                        <option value="transfer">Transfer to Another Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="departmentSelectGroup" style="display: none;">
+                    <label for="targetDepartment">Select Destination Department</label>
+                    <select id="targetDepartment" class="form-control">
+                        <option value="">-- Choose Department --</option>
+                        <!-- The rest will be added using JS -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="escalationReason">Reason for Escalation/Transfer</label>
+                    <textarea id="escalationReason" class="form-control" rows="4"
+                        placeholder="Explain why this ticket is being escalated or transferred..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEscalateModal()">Cancel</button>
+            <button type="button" class="btn-submit-response" onclick="submitEscalation()">
+                <i class="fa-solid fa-paper-plane"></i> Submit Event
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 {% block extra_js %}
+<script src="{% static 'tickets/js/escalation.js' %}"></script>
 <script>
     // Global variable to store current table data
     let latestTickets = [];
     let currentTicketId = null;
 
-    // Execute when the DOM is fully loaded
     // Execute when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', loadStaffDashboardData);
 
@@ -391,11 +441,14 @@
         currentTicketId = null;
     }
 
-    // Close modal if clicking outside
+    // Enhance click outside to close both modals
     window.onclick = function (event) {
-        const modal = document.getElementById('resolveModal');
-        if (event.target == modal) {
+        const resolveModal = document.getElementById('resolveModal');
+        const escalateModal = document.getElementById('escalateModal');
+        if (event.target == resolveModal) {
             closeResolveModal();
+        } else if (escalateModal && event.target == escalateModal) {
+            closeEscalateModal();
         }
     }
 

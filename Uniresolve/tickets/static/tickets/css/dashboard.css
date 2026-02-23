@@ -556,8 +556,13 @@ select {
 }
 
 .status-escalated {
-    background-color: #fcebeb;
-    color: #c62828;
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+}
+
+.status-transferred {
+    background-color: #fce4ec;
+    color: #c2185b;
 }
 
 /* Modal */
