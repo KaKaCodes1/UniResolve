@@ -9,7 +9,9 @@ class TicketAdmin(admin.ModelAdmin):
 
 @admin.register(Resolution)
 class ResolutionAdmin(admin.ModelAdmin):
-    list_display = ('ticket', 'resolved_by', 'resolved_at')
+    list_display = ('ticket', 'resolved_by', 'resolved_at', 'ticket__category', 'ticket__owner')
+    list_filter = ('ticket__category', 'resolved_by', 'resolved_at')
+    search_fields = ('ticket__title', 'resolved_by__email')
 
 # admin.site.register(Ticket)
 # admin.site.register(Resolution)
