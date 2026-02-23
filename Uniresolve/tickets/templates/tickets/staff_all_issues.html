@@ -59,13 +59,14 @@
                     <th>Category</th>
                     <th>Subject</th>
                     <th>Date</th>
+                    <th>Timeframe</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody id="ticketTableBody">
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px;">
+                    <td colspan="8" style="text-align: center; padding: 40px;">
                         <div class="loading-spinner">Loading tickets...</div>
                     </td>
                 </tr>
@@ -233,13 +234,14 @@
         tbody.innerHTML = '';
 
         if (tickets.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px;">No tickets found matching your criteria.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">No tickets found matching your criteria.</td></tr>`;
             return;
         }
 
         tickets.forEach(ticket => {
             const row = document.createElement('tr');
             const date = new Date(ticket.created_at).toLocaleDateString();
+            const timeframeHTML = getTimeframeDisplay(ticket.due_date);
 
             row.innerHTML = `
                 <td><span class="ticket-id">#${ticket.id}</span></td>
@@ -247,6 +249,7 @@
                 <td>${ticket.category_name}</td>
                 <td class="ticket-subject">${ticket.title}</td>
                 <td>${date}</td>
+                <td>${timeframeHTML}</td>
                 <td>
                     <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
                 </td>
@@ -258,6 +261,35 @@
             `;
             tbody.appendChild(row);
         });
+    }
+
+    function getTimeframeDisplay(dueDateString) {
+        if (!dueDateString) return '<span style="color: gray;">N/A</span>';
+
+        const dueDate = new Date(dueDateString);
+        const now = new Date();
+        const diffMs = dueDate - now; // Difference in milliseconds
+
+        const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+
+        let color = '#2e7d32'; // Default Green (Safe)
+        if (diffMs < 0) {
+            color = '#d32f2f'; // Red (Deadline Passed)
+        } else if (diffHours <= 24) {
+            color = '#ed6c02'; // Orange (Less than 24 hours remaining)
+        }
+
+        let text;
+        if (Math.abs(diffDays) === 0) {
+            text = `${diffHours} hours left`;
+        } else {
+            text = `${diffDays} days left`;
+        }
+
+        return `<span style="color: ${color}; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+                    ${text}
+                </span>`;
     }
 
     function renderPagination(data) {
