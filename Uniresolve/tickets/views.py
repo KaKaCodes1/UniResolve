@@ -119,6 +119,47 @@ class StaffDashboardPageView(TemplateView):
         return context
 
 @method_decorator(never_cache, name='dispatch')
+class SeniorStaffDashboardPageView(TemplateView):
+    template_name = 'tickets/senior_staff_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Initialize default values
+        context['total_tickets'] = 0
+        context['open_tickets'] = 0
+        context['pending_tickets'] = 0
+        context['resolved_tickets'] = 0
+        context['escalated_tickets'] = 0
+        context['new_tickets'] = []
+
+        if user.is_authenticated and user.role == 'Senior Staff':
+            # Get the staff member's department
+            # We assume a staff member has a 'staff_profile' with a 'department' field
+            if hasattr(user, 'staff_profile') and user.staff_profile.department:
+                staff_dept = user.staff_profile.department
+                
+                # Filter tickets that belong to this department's current queue
+                tickets = Ticket.objects.filter(current_department=staff_dept)
+
+                # Calculate counts based on status
+                context['total_tickets'] = tickets.count()
+                context['open_tickets'] = tickets.filter(status='OPEN').count()
+                context['pending_tickets'] = tickets.filter(status='PENDING').count()
+                context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
+                context['escalated_tickets'] = tickets.filter(status='ESCALATED').count()
+                
+                # Get "New" tickets: recent tickets with status 'ESCALATED'
+                # Show top 5 for the initial server-side render (though we might use JS mainly)
+                context['new_tickets'] = tickets.filter(status='ESCALATED').order_by('-created_at')[:5]
+            else:
+               # Handle case where staff has no profile/department
+               pass 
+
+        return context
+
+@method_decorator(never_cache, name='dispatch')
 class StaffAllIssuesPageView(TemplateView):
     template_name = 'tickets/staff_all_issues.html'
 
@@ -224,6 +265,31 @@ class TicketViewSet(viewsets.ModelViewSet):
             # 'new_tickets' will populated the Incoming Issues Queue
             # We filter for 'OPEN' tickets and order by newest first
             'new_tickets': TicketSerializer(tickets.filter(status='OPEN').order_by('-created_at')[:5], many=True).data
+        }
+        return Response(stats)
+
+    @action(detail=False, methods=['get'])
+    def seniorstaffdashboard_stats(self, request):
+        user = request.user
+        if not user.is_authenticated or user.role != 'Staff':
+             return Response({'error': 'Unauthorized'}, status=403)
+        
+        if not hasattr(user, 'staff_profile') or not user.staff_profile.department or user.staff_profile.staff_role != 'SENIOR':
+             return Response({'error': 'Unauthorized. Senior Staff access required.'}, status=403)
+
+        staff_dept = user.staff_profile.department
+        tickets = Ticket.objects.filter(current_department=staff_dept)
+
+        stats = {
+            'total_tickets': tickets.count(),
+            'open_tickets': tickets.filter(status='OPEN').count(),
+            'pending_tickets': tickets.filter(status='PENDING').count(),
+            'resolved_tickets': tickets.filter(status='RESOLVED').count(),
+            'transferred_tickets': tickets.filter(status='TRANSFERRED').count(),
+            'escalated_tickets': tickets.filter(status='ESCALATED').count(),
+
+            # For Senior Staff, the "Incoming Queue" should display Escalated tickets that need their attention
+            'new_tickets': TicketSerializer(tickets.filter(status='ESCALATED').order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 

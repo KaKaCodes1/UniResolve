@@ -182,5 +182,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['first_name'] = self.user.first_name
         data['user_id'] = self.user.id
         data['must_change_password'] = self.user.must_change_password
-        
+
+        # Include staff authority role if applicable (Required for Senior Staff Dashboard routing)
+        if self.user.role == 'Staff' and hasattr(self.user, 'staff_profile'):
+            data['staff_role'] = self.user.staff_profile.staff_role
+
         return data

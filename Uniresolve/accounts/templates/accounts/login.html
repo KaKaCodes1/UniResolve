@@ -71,6 +71,8 @@
                 // Redirect to Dashboards based on user role
                 if (data.role === 'Student') {
                     window.location.href = "{% url 'student_dashboard' %}";
+                } else if (data.role === 'Staff' && data.staff_role === 'SENIOR') {
+                    window.location.href = "{% url 'senior_staff_dashboard' %}";
                 } else if (data.role === 'Staff') {
                     window.location.href = "{% url 'staff_dashboard' %}";
                 } else if (data.role === 'Admin') {

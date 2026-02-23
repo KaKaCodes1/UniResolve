@@ -47,11 +47,19 @@
 
 
             <nav class="sidebar-nav">
+                {% if request.user.role == 'Staff' and request.user.staff_profile.staff_role == 'SENIOR' %}
+                <a href="{% url 'senior_staff_dashboard' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'senior_staff_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                {% else %}
                 <a href="{% url 'staff_dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
                     <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
+                {% endif %}
                 <!-- <a href="{% url 'submit_issue' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'submit_issue' %}active{% endif %}">
                     <i class="fa-solid fa-paper-plane"></i>
@@ -69,7 +77,8 @@
                     <span>All Resolutions</span>
                 </a>
 
-                <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <a href="{% url 'profile' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                     <i class="fa-regular fa-user"></i>
                     <span>Profile</span>
                 </a>
