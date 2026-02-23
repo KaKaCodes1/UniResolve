@@ -12,6 +12,7 @@ class Ticket(models.Model):
     description = models.TextField()
     attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=status_choices, default='OPEN')
+    is_escalated = models.BooleanField(default=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

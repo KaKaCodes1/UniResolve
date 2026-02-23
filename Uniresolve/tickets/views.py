@@ -163,7 +163,16 @@ class TicketViewSet(viewsets.ModelViewSet):
         #Departmental filtering
         if user.role == 'Staff':
             staff_dept = user.staff_profile.department
-            return Ticket.objects.filter(current_department=staff_dept)
+            staff_role = user.staff_profile.staff_role
+
+            base_query = Ticket.objects.filter(current_department=staff_dept)
+
+            if staff_role == 'STAFF':
+                # Normal staff only see unescalated tickets
+                return base_query.filter(is_escalated=False)
+            elif staff_role == 'SENIOR':
+                # Seniors see everything in their department (or filter specific to escalated if preferred)
+                return base_query
         
         #Admins see all tickets
         return Ticket.objects.all()
@@ -199,6 +208,10 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         # Filter tickets by the department's current queue
         tickets = Ticket.objects.filter(current_department=staff_dept)
+
+        # Enforce visibility rules based on seniority
+        if user.staff_profile.staff_role == 'STAFF':
+            tickets = tickets.filter(is_escalated=False)
         
         # Prepare statistics
         stats = {
@@ -261,6 +274,10 @@ class TicketViewSet(viewsets.ModelViewSet):
         # 3. Base Query: Get all tickets currently in this department's queue
         queryset = Ticket.objects.filter(current_department=staff_dept).order_by('-created_at')
 
+        # Enforce visibility rules based on seniority
+        if user.staff_profile.staff_role == 'STAFF':
+            queryset = queryset.filter(is_escalated=False)
+
         # Filtering Logic
         # If a specific status is requested (and not "All"), filter by it
         status_param = request.query_params.get('status')
@@ -308,6 +325,78 @@ class TicketViewSet(viewsets.ModelViewSet):
             'total_count': paginator.count
         })
 
+    @action(detail=True, methods=['post'])
+    def escalate_ticket(self, request, pk=None):
+        """
+        Escalation endpoint for tickets.
+        STAFF -> Flips `is_escalated = True`.
+        SENIOR -> Transfers `current_department` to target_department_id.
+        Logs an automatic Resolution in both cases.
+        """
+        user = request.user
+        ticket = self.get_object() # Ensures the ticket exists
+
+        # Security check
+        if user.role != 'Staff':
+             return Response({'error': 'Only staff can escalate tickets.'}, status=403)
+        if not hasattr(user, 'staff_profile'):
+             return Response({'error': 'Invalid staff profile.'}, status=400)
+
+        staff_profile = user.staff_profile
+
+        # Ensure ticket is actually in this staff member's department
+        if ticket.current_department != staff_profile.department:
+             return Response({'error': 'You cannot escalate a ticket outside your department queue.'}, status=403)
+
+        reason = request.data.get('reason')
+        if not reason:
+            return Response({'error': 'Reason for escalation is required.'}, status=400)
+
+        with transaction.atomic():
+            if staff_profile.staff_role == 'STAFF':
+                # Internal Escalation
+                ticket.is_escalated = True
+                
+                # Log the internal escalation note
+                Resolution.objects.create(
+                    ticket=ticket,
+                    resolved_by=user,
+                    feedback=f"[INTERNAL ESCALATION]: {reason}"
+                )
+
+                ticket.save()
+                return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
+
+            elif staff_profile.staff_role == 'SENIOR':
+                # Cross-Department Transfer
+                target_dept_id = request.data.get('target_department_id')
+                if not target_dept_id:
+                    return Response({'error': 'Destination department required for transfer.'}, status=400)
+                
+                try:
+                    from organization.models import Department
+                    target_dept = Department.objects.get(id=target_dept_id)
+                except Department.DoesNotExist:
+                    return Response({'error': 'Invalid destination department.'}, status=400)
+
+                old_dept_name = ticket.current_department.department_name
+                
+                # Execute Transfer
+                ticket.current_department = target_dept
+                ticket.is_escalated = False # Reset escalation status for the new department
+
+                # Log the transfer note
+                Resolution.objects.create(
+                    ticket=ticket,
+                    resolved_by=user,
+                    feedback=f"[TRANSFERRED from {old_dept_name} to {target_dept.department_name}]: {reason}"
+                )
+                
+                ticket.save()
+                return Response({'message': f'Ticket successfully transferred to {target_dept.department_name}.'})
+            
+            else:
+                 return Response({'error': 'Invalid staff role.'}, status=400)
 class ResolutionViewSet(viewsets.ModelViewSet):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
