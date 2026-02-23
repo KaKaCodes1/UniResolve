@@ -4,77 +4,79 @@
 {% block title %}All Staff - Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="all-users-container">
-    <div class="filters-card">
-        <div class="filters-header">
-            <h3 class="filters-title">Filters</h3>
-            <p class="filters-subtitle">Search and filter system users</p>
-        </div>
+<div class="page-header">
+    <h2>All Staff</h2>
+</div>
 
-        <div class="search-row">
-            <input type="text" id="userSearch" placeholder="Search by name, email, or employee ID...">
-        </div>
-
-        <div class="filters-row">
-            <div class="filter-group">
-                <label for="roleFilter">Staff Role</label>
-                <select id="roleFilter" class="filter-select">
-                    <option value="">All Roles</option>
-                    {% for staff_role in staff_roles %}
-                    <option value="{{ staff_role }}">{{ staff_role }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="deptFilter">Department</label>
-                <select id="deptFilter" class="filter-select">
-                    <option value="">All Departments</option>
-                    {% for dept in departments %}
-                    <option value="{{ dept.id }}">{{ dept.department_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter system users</p>
     </div>
 
-    <div class="users-list-section">
-        <div class="section-header">
-            <h3>Staff List</h3>
-            <span class="users-count" id="usersCount">0 staff found</span>
+    <div class="search-row">
+        <input type="text" id="userSearch" placeholder="Search by name, email, or employee ID...">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="roleFilter">Staff Role</label>
+            <select id="roleFilter" class="filter-select">
+                <option value="">All Roles</option>
+                {% for staff_role in staff_roles %}
+                <option value="{{ staff_role }}">{{ staff_role }}</option>
+                {% endfor %}
+            </select>
         </div>
 
-        <div id="loadingOverlay" class="loading-overlay">
-            <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
-            <p>Loading staff...</p>
+        <div class="filter-group">
+            <label for="deptFilter">Department</label>
+            <select id="deptFilter" class="filter-select">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.department_name }}</option>
+                {% endfor %}
+            </select>
         </div>
+    </div>
 
-        <table class="users-table" id="usersTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Staff Role</th>
-                    <th>Employee ID</th>
-                    <th>Department</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-                <!-- Data injected by JS -->
-            </tbody>
-        </table>
+</div>
 
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <i class="fa-solid fa-users-slash fa-3x" style="margin-bottom: 1rem;"></i>
-            <p>No users found matching your criteria.</p>
-        </div>
+<div class="content-card">
+    <div class="section-header">
+        <h3>Staff List</h3>
+        <span class="users-count" id="usersCount">0 staff found</span>
+    </div>
 
-        <!-- Pagination -->
-        <div class="pagination-container" id="paginationControls">
-            <!-- Buttons injected by JS -->
-        </div>
+    <div id="loadingOverlay" class="loading-overlay">
+        <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+        <p>Loading staff...</p>
+    </div>
+
+    <table class="users-table" id="usersTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Staff Role</th>
+                <th>Employee ID</th>
+                <th>Department</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="usersTableBody">
+            <!-- Data injected by JS -->
+        </tbody>
+    </table>
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fa-solid fa-users-slash fa-3x" style="margin-bottom: 1rem;"></i>
+        <p>No users found matching your criteria.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
     </div>
 </div>
 {% endblock %}
