@@ -13,6 +13,8 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
+from organization.models import Department
+
 
 #Import User model
 User = get_user_model()
@@ -353,28 +355,12 @@ class TicketViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Reason for escalation is required.'}, status=400)
 
         with transaction.atomic():
-            if staff_profile.staff_role == 'STAFF':
-                # Internal Escalation
-                ticket.is_escalated = True
-                
-                # Log the internal escalation note
-                Resolution.objects.create(
-                    ticket=ticket,
-                    resolved_by=user,
-                    feedback=f"[INTERNAL ESCALATION]: {reason}"
-                )
-
-                ticket.save()
-                return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
-
-            elif staff_profile.staff_role == 'SENIOR':
-                # Cross-Department Transfer
-                target_dept_id = request.data.get('target_department_id')
-                if not target_dept_id:
-                    return Response({'error': 'Destination department required for transfer.'}, status=400)
-                
+            # Check if this is a cross-department transfer request
+            target_dept_id = request.data.get('target_department_id')
+            
+            if target_dept_id:
+                # ANY STAFF CAN TRANSFER CROSS-DEPARTMENT
                 try:
-                    from organization.models import Department
                     target_dept = Department.objects.get(id=target_dept_id)
                 except Department.DoesNotExist:
                     return Response({'error': 'Invalid destination department.'}, status=400)
@@ -384,6 +370,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                 # Execute Transfer
                 ticket.current_department = target_dept
                 ticket.is_escalated = False # Reset escalation status for the new department
+                ticket.status = 'TRANSFERRED' # Update visible status
 
                 # Log the transfer note
                 Resolution.objects.create(
@@ -394,9 +381,24 @@ class TicketViewSet(viewsets.ModelViewSet):
                 
                 ticket.save()
                 return Response({'message': f'Ticket successfully transferred to {target_dept.department_name}.'})
-            
+                
             else:
-                 return Response({'error': 'Invalid staff role.'}, status=400)
+                # NO TARGET DEPT PROVIDED -> INTERNAL ESCALATION (STAFF TIER 1 -> SENIOR TIER 2)
+                if staff_profile.staff_role == 'STAFF':
+                    ticket.is_escalated = True
+                    ticket.status = 'ESCALATED' # Update visible status
+                    
+                    # Log the internal escalation note
+                    Resolution.objects.create(
+                        ticket=ticket,
+                        resolved_by=user,
+                        feedback=f"[INTERNAL ESCALATION]: {reason}"
+                    )
+
+                    ticket.save()
+                    return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
+                else:
+                    return Response({'error': 'Seniors cannot escalate internally, they can only transfer or resolve.'}, status=400)
 class ResolutionViewSet(viewsets.ModelViewSet):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer

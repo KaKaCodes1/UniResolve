@@ -7,6 +7,7 @@ class Ticket(models.Model):
         ('PENDING', 'pending'),
         ('RESOLVED','resolved'),
         ('ESCALATED','escalated'),
+        ('TRANSFERRED','transferred')
     ]
     title = models.CharField(max_length=200)
     description = models.TextField()
