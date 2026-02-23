@@ -420,7 +420,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         if not self.check_admin(request.user):
             return Response({'error': 'Unauthorized'}, status=403)
         
-        queryset = Ticket.objects.all().select_related('owner', 'category', 'category__department').order_by('-created_at')
+        queryset = Ticket.objects.all().select_related('owner', 'category', 'current_department').order_by('-created_at')
         
         # Filters
         status_param = request.query_params.get('status')
@@ -437,7 +437,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         department_param = request.query_params.get('department')
         if department_param and department_param != 'All Departments':
             try:
-                queryset = queryset.filter(category__department_id=int(department_param))
+                queryset = queryset.filter(current_department_id=int(department_param))
             except ValueError:
                 pass
 
@@ -478,7 +478,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         if not self.check_admin(request.user):
             return Response({'error': 'Unauthorized'}, status=403)
 
-        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__category__department').order_by('-resolved_at')
+        queryset = Resolution.objects.all().select_related('ticket', 'ticket__owner', 'ticket__current_department').order_by('-resolved_at')
 
         # Filters
         status_param = request.query_params.get('status')
@@ -495,7 +495,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         department_param = request.query_params.get('department')
         if department_param and department_param != 'All Departments':
             try:
-                queryset = queryset.filter(ticket__category__department_id=int(department_param))
+                queryset = queryset.filter(ticket__current_department_id=int(department_param))
             except ValueError:
                 pass
             
