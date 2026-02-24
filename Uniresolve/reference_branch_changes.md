@@ -264,6 +264,116 @@ This document provides a detailed, chronological account of all changes made on 
 
 ---
 
+## 👑 Advanced Admin Features & Bulk Actions (Feb 4 - Feb 21, 2026)
+
+### 52. `b8a953b`: User Pagination
+- **Summary**: Handled large lists of users.
+- **Key Changes**:
+    - Worked on pagination for the "All Users" page to optimize loading speeds.
+
+### 53. `7f09ee6`: Changes Documentation
+- **Summary**: Historical tracking.
+- **Key Changes**:
+    - Added an md detailing the changes made.
+
+### 54. `4fe5ee5` & `47af3f5`: Admin Issue Portals
+- **Summary**: Comprehensive issue insight for administrators.
+- **Key Changes**:
+    - Worked on the admin dashboard to see all issues submitted in the system.
+    - Started working on the all resolutions page to track successfully closed tickets.
+
+### 55. `3a15a04` & `b1c0806`: Resolution Display & Styling
+- **Summary**: UI improvements for tracking resolved issues.
+- **Key Changes**:
+    - Finalized the display of resolutions on the admin panel.
+    - Fixed styling on the view button for better accessibility.
+
+### 56. `1110cf9`: Project Structure Context
+- **Summary**: Developer documentation.
+- **Key Changes**:
+    - Created the `PROJECT_STRUCTURE.md` file to map out the application architecture.
+
+### 57. `4faf3e0` & `0468902`: Navigation & Refactoring
+- **Summary**: UI and codebase cleanliness.
+- **Key Changes**:
+    - Updated the nav bar to include more options under "Users".
+    - Moved admin views to a separate file to improve maintainability.
+
+### 58. `cf2318e`, `bff7009`, `d804f57`, `4880bdb`, `fcc5a21`, `126b033`: Bulk Import Capabilities
+- **Summary**: Mass onboarding mechanism for users.
+- **Key Changes**:
+    - Created an Excel template for bulk user imports.
+    - Built the UI with drag-and-drop functionality and role selection buttons.
+    - Implemented the bulk import API endpoint and file validator function.
+    - Finalized the bulk creation of user accounts.
+
+### 59. `bb49cce`: Admin Styling Consolidation
+- **Summary**: CSS optimization.
+- **Key Changes**:
+    - Consolidated administrative styles into one file to clean up the templates.
+
+### 60. `a47700f`: Mandatory Password Rotation
+- **Summary**: Enforced security standards.
+- **Key Changes**:
+    - Added a `must_change_password` field on the `User` model, requiring a password update upon first login.
+
+---
+
+## ⏱️ Dynamic Routing & Timeframes (Feb 22 - Feb 23, 2026)
+
+### 61. `d1eaf0f`: System Configuration Setup
+- **Summary**: Centralized settings management.
+- **Key Changes**:
+    - Started work on system configuration settings API endpoints.
+
+### 62. `1d027c1`, `d40e961`, `6671eba`: Timeframes & Dynamic Routing Data Models
+- **Summary**: Infrastructure for SLAs.
+- **Key Changes**:
+    - Added new fields (`due_date`, `current_department`) to the Ticket and Category models to support dynamic routing and timeframes.
+    - Updated serializers and `admin.py` to expose these new fields.
+
+### 63. `118641e`, `c33404c`: SLA Calculations
+- **Summary**: Resolution timeframe implementation.
+- **Key Changes**:
+    - Updated views to calculate `due_date` automatically.
+    - Added features to display resolution timeframes in the frontend.
+
+### 64. `da2e72a`, `50206ba`, `b113a3a`: Cross-Departmental Tracking
+- **Summary**: Handling issue handoffs.
+- **Key Changes**:
+    - Included logic for cross-department transfers in the APIs.
+    - Added `current_department` to filters for admin pages.
+    - Built a script for fixing old tickets to patch their data with the new fields.
+
+---
+
+## 🚀 Escalation & Senior Staff Views (Feb 23 - Feb 24, 2026)
+
+### 65. `0cda709`, `f06a42b`: Issue Escalation Workflow
+- **Summary**: Elevating critical tickets.
+- **Key Changes**:
+    - Began working on the escalation APIs.
+    - Separated the escalation script into its own module for cleaner architecture.
+
+### 66. `e4fbcb2`, `25be11d`, `48c9487`, `b8bdb5d`: Comprehensive Staff/Student Directories
+- **Summary**: Enhanced user viewing and role identification.
+- **Key Changes**:
+    - Displayed all students and staff within the admin panels.
+    - Updated logic so different staff roles are visible and fixed a bug with user status displaying incorrectly.
+    - Added a uniform styling methodology for the "View All Staff & Students" pages.
+
+### 67. `c722f8f`: Immediate Data Updates
+- **Summary**: Quick editing for admins.
+- **Key Changes**:
+    - Added an "Edit User Details" modal on the admin dashboard, streamlining data management.
+
+### 68. `fba4e70`: Senior Staff Hub
+- **Summary**: Specialized oversight.
+- **Key Changes**:
+    - Developed a dedicated Senior Staff Dashboard for high-level issue tracking and escalated oversight.
+
+---
+
 ## 🏁 Conclusion
 
-The `reference` branch represents the core feature-set of UniResolve. Through these 51 commits, the project evolved from a basic data model to a fully functional, role-based ticket management system with secure authentication, advanced filtering, and a robust administrative backend.
+The `reference` branch continues to serve as the core feature-set of UniResolve. Through these 85 commits, the project has evolved from a basic data model to a fully functional, role-based ticket management system complete with SLA tracking, bulk onboarding, complex issue routing, and a tiered administrative backend.

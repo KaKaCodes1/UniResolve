@@ -14,32 +14,35 @@ This document provides an overview of the UniResolve project, detailing the purp
 ## 📂 `accounts` App
 Handles authentication, user profiles (Student/Staff/Admin), and admin-specific management views.
 
-- **Models (`models.py`)**: Defines the `User` model (with roles) and related profiles (`StudentProfile`, `StaffProfile`).
+- **Models (`models.py`)**: Defines the `User` model (with `must_change_password` flag) and related profiles (`StudentProfile`, `StaffProfile`).
 - **Views (`views.py`)**: 
     - API Views: `UserRegistrationView`, `UserViewSet` (User management), `AdminViewSet` (Approval logic and high-level issue views).
-    - Template Views: Page renders for Login, Signup, and Admin Dashboards.
+    - Features: Bulk Import endpoints for mass user creation.
 - **Serializers (`serializers.py`)**: Logic for converting User and Profile models to JSON.
-- **Forms (`forms.py`)**: (If used) Django forms for traditional HTML template processing.
 - **Templates**:
     - `admin_dashboard.html`: The main landing page for administrators.
-    - `admin_allusers.html`: User management interface.
+    - `admin_allusers.html`, `admin_allstaff.html`, `admin_allstudents.html`: User management interfaces.
     - `admin_allissues.html` / `admin_allresolutions.html`: Global view of all system activities.
+    - `bulk_import.html`: Interface for Excel-based mass user onboarding.
 
 ---
 
 ## 📂 `tickets` App
-The core engine of the system where issues are created, tracked, and resolved.
+The core engine of the system where issues are created, tracked, routed, and resolved.
 
-- **Models (`models.py`)**: `Ticket` (the issue itself) and `Resolution` (the response from staff).
+- **Models (`models.py`)**: `Ticket` (with SLA fields like `due_date` and `current_department`) and `Resolution` (the response from staff).
 - **Views (`views.py`)**: 
     - API Views: `TicketViewSet` (CRUD for tickets), `ResolutionViewSet` (Resolving logic).
-    - Template Views: Dashboards for Students and Staff, issue submission pages.
+    - Features: Dynamic routing calculations and Escalation APIs for high-priority or delayed tickets.
 - **Serializers (`serializers.py`)**: JSON mapping for Tickets and Resolutions.
 - **Templates**:
     - `student_dashboard.html`: View of a student's own tickets.
     - `staff_dashboard.html`: Department-specific queue for staff members.
+    - `senior_staff_dashboard.html`: Specialized hub for high-level oversight and escalated issues.
     - `submit_issue.html`: The multi-step issue creation form.
 
+### 📝 Management Scripts (`tickets/management/commands/`)
+- `fix_old_tickets.py` & `fix_resolved_tickets.py`: Data migration scripts written to patch legacy tickets with the new SLA `due_date` and `current_department` fields.
 ---
 
 ## 📂 `organization` App
