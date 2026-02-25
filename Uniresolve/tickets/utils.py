@@ -20,7 +20,7 @@ def auto_escalate_overdue_tickets():
                 ticket=ticket,
                 resolved_by=None,  # System generated
                 status='ESCALATED',
-                feedback="[AUTOMATIC ESCALATION]: Ticket exceeded SLA timeframe and was escalated automatically."
+                feedback="[AUTOMATIC ESCALATION]: Ticket exceeded the due date and was escalated automatically."
             ))
             
         # Bulk Update Tickets
