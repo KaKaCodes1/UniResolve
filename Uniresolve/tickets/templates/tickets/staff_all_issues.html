@@ -417,7 +417,7 @@
 
         const statusBadge = document.getElementById('modalTicketStatusBadge');
         statusBadge.textContent = ticket.status;
-        statusBadge.className = `status-pill ${ticket.status === 'RESOLVED' ? 'resolved' : ''}`;
+        statusBadge.className = `status-badge status-${ticket.status.toLowerCase()}`;
 
         // Attachment
         const attachmentLink = document.getElementById('modalAttachmentLink');
