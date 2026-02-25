@@ -1,23 +1,22 @@
-{% extends 'accounts/base_admindashboard.html' %}
+{% extends 'accounts/admin/base_admindashboard.html' %}
 {% load static %}
 
-{% block title %}All Issues - Admin Dashboard{% endblock %}
+{% block title %}All Resolutions - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h2>All Issues</h2>
+    <h2>All Resolutions</h2>
 </div>
 
 <!-- Filters Section -->
 <div class="filters-card">
     <div class="filters-header">
         <h3 class="filters-title">Filters</h3>
-        <p class="filters-subtitle">Search and filter all issues</p>
+        <p class="filters-subtitle">Search and filter all resolutions</p>
     </div>
 
     <div class="search-row">
-        <input type="text" id="searchInput" class="search-input"
-            placeholder="Search by ticket ID, subject, student name or reg number...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by ticket ID, title, staff name">
     </div>
 
     <div class="filters-row">
@@ -25,22 +24,13 @@
             <label for="statusFilter">Status</label>
             <select id="statusFilter" class="filter-select">
                 <option value="All Statuses">All Statuses</option>
-                <option value="OPEN">Open</option>
                 <option value="PENDING">Pending</option>
                 <option value="RESOLVED">Resolved</option>
                 <option value="ESCALATED">Escalated</option>
                 <option value="TRANSFERRED">Transferred</option>
             </select>
         </div>
-        <div class="filter-group">
-            <label for="categoryFilter">Category</label>
-            <select id="categoryFilter" class="filter-select">
-                <option value="All Categories">All Categories</option>
-                {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.category_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+
         <div class="filter-group">
             <label for="departmentFilter">Department</label>
             <select id="departmentFilter" class="filter-select">
@@ -53,11 +43,11 @@
     </div>
 </div>
 
-<!-- Issues List -->
+<!-- Resolutions List -->
 <div class="content-card">
     <div class="card-header">
-        <h3>Issues List</h3>
-        <span class="issues-count" id="issuesCount">Loading...</span>
+        <h3>Resolutions List</h3>
+        <span class="issues-count" id="resolutionsCount">Loading...</span>
     </div>
 
     <div class="table-responsive">
@@ -65,19 +55,18 @@
             <thead>
                 <tr>
                     <th>Ticket ID</th>
-                    <th>Student Name</th>
-                    <th>Category</th>
-                    <th>Title</th>
+                    <th>Ticket Title</th>
+                    <th>Staff Name</th>
                     <th>Department</th>
-                    <th>Date</th>
+                    <th>Feedback</th>
                     <th>Status</th>
-                    <!-- <th>Action</th> -->
+                    <th>Date Resolved</th>
                 </tr>
             </thead>
-            <tbody id="ticketTableBody">
+            <tbody id="resolutionTableBody">
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px;">
-                        <div class="loading-spinner">Loading tickets...</div>
+                        <div class="loading-spinner">Loading resolutions...</div>
                     </td>
                 </tr>
             </tbody>
@@ -90,27 +79,20 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-    let currentPage = 1
+    let currentPage = 1;
 
     document.addEventListener('DOMContentLoaded', () => {
-        loadTickets();
+        loadResolutions();
 
-        // Event listeners for filters
-        document.getElementById('searchInput').addEventListener('input', debounce(loadTickets, 500));
-        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
-        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
-        document.getElementById('departmentFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadResolutions, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        document.getElementById('departmentFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
     });
 
     // Debounce helper
-    /*
-    Prevents a function from being called too frequently. 
-    It forces the function to wait until the user has stopped typing for 
-    500ms before executing. 
-    */
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -124,28 +106,27 @@
     }
 
     function showLoading(show) {
-        const tableBody = document.getElementById('ticketTableBody');
+        const tablebody = document.getElementById('resolutionTableBody');
         if (show) {
-            tableBody.innerHTML = `
+            tablebody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px;">
-                        <div class="loading-spinner">Loading tickets...</div>
+                        <div class="loading-spinner">Loading resolutions...</div>
                     </td>
-                </tr>`;
+                </tr>
+            `;
         }
     }
 
-    async function loadTickets(page = 1) {
+    async function loadResolutions(page = 1) {
         currentPage = page;
-        // 1. Gather current state from DOM elements
+
         const search = document.getElementById('searchInput').value;
         const status = document.getElementById('statusFilter').value;
-        const category = document.getElementById('categoryFilter').value;
         const department = document.getElementById('departmentFilter').value;
 
-        let url = `/api/accounts/admin/all-issues/?search=${encodeURIComponent(search)}&page=${page}`;
+        let url = `/api/accounts/admin/all-resolutions/?search=${encodeURIComponent(search)}&page=${page}`;
         if (status) url += `&status=${encodeURIComponent(status)}`;
-        if (category) url += `&category=${encodeURIComponent(category)}`;
         if (department) url += `&department=${encodeURIComponent(department)}`;
 
         try {
@@ -157,34 +138,35 @@
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch tickets');
+                throw new Error('Failed to fetch resolutions');
             }
             const data = await response.json();
-            displayTickets(data.tickets, data.total_count);
+            displayResolutions(data.resolutions, data.total_count);
             renderPagination(data);
-        } catch (error) {
-            console.error('Error loading tickets:', error);
-            document.getElementById('ticketTableBody').innerHTML = `
+        }
+        catch (error) {
+            console.error('Error loading resolutions:', error);
+            document.getElementById('resolutionTableBody').innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align:center; color: red;">
-                        Error loading issues. Please try again later.
+                        Error loading resolutions. Please try again later.
                     </td>
-                </tr>`;
-            document.getElementById('issuesCount').textContent = '';
+                </tr>
+            `;
+            document.getElementById('resolutionsCount').textContent = '';
             document.getElementById('paginationControls').innerHTML = '';
         }
         finally {
             showLoading(false);
         }
     }
-
-    function displayTickets(tickets, totalCount) {
-        const totalCountElement = document.getElementById('issuesCount');
-        totalCountElement.innerText = `${totalCount} issue${totalCount !== 1 ? 's' : ''} found`;
-        const tableBody = document.getElementById('ticketTableBody');
+    function displayResolutions(resolutions, totalCount) {
+        const totalCountElement = document.getElementById('resolutionsCount');
+        totalCountElement.innerText = `${totalCount} Resolution${totalCount !== 1 ? 's' : ''} found`;
+        const tableBody = document.getElementById('resolutionTableBody');
         tableBody.innerHTML = '';
 
-        if (tickets.length === 0) {
+        if (resolutions.length === 0) {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align:center; color: red;">
@@ -194,20 +176,23 @@
             return;
         }
 
-        tickets.forEach(ticket => {
+        resolutions.forEach(resolution => {
             const row = document.createElement('tr');
-            const date = new Date(ticket.created_at).toLocaleDateString();
+            const date = new Date(resolution.resolved_at).toLocaleDateString();
+
+            // Truncate feedback if too long
+            const feedbackShort = resolution.feedback.length > 50 ? resolution.feedback.substring(0, 50) + '...' : resolution.feedback;
 
             row.innerHTML = `
-                <td><span class="ticket-id">#${ticket.id}</span></td>
-                <td>${ticket.owner || 'N/A'}</td>
-                <td>${ticket.category_name || 'N/A'}</td>
-                <td class="ticket-subject">${ticket.title}</td>
-                <td>${ticket.current_department_name || 'N/A'}</td>
-                <td>${date}</td>
+                <td><span class="ticket-id">#${resolution.ticket}</span></td>
+                <td>${resolution.ticket_title}</td>
+                <td>${resolution.resolved_by}</td>
+                <td>${resolution.department_name}</td>
+                <td title="${resolution.feedback}">${feedbackShort}</td>
                 <td>
-                    <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
+                    <span class="status-badge status-${resolution.status ? resolution.status.toLowerCase() : 'open'}">${resolution.status || 'Open'}</span>
                 </td>
+                <td>${date}</td>
             `;
             tableBody.appendChild(row);
         });
@@ -223,7 +208,7 @@
         prevBtn.innerText = 'Previous';
         prevBtn.className = 'page-btn';
         prevBtn.disabled = !data.has_previous;
-        prevBtn.onclick = () => loadTickets(data.current_page - 1);
+        prevBtn.onclick = () => loadResolutions(data.current_page - 1);
         paginationControls.appendChild(prevBtn);
 
         // Page number
@@ -238,7 +223,7 @@
         nextBtn.innerText = 'Next';
         nextBtn.className = 'page-btn';
         nextBtn.disabled = !data.has_next;
-        nextBtn.onclick = () => loadTickets(data.current_page + 1);
+        nextBtn.onclick = () => loadResolutions(data.current_page + 1);
         paginationControls.appendChild(nextBtn);
     }
 

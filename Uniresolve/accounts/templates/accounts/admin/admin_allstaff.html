@@ -1,11 +1,11 @@
-{% extends 'accounts/base_admindashboard.html' %}
+{% extends 'accounts/admin/base_admindashboard.html' %}
 {% load static %}
 
-{% block title %}All Students - Admin Dashboard{% endblock %}
+{% block title %}All Staff - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h2>All Students</h2>
+    <h2>All Staff</h2>
 </div>
 
 <div class="filters-card">
@@ -15,16 +15,16 @@
     </div>
 
     <div class="search-row">
-        <input type="text" id="userSearch" placeholder="Search by name, email or admission number...">
+        <input type="text" id="userSearch" placeholder="Search by name, email, or employee ID...">
     </div>
 
     <div class="filters-row">
         <div class="filter-group">
-            <label for="courseFilter">Course</label>
-            <select id="courseFilter" class="filter-select">
-                <option value="">All Courses</option>
-                {% for course in courses %}
-                <option value="{{ course.id }}">{{ course.course_name }}</option>
+            <label for="roleFilter">Staff Role</label>
+            <select id="roleFilter" class="filter-select">
+                <option value="">All Roles</option>
+                {% for staff_role in staff_roles %}
+                <option value="{{ staff_role }}">{{ staff_role }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -44,13 +44,13 @@
 
 <div class="content-card">
     <div class="section-header">
-        <h3>Students List</h3>
-        <span class="users-count" id="usersCount">0 students found</span>
+        <h3>Staff List</h3>
+        <span class="users-count" id="usersCount">0 staff found</span>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
         <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
-        <p>Loading students...</p>
+        <p>Loading staff...</p>
     </div>
 
     <table class="users-table" id="usersTable">
@@ -58,8 +58,8 @@
             <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Reg Number</th>
-                <th>Course</th>
+                <th>Staff Role</th>
+                <th>Employee ID</th>
                 <th>Department</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -85,7 +85,7 @@
 <div id="editUserModal" class="staff-modal">
     <div class="staff-modal-content admin-edit-modal-content">
         <div class="staff-modal-header">
-            <h3><i class="fa-solid fa-user-pen"></i> Edit Student Account</h3>
+            <h3><i class="fa-solid fa-user-pen"></i> Edit Staff Member</h3>
             <button class="close-btn" onclick="closeEditModal()">&times;</button>
         </div>
 
@@ -121,7 +121,14 @@
                         <option value="suspended">Suspended</option>
                     </select>
                 </div>
-                <!-- Staff Role deliberately omitted for students -->
+
+                <div class="form-group">
+                    <label for="editStaffRole">Staff Authority</label>
+                    <select id="editStaffRole" class="form-control">
+                        <option value="STAFF">Regular Staff</option>
+                        <option value="SENIOR">Senior Staff (HOD)</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -133,14 +140,14 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     const userSearch = document.getElementById('userSearch');
-    // const roleFilter = document.getElementById('roleFilter');
+    const roleFilter = document.getElementById('roleFilter');
     const deptFilter = document.getElementById('deptFilter');
-    const courseFilter = document.getElementById('courseFilter');
     const usersTableBody = document.getElementById('usersTableBody');
     const usersCount = document.getElementById('usersCount');
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -157,14 +164,12 @@
         showLoading(true);
         currentPage = page;
         const search = userSearch.value;
-        // const role = roleFilter.value;
+        const role = roleFilter.value;
         const dept = deptFilter.value;
-        const course = courseFilter.value;
 
-        let url = `/api/accounts/users/all_students/?search=${encodeURIComponent(search)}&page=${page}`;
-        // if (role) url += `&role=${encodeURIComponent(role)}`;
+        let url = `/api/accounts/users/all_staff/?search=${encodeURIComponent(search)}&page=${page}`;
+        if (role) url += `&staff_role=${encodeURIComponent(role)}`;
         if (dept) url += `&department=${encodeURIComponent(dept)}`;
-        if (course) url += `&course=${encodeURIComponent(course)}`;
 
         try {
             const response = await fetch(url, {
@@ -188,7 +193,7 @@
     }
 
     function renderUsers(users, totalCount) {
-        usersCount.innerText = `${totalCount} student${totalCount !== 1 ? 's' : ''} found`;
+        usersCount.innerText = `${totalCount} staff member${totalCount !== 1 ? 's' : ''} found`;
         usersTableBody.innerHTML = '';
 
         if (users.length === 0) {
@@ -204,10 +209,10 @@
         users.forEach(user => {
             const row = document.createElement('tr');
 
-            // const roleBadge = `<span class="user-badge badge-${user.role.toLowerCase()}">${user.role}</span>`;
-            const idNumber = user.profile_data.reg_number || 'N/A';
+            const staffRole = user.profile_data.staff_role || 'STAFF';
+            const roleBadge = `<span class="user-badge badge-${staffRole.toLowerCase()}">${staffRole}</span>`;
+            const idNumber = user.profile_data.employee_id || 'N/A';
             const department = user.profile_data.department || 'N/A';
-            const course = user.profile_data.course || 'N/A';
             const status = user.is_active ?
                 '<span class="status-active">Active</span>' :
                 '<span class="status-inactive">Inactive</span>';
@@ -215,8 +220,8 @@
             row.innerHTML = `
                 <td><strong>${user.first_name} ${user.last_name}</strong></td>
                 <td>${user.email}</td>
+                <td>${roleBadge}</td>
                 <td>${idNumber}</td>
-                <td>${course}</td>
                 <td>${department}</td>
                 <td>${status}</td>
                 <td style="text-align: center;">
@@ -292,7 +297,10 @@
     //     }
     // }
 
+    // ==========================================
     // EDIT MODAL LOGIC
+    // ==========================================
+
     function openEditModal(userId) {
         const user = latestUsers.find(u => u.id === userId);
         if (!user) return;
@@ -307,6 +315,10 @@
         // Populate Active Controls
         const statusSelect = document.getElementById('editStatus');
         statusSelect.value = user.is_active ? 'active' : 'suspended';
+
+        const roleSelect = document.getElementById('editStaffRole');
+        const currentRole = user.profile_data.staff_role || 'STAFF';
+        roleSelect.value = currentRole;
 
         document.getElementById('editUserModal').style.display = 'flex';
     }
@@ -327,9 +339,11 @@
         if (!currentEditUserId) return;
 
         const isActive = document.getElementById('editStatus').value === 'active';
+        const staffRole = document.getElementById('editStaffRole').value;
 
         const payload = {
-            is_active: isActive
+            is_active: isActive,
+            staff_role: staffRole
         };
 
         try {
@@ -344,15 +358,15 @@
 
             if (response.ok) {
                 const data = await response.json();
-                alert(data.message || 'Student updated successfully');
+                alert(data.message || 'User updated successfully');
                 closeEditModal();
-                fetchUsers(currentPage); // Refresh backend to see badge change
+                fetchUsers(currentPage); // Refresh current page
             } else {
                 const errorData = await response.json();
                 alert('Error: ' + JSON.stringify(errorData));
             }
         } catch (error) {
-            console.error('Error updating student:', error);
+            console.error('Error updating user:', error);
             alert('An error occurred while communicating with the server.');
         }
     }
@@ -364,9 +378,8 @@
         debounceTimer = setTimeout(() => fetchUsers(1), 300);
     });
 
-    // roleFilter.addEventListener('change', () => fetchUsers(1));
+    roleFilter.addEventListener('change', () => fetchUsers(1));
     deptFilter.addEventListener('change', () => fetchUsers(1));
-    courseFilter.addEventListener('change', () => fetchUsers(1));
 
     // Initial Fetch
     // document.addEventListener('DOMContentLoaded', () => {

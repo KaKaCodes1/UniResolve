@@ -25,7 +25,7 @@ User = get_user_model()
 
 @method_decorator(never_cache, name='dispatch')
 class AdminDashboardPageView(TemplateView):
-    template_name = 'accounts/admin_dashboard.html'
+    template_name = 'accounts/admin/admin_dashboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -53,7 +53,7 @@ class AdminDashboardPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllStaffPageView(TemplateView):
-    template_name = 'accounts/admin_allstaff.html'
+    template_name = 'accounts/admin/admin_allstaff.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -66,7 +66,7 @@ class AdminAllStaffPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllStudentsPageView(TemplateView):
-    template_name = 'accounts/admin_allstudents.html'
+    template_name = 'accounts/admin/admin_allstudents.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -79,11 +79,11 @@ class AdminAllStudentsPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminBulkImportPageView(TemplateView):
-    template_name = 'accounts/bulk_import.html'
+    template_name = 'accounts/admin/bulk_import.html'
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllIssuesPageView(TemplateView):
-    template_name = 'accounts/admin_allissues.html'
+    template_name = 'accounts/admin/admin_allissues.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -97,7 +97,7 @@ class AdminAllIssuesPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllResolutionsPageView(TemplateView):
-    template_name = 'accounts/admin_allresolutions.html'
+    template_name = 'accounts/admin/admin_allresolutions.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
