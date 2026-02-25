@@ -1421,3 +1421,209 @@ select {
     font-weight: 600;
     cursor: pointer;
 }
+/* Ticket Detail Page Styles */
+.ticket-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.breadcrumb {
+    max-width: 900px;
+    margin: 0 auto 20px auto;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.breadcrumb a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+.breadcrumb .active-crumb {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.ticket-summary-card, .resolution-timeline-card {
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 30px;
+}
+
+.ticket-summary-card .ticket-title {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 24px;
+    color: var(--text-color);
+}
+.ticket-summary-card .ticket-id-badge {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-family: monospace;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-muted);
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.meta-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.meta-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.original-issue-section {
+    margin-bottom: 30px;
+    padding: 0 24px;
+}
+.original-issue-section h3 {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+.issue-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-color);
+    white-space: pre-wrap;
+}
+
+.attachment-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e9ecef;
+    color: #495057;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.attachment-pill:hover {
+    background: #dee2e6;
+    color: #212529;
+}
+
+.resolution-timeline-card h3 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.timeline-entry {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.timeline-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.timeline-meta strong {
+    color: var(--text-color);
+}
+.timeline-feedback {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-color);
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+}
+.timeline-status-badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 4px 10px;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.empty-timeline {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.feedback-section {
+    padding: 24px;
+    background: #fdfdfd;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 40px;
+}
+.feedback-section h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 18px;
+}
+.star-rating {
+    font-size: 28px;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+.star-rating i {
+    transition: color 0.1s;
+}
+.star-rating i.active {
+    color: #ffc107;
+}
+.feedback-textarea {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    display: block;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+}
+
