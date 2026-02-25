@@ -40,6 +40,8 @@ class Ticket(models.Model):
         return f"{self.title} - {self.status}"
 
 class Resolution(models.Model):
+    # To track the history, we save the status of the ticket at the exact moment this resolution was created
+    status = models.CharField(max_length=20, choices=Ticket.status_choices, default='RESOLVED')
     feedback = models.TextField()
     ticket = models.ForeignKey(
         Ticket,

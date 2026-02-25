@@ -161,7 +161,7 @@
                 <td>${res.resolved_by}</td>
                 <td title="${res.feedback}">${feedbackShort}</td>
                 <td>
-                    <span class="status-badge status-${res.ticket_status ? res.ticket_status.toLowerCase() : 'open'}">${res.ticket_status || 'Open'}</span>
+                    <span class="status-badge status-${res.status ? res.status.toLowerCase() : 'open'}">${res.status || 'Open'}</span>
                 </td>
                 <td>${date}</td>
             `;

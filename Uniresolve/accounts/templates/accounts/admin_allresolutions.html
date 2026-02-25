@@ -190,7 +190,7 @@
                 <td>${resolution.department_name}</td>
                 <td title="${resolution.feedback}">${feedbackShort}</td>
                 <td>
-                    <span class="status-badge status-${resolution.ticket_status ? resolution.ticket_status.toLowerCase() : 'open'}">${resolution.ticket_status || 'Open'}</span>
+                    <span class="status-badge status-${resolution.status ? resolution.status.toLowerCase() : 'open'}">${resolution.status || 'Open'}</span>
                 </td>
                 <td>${date}</td>
             `;

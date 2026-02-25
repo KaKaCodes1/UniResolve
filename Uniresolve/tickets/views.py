@@ -442,6 +442,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                 Resolution.objects.create(
                     ticket=ticket,
                     resolved_by=user,
+                    status='TRANSFERRED',
                     feedback=f"[TRANSFERRED from {old_dept_name} to {target_dept.department_name}]: {reason}"
                 )
                 
@@ -458,6 +459,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                     Resolution.objects.create(
                         ticket=ticket,
                         resolved_by=user,
+                        status='ESCALATED',
                         feedback=f"[INTERNAL ESCALATION]: {reason}"
                     )
 
@@ -477,12 +479,11 @@ class ResolutionViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Only staff members can resolve tickets.")
         
         #Extract the status from the validated data (default to 'Resolved' if empty)
-        #'pop' it so it doesn't try to save into the Resolution model (which doesn't have a status field)
-        new_status = serializer.validated_data.pop('status', 'RESOLVED')
+        new_status = serializer.validated_data.get('status', 'RESOLVED')
 
         with transaction.atomic(): #Either both the Resolution and the Ticket update, or neither does
-            # Save the resolution record and link to the staff member
-            resolution = serializer.save(resolved_by=user)
+            # Save the resolution record, explicitly linking the status
+            resolution = serializer.save(resolved_by=user, status=new_status)
 
             # Access the linked ticket
             ticket = resolution.ticket
@@ -520,11 +521,11 @@ class ResolutionViewSet(viewsets.ModelViewSet):
         queryset = Resolution.objects.filter(ticket__current_department=staff_dept).order_by('-resolved_at')
 
         # Filtering 
-        # 1. Status (of the Ticket)
+        # 1. Status (of the Resolution itself, not the Ticket's current status)
         status_param = request.query_params.get('status')
         if status_param and status_param != 'All Statuses':
-            # Filter based on the current status of the ticket
-            queryset = queryset.filter(ticket__status=status_param.upper())
+            # Filter based on the historical status of the resolution
+            queryset = queryset.filter(status=status_param.upper())
 
         # 2. Staff Member
         staff_param = request.query_params.get('staff')
