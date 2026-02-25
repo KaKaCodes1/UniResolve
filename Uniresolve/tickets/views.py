@@ -454,7 +454,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                 return Response({'message': f'Ticket successfully transferred to {target_dept.department_name}.'})
                 
             else:
-                # NO TARGET DEPT PROVIDED -> INTERNAL ESCALATION (STAFF TIER 1 -> SENIOR TIER 2)
+                # NO TARGET DEPT PROVIDED -> INTERNAL ESCALATION (STAFF TIER TO SENIOR TIER)
                 if staff_profile.staff_role == 'STAFF':
                     ticket.is_escalated = True
                     ticket.status = 'ESCALATED' # Update visible status
@@ -471,6 +471,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                     return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
                 else:
                     return Response({'error': 'Seniors cannot escalate internally, they can only transfer or resolve.'}, status=400)
+
 class ResolutionViewSet(viewsets.ModelViewSet):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
