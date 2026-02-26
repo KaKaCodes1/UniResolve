@@ -54,7 +54,7 @@
     </div>
 
     <!-- User Satisfaction / Feedback Section -->
-    <div class="feedback-section">
+    <div class="feedback-section" style="display: none;" id="feedbackSection">
         <h3>Rate your resolution</h3>
         <div class="star-rating" id="starRatingContainer">
             <i class="fa-solid fa-star" data-value="1"></i>
@@ -196,6 +196,12 @@
                 `;
                 timelineContainer.appendChild(entryEl);
             });
+        }
+
+        if (ticket.status === 'RESOLVED') {
+            document.getElementById('feedbackSection').style.display = 'block';
+        } else {
+            document.getElementById('feedbackSection').style.display = 'none';
         }
     }
 </script>
