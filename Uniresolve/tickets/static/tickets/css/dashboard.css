@@ -722,6 +722,62 @@ select {
     padding-top: 8px;
 }
 
+/* Resolution Confirmation Buttons */
+#feedbackSection {
+    display: none;
+    /* Initially hidden */
+}
+
+.resolution-question {
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+.resolution-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.resolution-flow {
+    display: none;
+    margin-top: 15px;
+}
+
+.resolution-flow .btn-primary {
+    margin-top: 15px;
+}
+
+.btn-resolution {
+    flex: 1;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-resolution:hover {
+    background-color: #fcebeb;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-resolution.active {
+    background-color: #fcebeb;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.2);
+}
+
 .modal-footer {
     padding: 16px 24px;
     border-top: 1px solid var(--border-color);
@@ -1421,6 +1477,7 @@ select {
     font-weight: 600;
     cursor: pointer;
 }
+
 /* Ticket Detail Page Styles */
 .ticket-detail-container {
     max-width: 900px;
@@ -1437,14 +1494,17 @@ select {
     font-size: 14px;
     color: var(--text-muted);
 }
+
 .breadcrumb a {
     color: var(--primary-color);
     text-decoration: none;
     font-weight: 500;
 }
+
 .breadcrumb a:hover {
     text-decoration: underline;
 }
+
 .breadcrumb .active-crumb {
     color: var(--text-color);
     font-weight: 600;
@@ -1464,6 +1524,7 @@ select {
     font-size: 24px;
     color: var(--text-color);
 }
+
 .ticket-summary-card .ticket-id-badge {
     display: inline-block;
     background: #e9ecef;
@@ -1481,17 +1542,20 @@ select {
     gap: 30px;
     flex-wrap: wrap;
 }
+
 .meta-item {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
+
 .meta-label {
     font-size: 12px;
     text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 600;
 }
+
 .meta-value {
     font-size: 15px;
     font-weight: 500;
@@ -1502,6 +1566,7 @@ select {
     margin-bottom: 30px;
     padding: 0 24px;
 }
+
 .original-issue-section h3 {
     font-size: 14px;
     color: var(--text-muted);
@@ -1509,6 +1574,7 @@ select {
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 8px;
 }
+
 .issue-text {
     font-size: 16px;
     line-height: 1.6;
@@ -1529,6 +1595,7 @@ select {
     font-weight: 500;
     transition: background 0.2s;
 }
+
 .attachment-pill:hover {
     background: #dee2e6;
     color: #212529;
@@ -1547,13 +1614,15 @@ select {
     flex-direction: column;
     gap: 16px;
 }
+
 .timeline-entry {
     background: #ffffff;
     border-radius: 8px;
     padding: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
 .timeline-meta {
     display: flex;
     justify-content: space-between;
@@ -1561,9 +1630,11 @@ select {
     font-size: 14px;
     color: var(--text-muted);
 }
+
 .timeline-meta strong {
     color: var(--text-color);
 }
+
 .timeline-feedback {
     font-size: 15px;
     line-height: 1.5;
@@ -1571,6 +1642,7 @@ select {
     margin-bottom: 12px;
     white-space: pre-wrap;
 }
+
 .timeline-status-badge {
     display: inline-block;
     font-size: 12px;
@@ -1581,6 +1653,7 @@ select {
     color: var(--text-muted);
     font-weight: 500;
 }
+
 .empty-timeline {
     color: var(--text-muted);
     font-style: italic;
@@ -1596,23 +1669,28 @@ select {
     text-align: center;
     margin-top: 40px;
 }
+
 .feedback-section h3 {
     margin-top: 0;
     margin-bottom: 16px;
     font-size: 18px;
 }
+
 .star-rating {
     font-size: 28px;
     color: #e0e0e0;
     margin-bottom: 20px;
     cursor: pointer;
 }
+
 .star-rating i {
     transition: color 0.1s;
 }
+
 .star-rating i.active {
     color: #ffc107;
 }
+
 .feedback-textarea {
     width: 100%;
     max-width: 500px;
@@ -1626,4 +1704,3 @@ select {
     resize: vertical;
     min-height: 80px;
 }
-

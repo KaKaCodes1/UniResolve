@@ -53,19 +53,34 @@
         </div>
     </div>
 
-    <!-- User Satisfaction / Feedback Section -->
-    <div class="feedback-section" style="display: none;" id="feedbackSection">
-        <h3>Rate your resolution</h3>
-        <div class="star-rating" id="starRatingContainer">
-            <i class="fa-solid fa-star" data-value="1"></i>
-            <i class="fa-solid fa-star" data-value="2"></i>
-            <i class="fa-solid fa-star" data-value="3"></i>
-            <i class="fa-solid fa-star" data-value="4"></i>
-            <i class="fa-solid fa-star" data-value="5"></i>
+    <!-- Resolution Confirmation Section -->
+    <div class="feedback-section" id="feedbackSection">
+        <h3>Resolution Confirmation</h3>
+        <p class="resolution-question">Are you satisfied with how
+            this issue was resolved?</p>
+
+        <div class="resolution-buttons">
+            <button id="btnSatisfiedYes" class="btn-resolution">
+                Yes, I'm satisfied
+            </button>
+            <button id="btnSatisfiedNo" class="btn-resolution">
+                No, I need more help
+            </button>
         </div>
-        <textarea id="userFeedbackText" class="feedback-textarea"
-            placeholder="Any additional feedback on how this was handled?"></textarea>
-        <button id="submitFeedbackBtn" class="btn-primary" style="margin-top: 15px;">Submit Feedback</button>
+
+        <!-- Yes Flow -->
+        <div id="flowYes" class="resolution-flow">
+            <textarea id="feedbackTextYes" class="feedback-textarea"
+                placeholder="Optional: Leave a comment for the staff..."></textarea>
+            <button id="submitCloseBtn" class="btn-primary">Submit & Close Ticket</button>
+        </div>
+
+        <!-- No Flow -->
+        <div id="flowNo" class="resolution-flow">
+            <textarea id="feedbackTextNo" class="feedback-textarea"
+                placeholder="Required: Please explain what is still broken..."></textarea>
+            <button id="reopenTicketBtn" class="btn-primary" disabled>Reopen Ticket</button>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -75,40 +90,39 @@
     const ticketId = window.location.pathname.split('/').filter(Boolean).pop();
 
     document.addEventListener('DOMContentLoaded', async () => {
-        setupStarRating();
+        setupResolutionConfirmation();
         await loadTicketDetails();
     });
 
-    function setupStarRating() {
-        const stars = document.querySelectorAll('.star-rating i');
-        let currentRating = 0;
+    function setupResolutionConfirmation() {
+        const btnYes = document.getElementById('btnSatisfiedYes');
+        const btnNo = document.getElementById('btnSatisfiedNo');
+        const flowYes = document.getElementById('flowYes');
+        const flowNo = document.getElementById('flowNo');
+        const textNo = document.getElementById('feedbackTextNo');
+        const btnReopen = document.getElementById('reopenTicketBtn');
 
-        stars.forEach(star => {
-            star.addEventListener('mouseover', (e) => {
-                const value = e.target.getAttribute('data-value');
-                highlightStars(value);
-            });
+        if (!btnYes || !btnNo) return;
 
-            star.addEventListener('mouseout', () => {
-                highlightStars(currentRating);
-            });
+        btnYes.addEventListener('click', () => {
+            btnYes.classList.add('active');
+            btnNo.classList.remove('active');
 
-            star.addEventListener('click', (e) => {
-                currentRating = e.target.getAttribute('data-value');
-                highlightStars(currentRating);
-                e.target.parentElement.setAttribute('data-selected', currentRating);
-            });
+            flowYes.style.display = 'block';
+            flowNo.style.display = 'none';
         });
 
-        function highlightStars(count) {
-            stars.forEach(star => {
-                if (star.getAttribute('data-value') <= count) {
-                    star.classList.add('active');
-                } else {
-                    star.classList.remove('active');
-                }
-            });
-        }
+        btnNo.addEventListener('click', () => {
+            btnNo.classList.add('active');
+            btnYes.classList.remove('active');
+
+            flowNo.style.display = 'block';
+            flowYes.style.display = 'none';
+        });
+
+        textNo.addEventListener('input', () => {
+            btnReopen.disabled = textNo.value.trim().length === 0;
+        });
     }
 
     async function loadTicketDetails() {
