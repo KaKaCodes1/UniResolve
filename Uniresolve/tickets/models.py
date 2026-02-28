@@ -7,7 +7,9 @@ class Ticket(models.Model):
         ('PENDING', 'pending'),
         ('RESOLVED','resolved'),
         ('ESCALATED','escalated'),
-        ('TRANSFERRED','transferred')
+        ('TRANSFERRED','transferred'),
+        ('CLOSED', 'closed'),
+        ('REOPENED', 'reopened')
     ]
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -59,3 +61,23 @@ class Resolution(models.Model):
 
     def __str__(self):
         return f"Resolution for {self.ticket.title}"
+
+class StudentFeedback(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.PROTECT, # PROTECT means you CANNOT delete a ticket if it has a resolution. For record-keeping
+        related_name='student_feedbacks'
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='feedbacks',
+        null=True
+    )    
+    is_satisfied = models.BooleanField(help_text="True if Yes/Closed, False if No/Reopened")
+    comments = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        status = "Satisfied" if self.is_satisfied else "Not Satisfied"
+        return f"Feedback for {self.ticket.id} - {status}"

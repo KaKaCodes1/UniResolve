@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Ticket, Resolution
+from .models import Ticket, Resolution, StudentFeedback
 from .validators import validate_file_attachment
 
 class ResolutionSerializer(serializers.ModelSerializer):
@@ -24,6 +24,16 @@ class ResolutionSerializer(serializers.ModelSerializer):
                 f"Invalid status"
             )
         return status_input
+class StudentFeedbackSerializer(serializers.ModelSerializer):
+    ticket_title = serializers.CharField(source='ticket.title', read_only=True)
+    student_name = serializers.StringRelatedField(source='student', read_only=True)
+
+    class Meta:
+        model = StudentFeedback
+        fields = ['id', 'ticket', 'ticket_title', 'student', 'student_name', 'is_satisfied', 'comments', 'created_at']
+        read_only_fields = ['student', 'created_at']
+
+
 class TicketSerializer(serializers.ModelSerializer):
     # Display the student's name and category name instead of their ID
     owner = serializers.StringRelatedField(read_only=True)
@@ -33,6 +43,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     #Nested serializer to allow a student to see staff's remarks when they view their ticket
     resolutions = ResolutionSerializer(many=True, read_only=True)
+    student_feedbacks = StudentFeedbackSerializer(many=True, read_only=True)
     
     class Meta:
         model = Ticket
@@ -49,7 +60,9 @@ class TicketSerializer(serializers.ModelSerializer):
             'due_date',
             'owner', 
             'created_at',
-            'resolutions'
+            'resolutions',
+            'student_feedbacks'
         ]
         read_only_fields = ['status', 'created_at', 'owner','due_date', 'current_department']
+
 
