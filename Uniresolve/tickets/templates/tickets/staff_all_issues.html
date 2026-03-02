@@ -32,6 +32,8 @@
                 <option value="RESOLVED">Resolved</option>
                 <option value="ESCALATED">Escalated</option>
                 <option value="TRANSFERRED">Transferred</option>
+                <option value="CLOSED">Closed</option>
+                <option value="REOPENED">Reopened</option>
             </select>
         </div>
         <div class="filter-group">
@@ -122,8 +124,13 @@
                 <p id="modalDescription" style="margin: 0;">Description...</p>
             </div>
 
+            <div class="description-box" id="modalReopenedFeedbackBox" style="display: none;">
+                <span class="description-label">Student Feedback (Reopened)</span>
+                <p id="modalReopenedFeedback" style="margin: 0;">Description...</p>
+            </div>
+
             <div class="response-section">
-                <span class="section-title">Staff Response</span>
+                <span class="section-title" id="responseSectionTitle">Staff Response</span>
 
                 <div class="form-group">
                     <label for="resolutionStatus">Update Status</label>
@@ -139,16 +146,14 @@
                         placeholder="Enter your response or feedback for the student..."></textarea>
                 </div>
                 <!-- Read Only Feedback Display -->
-                <div id="readOnlyFeedback"
-                    style="display: none; padding: 15px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; color: #2e7d32;">
-                    <p id="readOnlyFeedbackText" style="margin: 0;"></p>
-                    <small id="readOnlyFeedbackBy" style="display: block; margin-top: 8px; color: #1b5e20;"></small>
+                <div id="readOnlyFeedback" style="display: none; margin-top: 15px;">
+                    <div id="modalTimelineContainer" class="timeline-container"></div>
                 </div>
             </div>
         </div>
 
         <div class="staff-modal-footer">
-            <button type="button" class="btn-escalate" onclick="openEscalateModal()">
+            <button type="button" id="escalateBtn" class="btn-escalate" onclick="openEscalateModal()">
                 <i class="fa-solid fa-triangle-exclamation"></i> Escalate/Transfer
             </button>
             <button type="button" class="btn-cancel" onclick="closeResolveModal()">Cancel</button>
@@ -311,7 +316,7 @@
                 </td>
                 <td>
                     <button class="btn-primary btn-sm" onclick="openResolveModal(${ticket.id})">
-                        ${ticket.status === 'RESOLVED' ? 'View' : 'Resolve'}
+                        ${ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? 'View' : 'Resolve'}
                     </button>
                 </td>
             `;
@@ -369,33 +374,96 @@
         const feedbackInput = document.getElementById('resolutionFeedback');
         const statusSelect = document.getElementById('resolutionStatus');
         const readOnlyDiv = document.getElementById('readOnlyFeedback');
+        const escalateBtn = document.getElementById('escalateBtn');
         const submitBtn = document.querySelector('.btn-submit-response');
 
         feedbackInput.value = '';
         statusSelect.value = 'RESOLVED';
+        document.getElementById('responseSectionTitle').textContent = 'Staff Response';
 
         // Reset States
         feedbackInput.parentNode.style.display = 'block';
         statusSelect.parentNode.style.display = 'block';
         readOnlyDiv.style.display = 'none';
         submitBtn.style.display = 'flex';
+        escalateBtn.style.display = 'flex';
         feedbackInput.readOnly = false;
 
         // --- LOGIC: Handle Different Statuses ---
-        if (ticket.status === 'RESOLVED') {
+        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+            document.getElementById('responseSectionTitle').textContent = 'Resolution Timeline';
             // VIEW ONLY MODE (Green Theme)
             feedbackInput.parentNode.style.display = 'none';
             statusSelect.parentNode.style.display = 'none';
             submitBtn.style.display = 'none'; // Hide submit button
             readOnlyDiv.style.display = 'block';
+            escalateBtn.style.display = 'none';
 
             // Populate Read Only Data (Assuming ticket has resolutions data)
-            if (ticket.resolutions && ticket.resolutions.length > 0) {
-                const res = ticket.resolutions[0];
-                document.getElementById('readOnlyFeedbackText').textContent = res.feedback;
-                document.getElementById('readOnlyFeedbackBy').textContent = `Resolved by: ${res.resolved_by} on ${new Date(res.resolved_at).toLocaleDateString()}`;
+            const timelineContainer = document.getElementById('modalTimelineContainer');
+            timelineContainer.innerHTML = ''; // Clear existing entries
+
+            const events = [];
+            if (ticket.resolutions) {
+                ticket.resolutions.forEach(res => {
+                    events.push({
+                        type: 'resolution',
+                        date: new Date(res.resolved_at),
+                        data: res
+                    });
+                });
+            }
+            if (ticket.student_feedbacks) {
+                ticket.student_feedbacks.forEach(fb => {
+                    events.push({
+                        type: 'feedback',
+                        date: new Date(fb.created_at),
+                        data: fb
+                    });
+                });
+            }
+
+            if (events.length === 0) {
+                timelineContainer.innerHTML = '<p class="empty-timeline">No feedback recorded.</p>';
             } else {
-                document.getElementById('readOnlyFeedbackText').textContent = "No feedback recorded.";
+                // Sort events chronologically (oldest to newest)
+                events.sort((a, b) => a.date - b.date);
+                // Reversing order to show newest first
+                events.reverse().forEach(event => {
+                    const entryDate = event.date;
+                    const timeString = `${entryDate.toLocaleDateString()} at ${entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                    const entryEl = document.createElement('div');
+                    entryEl.className = 'timeline-entry';
+
+                    if (event.type === 'resolution') {
+                        const res = event.data;
+                        entryEl.innerHTML = `
+                            <div class="timeline-meta">
+                                <strong>Resolved by: ${res.resolved_by || 'System'}</strong> 
+                                <span class="timeline-date">${timeString}</span>
+                            </div>
+                            <div class="timeline-feedback">${res.feedback}</div>
+                            <div>
+                                <span class="status-badge status-${(res.status || 'open').toLowerCase()}">Status updated to: ${res.status || 'OPEN'}</span>
+                            </div>
+                        `;
+                    } else if (event.type === 'feedback') {
+                        const fb = event.data;
+                        const defaultComment = fb.is_satisfied ? 'Satisfied with resolution.' : 'Needs more help.';
+                        entryEl.innerHTML = `
+                            <div class="timeline-meta" style="color: #6c757d;">
+                                <strong>Feedback from: Student</strong> 
+                                <span class="timeline-date">${timeString}</span>
+                            </div>
+                            <div class="timeline-feedback"><em>${fb.comments || defaultComment}</em></div>
+                            <div>
+                                <span class="status-badge status-${fb.is_satisfied ? 'closed' : 'reopened'}">Status updated to: ${fb.is_satisfied ? 'CLOSED' : 'REOPENED'}</span>
+                            </div>
+                        `;
+                    }
+                    timelineContainer.appendChild(entryEl);
+                });
             }
 
         } else if (ticket.status === 'PENDING') {
@@ -413,6 +481,16 @@
             // OPEN MODE (Standard)
             feedbackInput.style.backgroundColor = '#fff';
             feedbackInput.style.borderColor = '#ddd';
+        }
+
+        // Check if ticket was reopened
+        if (ticket.status === 'REOPENED' && ticket.student_feedbacks && ticket.student_feedbacks.length > 0) {
+            // Get the most recent feedback
+            const latestFeedback = ticket.student_feedbacks[ticket.student_feedbacks.length - 1];
+            document.getElementById('modalReopenedFeedback').textContent = latestFeedback.comments || "No comments provided.";
+            document.getElementById('modalReopenedFeedbackBox').style.display = 'block';
+        } else {
+            document.getElementById('modalReopenedFeedbackBox').style.display = 'none';
         }
 
         const statusBadge = document.getElementById('modalTicketStatusBadge');

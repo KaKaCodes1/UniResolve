@@ -6,7 +6,7 @@ function getTimeframeDisplay(dueDateString, status) {
     if (!dueDateString) return '<span style="color: gray;">N/A</span>';
 
     // If the ticket is resolved or transferred, don't show overdue status
-    if (status === 'RESOLVED') {
+    if (status === 'RESOLVED' || status === 'CLOSED') {
         return '<span style="color: gray;">Completed</span>';
     }
 
