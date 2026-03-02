@@ -11,6 +11,7 @@ from .views import (
     AllResolutionsPageView,
     SeniorStaffDashboardPageView,
     TicketDetailPageView,
+    StaffTicketDetailPageView,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -29,6 +30,7 @@ urlpatterns = [
     path('profile/', ProfilePageView.as_view(), name='profile'),
     path('student-dashboard/', StudentDashboardPageView.as_view(), name='student_dashboard'),
     path('staff-dashboard/', StaffDashboardPageView.as_view(), name='staff_dashboard'),
+    path('staff-dashboard/ticket/<int:pk>/', StaffTicketDetailPageView.as_view(), name='staff_ticket_detail'),
     path('staff-dashboard/all-issues/', StaffAllIssuesPageView.as_view(), name='staff_all_issues'),
     path('staff-dashboard/all-resolutions/', AllResolutionsPageView.as_view(), name='staff_all_resolutions'),
     path('senior-staff-dashboard/', SeniorStaffDashboardPageView.as_view(), name='senior_staff_dashboard'),

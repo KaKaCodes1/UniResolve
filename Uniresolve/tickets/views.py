@@ -87,6 +87,10 @@ class TicketDetailPageView(TemplateView):
     template_name = 'tickets/ticket_detail.html'
 
 @method_decorator(never_cache, name='dispatch')
+class StaffTicketDetailPageView(TemplateView):
+    template_name = 'tickets/staff_ticket_detail.html'
+
+@method_decorator(never_cache, name='dispatch')
 class StaffDashboardPageView(TemplateView):
     template_name = 'tickets/staff_dashboard.html'
 

@@ -1,0 +1,353 @@
+{% extends 'tickets/base_staffdashboard.html' %}
+{% load static %}
+
+{% block title %}Ticket Details - Staff Dashboard{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'staff_dashboard' %}">Dashboard</a> &gt;
+    <a href="{% url 'staff_all_issues' %}">All Issues</a> &gt;
+    <span class="active-crumb" id="breadcrumbId">Ticket TICK-...</span>
+</div>
+
+<div class="ticket-detail-container">
+    <!-- Ticket Summary Header (Grey Card) -->
+    <div class="ticket-summary-card">
+        <h2 id="detailTitle" class="ticket-title">Loading Ticket...</h2>
+        <div class="ticket-id-badge" id="detailId">#...</div>
+
+        <div class="ticket-meta">
+            <div class="meta-item">
+                <span class="meta-label">CATEGORY:</span>
+                <span id="detailCategory" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">SUBMITTED BY:</span>
+                <span id="detailOwner" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">DATE SUBMITTED:</span>
+                <span id="detailDate" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">STATUS:</span>
+                <span id="detailStatus" class="status-pill">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Original Issue Section -->
+    <div class="original-issue-section">
+        <h3>DESCRIPTION</h3>
+        <p id="detailDescription" class="issue-text">Loading description...</p>
+
+        <div id="detailAttachmentSection" style="display: none; margin-top: 15px;">
+            <h3>ATTACHMENT</h3>
+            <a id="detailAttachmentLink" href="#" target="_blank" class="attachment-pill">
+                <i class="fa-solid fa-paperclip"></i>
+                <span id="detailAttachmentName">Attachment</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Resolution Timeline -->
+    <div class="resolution-timeline-card">
+        <h3>RESOLUTION TIMELINE</h3>
+        <div id="timelineContainer" class="timeline-container">
+            <div class="loading-spinner">Loading timeline...</div>
+        </div>
+    </div>
+
+    <!-- Staff Action Area -->
+    <div class="resolution-timeline-card staff-action-card" id="staffActionArea">
+        <h3>STAFF ACTION</h3>
+
+        <div class="form-group">
+            <label for="resolutionStatus">Update Status</label>
+            <select id="resolutionStatus" class="form-control">
+                <option value="PENDING">Pending (In Progress)</option>
+                <option value="RESOLVED">Resolved</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="resolutionFeedback">Response/Feedback</label>
+            <textarea id="resolutionFeedback" class="form-control" rows="5"
+                placeholder="Enter your response or resolution details for the student..."></textarea>
+        </div>
+
+        <!-- Buttons Area -->
+        <div class="staff-modal-footer"
+            style="background: transparent; border-top: none; padding: 10px 0 0 0; display: flex; justify-content: space-between;">
+            <button type="button" id="escalateBtn" class="btn-escalate" onclick="openEscalateModal()">
+                <i class="fa-solid fa-triangle-exclamation"></i> <span id="escalateBtnText">Escalate/Transfer</span>
+            </button>
+            <div style="display: flex; gap: 10px;">
+                <a href="{% url 'staff_all_issues' %}" class="btn-cancel"
+                    style="text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
+                <button type="button" id="submitResponseBtn" class="btn-submit-response" onclick="submitResolution()">
+                    <i class="fa-regular fa-paper-plane"></i> Submit Response
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Escalate/Transfer Modal -->
+<div id="escalateModal" class="staff-modal">
+    <div class="staff-modal-content">
+        <div class="staff-modal-header">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Escalate or Transfer Issue</h3>
+            <button class="close-btn" onclick="closeEscalateModal()">&times;</button>
+        </div>
+
+        <div class="staff-modal-body">
+            <div class="ticket-info-header">
+                <h4 id="escTicketTitle" class="ticket-title-large">Title</h4>
+            </div>
+
+            <div class="response-section">
+                <span class="section-title">Escalation Details</span>
+
+                <div class="form-group" id="escalationActionGroup">
+                    <label for="escalationAction">Action Type</label>
+                    <select id="escalationAction" class="form-control" onchange="toggleDepartmentDropdown()">
+                        <option value="internal">Escalate Internally to Senior Staff</option>
+                        <option value="transfer">Transfer to Another Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="departmentSelectGroup" style="display: none;">
+                    <label for="targetDepartment">Select Destination Department</label>
+                    <select id="targetDepartment" class="form-control">
+                        <option value="">-- Choose Department --</option>
+                        <!-- Departments loaded asynchronously by escalation.js -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="escalationReason">Reason for Escalation/Transfer</label>
+                    <textarea id="escalationReason" class="form-control" rows="4"
+                        placeholder="Explain why this ticket is being escalated or transferred..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEscalateModal()">Cancel</button>
+            <button type="button" class="btn-submit-response" onclick="submitEscalation()">
+                <i class="fa-solid fa-paper-plane"></i> Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'tickets/js/escalation.js' %}"></script>
+<script>
+    const ticketId = window.location.pathname.split('/').filter(Boolean).pop();
+    let currentTicket = null;
+    let currentTicketId = ticketId; // Required for escalation.js
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadTicketDetails();
+    });
+
+    async function loadTicketDetails() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            window.location.href = "{% url 'signin' %}";
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/tickets/${ticketId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                currentTicket = await response.json();
+                populateDetails(currentTicket);
+            } else {
+                alert('Failed to load ticket details.');
+            }
+        } catch (error) {
+            console.error('Error fetching ticket details:', error);
+        }
+    }
+
+    function populateDetails(ticket) {
+        // IDs & Headers
+        const ticketYear = new Date(ticket.created_at).getFullYear();
+        const displayId = `TICK-${ticketYear}-${ticket.id}`;
+
+        document.getElementById('breadcrumbId').textContent = `Ticket ${displayId}`;
+        document.getElementById('detailTitle').textContent = ticket.title;
+        document.getElementById('detailId').textContent = displayId;
+
+        // Prepare Escalation Modal Title
+        const escTitle = document.getElementById('escTicketTitle');
+        if (escTitle) escTitle.textContent = ticket.title;
+
+        // Meta Info
+        document.getElementById('detailCategory').textContent = ticket.category_name;
+        document.getElementById('detailOwner').textContent = ticket.owner || 'N/A';
+
+        const dateObj = new Date(ticket.created_at);
+        document.getElementById('detailDate').textContent = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Status Badge
+        const statusEl = document.getElementById('detailStatus');
+        statusEl.textContent = ticket.status;
+        statusEl.className = `status-badge status-${ticket.status.toLowerCase()}`;
+
+        // Description
+        document.getElementById('detailDescription').textContent = ticket.description;
+
+        // Attachment
+        const attachmentSection = document.getElementById('detailAttachmentSection');
+        if (ticket.attachment) {
+            attachmentSection.style.display = 'block';
+            const link = document.getElementById('detailAttachmentLink');
+            link.href = ticket.attachment;
+            document.getElementById('detailAttachmentName').textContent = ticket.attachment.split('/').pop();
+        } else {
+            attachmentSection.style.display = 'none';
+        }
+
+        // Timeline
+        const timelineContainer = document.getElementById('timelineContainer');
+        timelineContainer.innerHTML = '';
+        const events = [];
+
+        if (ticket.resolutions) {
+            ticket.resolutions.forEach(res => {
+                events.push({ type: 'resolution', date: new Date(res.resolved_at), data: res });
+            });
+        }
+        if (ticket.student_feedbacks) {
+            ticket.student_feedbacks.forEach(fb => {
+                events.push({ type: 'feedback', date: new Date(fb.created_at), data: fb });
+            });
+        }
+
+        if (events.length === 0) {
+            timelineContainer.innerHTML = '<p class="empty-timeline">No feedback recorded yet.</p>';
+        } else {
+            events.sort((a, b) => a.date - b.date);
+            events.reverse().forEach(event => {
+                const entryDate = event.date;
+                const timeString = `${entryDate.toLocaleDateString()} at ${entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                const entryEl = document.createElement('div');
+                entryEl.className = 'timeline-entry';
+
+                if (event.type === 'resolution') {
+                    const res = event.data;
+                    entryEl.innerHTML = `
+                        <div class="timeline-meta">
+                            <strong>Resolved by: ${res.resolved_by || 'System'}</strong> 
+                            <span class="timeline-date">${timeString}</span>
+                        </div>
+                        <div class="timeline-feedback">${res.feedback}</div>
+                        <div>
+                            <span class="status-badge status-${(res.status || 'open').toLowerCase()}">Status updated to: ${res.status || 'OPEN'}</span>
+                        </div>
+                    `;
+                } else if (event.type === 'feedback') {
+                    const fb = event.data;
+                    const defaultComment = fb.is_satisfied ? 'Satisfied with resolution.' : 'Needs more help.';
+                    entryEl.innerHTML = `
+                        <div class="timeline-meta" style="color: #6c757d;">
+                            <strong>Feedback from: Student</strong> 
+                            <span class="timeline-date">${timeString}</span>
+                        </div>
+                        <div class="timeline-feedback"><em>${fb.comments || defaultComment}</em></div>
+                        <div>
+                            <span class="status-badge status-${fb.is_satisfied ? 'closed' : 'reopened'}">Status updated to: ${fb.is_satisfied ? 'CLOSED' : 'REOPENED'}</span>
+                        </div>
+                    `;
+                }
+                timelineContainer.appendChild(entryEl);
+            });
+        }
+
+        // Setup the Staff Action Area pre-fills based on status
+        const feedbackInput = document.getElementById('resolutionFeedback');
+        const statusSelect = document.getElementById('resolutionStatus');
+        const actionArea = document.getElementById('staffActionArea');
+
+        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+            // Hide action block if no action can be taken
+            actionArea.style.display = 'none';
+        } else {
+            actionArea.style.display = 'block';
+            // if (ticket.status === 'PENDING') {
+            //     statusSelect.value = 'PENDING';
+            //     // feedbackInput.style.backgroundColor = '#fff8e1';
+            //     // feedbackInput.style.borderColor = '#ffe0b2';
+            //     if (ticket.resolutions && ticket.resolutions.length > 0) {
+            //         feedbackInput.value = ticket.resolutions[0].feedback;
+            //     }
+            // } else {
+            //     statusSelect.value = 'RESOLVED';
+            //     feedbackInput.value = '';
+            //     feedbackInput.style.backgroundColor = '#fff';
+            //     feedbackInput.style.borderColor = '#ced4da';
+            // }
+        }
+    }
+
+    async function submitResolution() {
+        const feedback = document.getElementById('resolutionFeedback').value;
+        const status = document.getElementById('resolutionStatus').value;
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!feedback.trim()) {
+            alert('Please provide your response details.');
+            return;
+        }
+
+        document.getElementById('submitResponseBtn').disabled = true;
+
+        try {
+            const response = await fetch('/api/v1/resolutions/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ticket: ticketId,
+                    feedback: feedback,
+                    status: status
+                })
+            });
+
+            if (response.ok) {
+                alert('Ticket updated successfully!');
+                await loadTicketDetails(); // Refresh page data
+            } else {
+                const errorData = await response.json();
+                alert('Error updating ticket: ' + JSON.stringify(errorData));
+            }
+        } catch (error) {
+            console.error('Error submitting resolution:', error);
+            alert('An error occurred while submitting.');
+        } finally {
+            document.getElementById('submitResponseBtn').disabled = false;
+        }
+    }
+
+    // To close the modal when clicking outside
+    window.onclick = function (event) {
+        const escalateModal = document.getElementById('escalateModal');
+        if (escalateModal && event.target == escalateModal) {
+            closeEscalateModal();
+        }
+    }
+</script>
+{% endblock %}
