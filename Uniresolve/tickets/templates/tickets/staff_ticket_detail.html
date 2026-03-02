@@ -5,9 +5,15 @@
 
 {% block content %}
 <div class="breadcrumb">
+    {% if request.user.staff_profile.staff_role == 'STAFF' %}
     <a href="{% url 'staff_dashboard' %}">Dashboard</a> &gt;
     <a href="{% url 'staff_all_issues' %}">All Issues</a> &gt;
     <span class="active-crumb" id="breadcrumbId">Ticket TICK-...</span>
+    {% elif request.user.staff_profile.staff_role == 'SENIOR' %}
+    <a href="{% url 'senior_staff_dashboard' %}">Dashboard</a> &gt;
+    <a href="{% url 'staff_all_issues' %}">All Issues</a> &gt;
+    <span class="active-crumb" id="breadcrumbId">Ticket TICK-...</span>
+    {% endif %}
 </div>
 
 <div class="ticket-detail-container">
@@ -97,7 +103,7 @@
 <div id="escalateModal" class="staff-modal">
     <div class="staff-modal-content">
         <div class="staff-modal-header">
-            <h3><i class="fa-solid fa-triangle-exclamation"></i> Escalate or Transfer Issue</h3>
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> <span id="escalateBtnText">Escalate or Transfer</span> Issue</h3>
             <button class="close-btn" onclick="closeEscalateModal()">&times;</button>
         </div>
 
@@ -107,7 +113,7 @@
             </div>
 
             <div class="response-section">
-                <span class="section-title">Escalation Details</span>
+                <span class="section-title"><span id="escalateBtnText">Escalation</span> Details</span>
 
                 <div class="form-group" id="escalationActionGroup">
                     <label for="escalationAction">Action Type</label>
@@ -126,7 +132,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="escalationReason">Reason for Escalation/Transfer</label>
+                    <label for="escalationReason">Reason for <span id="escalateBtnText">Escalation/Transfer</span></label>
                     <textarea id="escalationReason" class="form-control" rows="4"
                         placeholder="Explain why this ticket is being escalated or transferred..."></textarea>
                 </div>
