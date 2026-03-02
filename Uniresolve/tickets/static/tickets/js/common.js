@@ -16,6 +16,7 @@ function getTimeframeDisplay(dueDateString, status) {
 
     const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
 
     let color = '#2e7d32'; // Default Green (Safe)
     if (diffMs < 0) {
@@ -27,6 +28,9 @@ function getTimeframeDisplay(dueDateString, status) {
     let text;
     if (Math.abs(diffDays) === 0) {
         text = `${diffHours} hours left`;
+        if (diffHours === 0) {
+            text = `${diffMinutes} minutes left`;
+        }
     } else {
         text = `${diffDays} days left`;
     }
@@ -34,6 +38,9 @@ function getTimeframeDisplay(dueDateString, status) {
     if (diffMs < 0) {
         if (Math.abs(diffDays) === 0) {
             text = `${Math.abs(diffHours)} hours overdue`;
+            if (Math.abs(diffHours) === 0) {
+                text = `${Math.abs(diffMinutes)} minutes overdue`;
+            }
         } else {
             text = `${Math.abs(diffDays)} days overdue`;
         }
