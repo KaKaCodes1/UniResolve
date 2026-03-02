@@ -107,6 +107,10 @@ class AdminAllResolutionsPageView(TemplateView):
             context['departments'] = Department.objects.all()
             context['status'] = [choice[0] for choice in Ticket.status_choices]
         return context
+
+@method_decorator(never_cache, name='dispatch')
+class AdminManageDepartmentsPageView(TemplateView):
+    template_name = 'accounts/admin/manage_departments.html'   
             
 #Viewsets
 class UsersViewSet(viewsets.ReadOnlyModelViewSet):
