@@ -334,9 +334,10 @@
 }
 
 /* --- Restricted Edit Modal --- */
- .admin-edit-modal-content {
+.admin-edit-modal-content {
     max-width: 500px;
 }
+
 /*
 .admin-edit-modal-header {
     background-color: #f8f9fa;
@@ -353,4 +354,201 @@
 .admin-edit-readonly-input {
     background-color: #e9ecef;
     cursor: not-allowed;
+}
+
+/* --- Departments Management Page --- */
+.dept-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    max-width: 900px;
+}
+
+.dept-card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dept-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.25rem 0;
+}
+
+.dept-card-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.dept-card-body {
+    padding: 1.5rem;
+}
+
+/* Add Form Layout */
+.add-dept-form .form-group {
+    margin-bottom: 0;
+}
+
+.add-dept-form label {
+    display: block;
+    font-size: 0.9rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.dept-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #f9fafb;
+    transition: border-color 0.2s;
+}
+
+.dept-input:focus {
+    outline: none;
+    border-color: #CC0000;
+    background-color: white;
+}
+
+.btn-primary {
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.btn-primary:hover {
+    background: #b71c1c;
+}
+
+.btn-primary:disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+/* List Table Structure */
+.dept-table-container {
+    overflow-x: auto;
+}
+
+.dept-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dept-table th {
+    text-align: left;
+    padding: 1rem 0;
+    border-bottom: 2px solid #f0f0f0;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.dept-table td {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+.dept-table tr:last-child td {
+    border-bottom: none;
+}
+
+.col-name {
+    width: 70%;
+}
+
+.col-actions {
+    width: 30%;
+    text-align: right;
+}
+
+/* Inline Actions */
+.action-btn {
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 0.5rem;
+}
+
+.action-btn:hover {
+    border-color: #ccc;
+    background: #b71c1c;
+}
+
+.action-btn.delete-btn, .action-btn.cancel-btn {
+    background: none;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 0.4rem 0.8rem;
+}
+
+.action-btn.delete-btn:hover, .action-btn.cancel-btn:hover {
+    background: #feebee;
+    border-color: #ffcdd2;
+}
+
+/* Inline Edit States */
+.dept-name-display {
+    font-size: 0.95rem;
+}
+
+.dept-name-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid #CC0000;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.dept-name-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-danger {
+    color: #c62828;
+}
+
+.dept-table th.col-actions {
+    text-align: right;
 }

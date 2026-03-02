@@ -83,7 +83,7 @@
                     <span>Configuration</span>
                 </a> -->
 
-                <div class="nav-dropdown">
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_manage_departments' %}open{% endif %}">
                     <div class="nav-dropdown-toggle" id="SettingsDropdown">
                         <div>
                             <i class="fa-solid fa-gear"></i>
@@ -92,7 +92,7 @@
                         <i class="fa-solid fa-chevron-down chevron"></i>
                     </div>
                     <div class="nav-dropdown-content">
-                        <a href="#" class="sub-nav-item">Departments Management</a>
+                        <a href="{% url 'admin_manage_departments' %}" class="sub-nav-item">Departments Management</a>
                         <a href="#" class="sub-nav-item">Courses Management</a>
                         <a href="#" class="sub-nav-item">Issues Configuration</a>
                     </div>
