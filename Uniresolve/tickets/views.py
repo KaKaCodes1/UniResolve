@@ -1,8 +1,8 @@
-from .serializers import TicketSerializer, ResolutionSerializer
-from rest_framework import viewsets, permissions, serializers
+from .serializers import TicketSerializer, ResolutionSerializer, StudentFeedbackSerializer
+from rest_framework import viewsets, permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Ticket, Resolution
+from .models import Ticket, Resolution, StudentFeedback
 from django.db import transaction
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -408,7 +408,34 @@ class TicketViewSet(viewsets.ModelViewSet):
             'current_page': page_obj.number,
             'total_count': paginator.count
         })
-
+    @action(detail=True, methods=['post'])
+    def submit_feedback(self, request, pk=None):
+        ticket = self.get_object()
+        user = request.user
+        
+        # Security checks
+        if ticket.owner != user:
+            return Response({'error': 'You are not authorized to create feedback for this ticket.'}, status=403)
+        if ticket.status != 'RESOLVED':
+            return Response({'error': 'You can only create feedback for resolved tickets.'}, status=400)
+        
+        # Validate data with serializer
+        serializer = StudentFeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                # Save the feedback
+                feedback = serializer.save(ticket=ticket, student=user)
+                
+                # Update ticket status based on satisfaction
+                if feedback.is_satisfied:
+                    ticket.status = 'CLOSED'
+                else:
+                    ticket.status = 'REOPENED'
+                ticket.save()
+                
+            return Response(serializer.data, status=201)
+        
+        return Response(serializer.errors, status=400)
     @action(detail=True, methods=['post'])
     def escalate_ticket(self, request, pk=None):
         """

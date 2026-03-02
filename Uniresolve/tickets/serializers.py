@@ -31,8 +31,7 @@ class StudentFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentFeedback
         fields = ['id', 'ticket', 'ticket_title', 'student', 'student_name', 'is_satisfied', 'comments', 'created_at']
-        read_only_fields = ['student', 'created_at']
-
+        read_only_fields = ['student', 'created_at', 'ticket']
 
 class TicketSerializer(serializers.ModelSerializer):
     # Display the student's name and category name instead of their ID
