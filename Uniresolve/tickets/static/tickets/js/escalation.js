@@ -1,10 +1,3 @@
-/**
- * escalation.js
- * Contains logic for escalating and transferring tickets.
- * Handles opening/closing the escalation modal, loading departments,
- * fetching user roles, and submitting the escalation event to the API.
- */
-
 let departmentsLoaded = false;
 let currentUserRole = null; // Will store "STAFF" or "SENIOR"
 // Ensure the host page sets `latestTickets` (or `allTickets`) and `currentTicketId`
@@ -53,13 +46,17 @@ async function fetchCurrentUserRole() {
 
 async function openEscalateModal() {
     // Determine which ticket list is available in the current context (dashboard vs all_issues)
-    const ticketsArray = typeof latestTickets !== 'undefined' ? latestTickets : (typeof allTickets !== 'undefined' ? allTickets : []);
+    let ticket = null;
+    if (typeof currentTicket !== 'undefined' && currentTicket) {
+        ticket = currentTicket;
+    } else {
+        const ticketsArray = typeof latestTickets !== 'undefined' ? latestTickets : (typeof allTickets !== 'undefined' ? allTickets : []);
+        ticket = ticketsArray.find(t => String(t.id) === String(currentTicketId));
+    }
 
     // Save the ID before closing the resolve modal, as closeResolveModal wipes it!
     const ticketIdToEscalate = currentTicketId;
 
-    // Close the resolve modal first
-    closeResolveModal();
 
     // Restore the ID so the Escalate Modal knows what we are working with
     currentTicketId = ticketIdToEscalate;
@@ -72,7 +69,6 @@ async function openEscalateModal() {
     }
     escalateModal.style.display = 'flex';
 
-    const ticket = ticketsArray.find(t => t.id === currentTicketId);
     if (!ticket) {
         console.error("Ticket data not found for escalation");
         return;
@@ -94,10 +90,14 @@ async function openEscalateModal() {
         // Seniors can only transfer, not escalate internally
         if (internalOption) internalOption.style.display = 'none';
         actionSelect.value = 'transfer';
+        const modalTexts = document.querySelectorAll('.escalate-modal-text');
+        modalTexts.forEach(el => el.textContent = 'Transfer');
     } else {
         // Normal Staff can do both
         if (internalOption) internalOption.style.display = 'block';
         actionSelect.value = 'internal';
+        const modalTexts = document.querySelectorAll('.escalate-modal-text');
+        modalTexts.forEach(el => el.textContent = 'Escalate/Transfer');
     }
 
     toggleDepartmentDropdown();
