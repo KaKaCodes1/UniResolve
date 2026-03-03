@@ -140,7 +140,7 @@ body {
 
 .sub-nav-item.active {
     color: var(--primary-color);
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .nav-item.config-item {

@@ -52,7 +52,7 @@
                     <span>Dashboard</span>
                 </a>
 
-                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_users' %}open{% endif %}">
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_students' or request.resolver_match.url_name == 'admin_all_staff' or request.resolver_match.url_name == 'admin_bulk_import' %}open{% endif %}">
                     <div class="nav-dropdown-toggle" id="usersDropdown">
                         <div>
                             <i class="fa-solid fa-users"></i>
@@ -61,10 +61,10 @@
                         <i class="fa-solid fa-chevron-down chevron"></i>
                     </div>
                     <div class="nav-dropdown-content">
-                        <a href="{% url 'admin_all_students' %}" class="sub-nav-item">View Students</a>
-                        <a href="{% url 'admin_all_staff' %}" class="sub-nav-item">View Staff</a>
+                        <a href="{% url 'admin_all_students' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_students' %}active{% endif %}">View Students</a>
+                        <a href="{% url 'admin_all_staff' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_staff' %}active{% endif %}">View Staff</a>
                         <!-- <a href="#" class="sub-nav-item">Add Single User</a> -->
-                        <a href="{% url 'admin_bulk_import' %}" class="sub-nav-item">Bulk Import</a>
+                        <a href="{% url 'admin_bulk_import' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_bulk_import' %}active{% endif %}">Bulk Import</a>
                     </div>
                 </div>
 
@@ -83,7 +83,7 @@
                     <span>Configuration</span>
                 </a> -->
 
-                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_manage_departments' %}open{% endif %}">
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_manage_departments' or request.resolver_match.url_name == 'admin_manage_courses' %}open{% endif %}">
                     <div class="nav-dropdown-toggle" id="SettingsDropdown">
                         <div>
                             <i class="fa-solid fa-gear"></i>
@@ -92,8 +92,8 @@
                         <i class="fa-solid fa-chevron-down chevron"></i>
                     </div>
                     <div class="nav-dropdown-content">
-                        <a href="{% url 'admin_manage_departments' %}" class="sub-nav-item">Departments Management</a>
-                        <a href="#" class="sub-nav-item">Courses Management</a>
+                        <a href="{% url 'admin_manage_departments' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_manage_departments' %}active{% endif %}">Departments Management</a>
+                        <a href="{% url 'admin_manage_courses' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_manage_courses' %}active{% endif %}">Courses Management</a>
                         <a href="#" class="sub-nav-item">Issues Configuration</a>
                     </div>
                 </div>
