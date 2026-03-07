@@ -48,29 +48,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Fetch all courses from the API
+    // Fetch all issue categories from the API
     async function loadIssueCategories() {
         showLoading();
         try {
-            const response = await fetch('/api/v1/orgs/issue-categories/', {
+            const response = await fetch('/api/v1/orgs/categories/', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to fetch courses');
+            if (!response.ok) throw new Error('Failed to fetch issue categories');
 
             const data = await response.json();
-            renderCourses(data);
+            renderIssueCategories(data);
         } catch (error) {
-            console.error('Error fetching courses:', error);
-            showError('Failed to load courses. Please try again later.');
+            console.error('Error fetching issue categories:', error);
+            showError('Failed to load issue categories. Please try again later.');
         } finally {
             hideLoading();
         }
     }
 
-    // Render the courses list
+    // Render the issue categories list
     function renderIssueCategories(issueCategories) {
         // Update count
         const count = issueCategories.length;
@@ -87,34 +87,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         issueCategories.forEach(issueCategory => {
             const tr = document.createElement('tr');
-            tr.setAttribute('data-id', Category.id);
+            tr.setAttribute('data-id', issueCategory.id);
             tr.innerHTML = `
                 <td class="col-name">
-                    <span class="issue-category-name-display">${Category.category_name}</span>
-                    <input type="text" class="issue-category-name-input hidden" value="${Category.category_name}">
+                    <span class="issue-category-name-display">${issueCategory.category_name}</span>
+                    <input type="text" class="issue-category-name-input hidden" value="${issueCategory.category_name}">
                 </td>
                 <td class="col-name">
-                    <span class="issue-category-department-display">${Category.department_name}</span>
+                    <span class="issue-category-department-display">${issueCategory.department_name}</span>
                     <select class="issue-category-department-select hidden">
-                        ${allDepartments.map(dept => `<option value="${dept.id}" ${dept.id === Category.department ? 'selected' : ''}>${dept.department_name}</option>`).join('')}
+                        ${allDepartments.map(dept => `<option value="${dept.id}" ${dept.id === issueCategory.department ? 'selected' : ''}>${dept.department_name}</option>`).join('')}
                     </select>
                 </td>
                 <td class="col-name">
-                    <span class="issue-category-is-academic-display">${Category.is_academic}</span>
+                    <span class="issue-category-is-academic-display">${issueCategory.is_academic ? 'Yes' : 'No'}</span>
                     <select class="issue-category-is-academic-select hidden">
-                        <option value="true" ${Category.is_academic === true ? 'selected' : ''}>Yes</option>
-                        <option value="false" ${Category.is_academic === false ? 'selected' : ''}>No</option>
+                        <option value="true" ${issueCategory.is_academic === true ? 'selected' : ''}>Yes</option>
+                        <option value="false" ${issueCategory.is_academic === false ? 'selected' : ''}>No</option>
                     </select>
                 </td>
                 <td class="col-name">
-                    <span class="issue-category-timeframe-display">${Category.resolution_timeframe}</span>
-                    <input type="number" class="issue-category-timeframe-input hidden" value="${Category.resolution_timeframe}">
+                    <span class="issue-category-timeframe-display">${issueCategory.resolution_timeframe} hrs</span>
+                    <input type="number" class="issue-category-timeframe-input hidden" value="${issueCategory.resolution_timeframe}">
                 </td>
                 <td class="col-actions">
-                    <button class="action-btn edit-btn" title="Edit Course" onclick="toggleEdit(${Category.id}, this)">Edit</button>
-                    <button class="action-btn save-btn hidden" title="Save Changes" onclick="saveEdit(${Category.id}, this)">Save</button>
+                    <button class="action-btn edit-btn" title="Edit Issue Category" onclick="toggleEdit(${issueCategory.id}, this)">Edit</button>
+                    <button class="action-btn save-btn hidden" title="Save Changes" onclick="saveEdit(${issueCategory.id}, this)">Save</button>
                     <button class="action-btn cancel-btn hidden" title="Cancel Edit" onclick="cancelEditMode(this)">Cancel</button>
-                    <button class="action-btn delete-btn" title="Delete Course" onclick="deleteCourse(${Category.id})">
+                    <button class="action-btn delete-btn" title="Delete Issue Category" onclick="deleteIssueCategory(${issueCategory.id})">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </td>
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle adding a new course
+    // Handle adding a new issue category
     async function handleAddIssueCategory(e) {
         e.preventDefault();
 
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addIssueCategoryBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/v1/orgs/issue-categories/', {
+            const response = await fetch('/api/v1/orgs/categories/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn.classList.remove('hidden');
         cancelBtn.classList.remove('hidden');
         deleteBtn.classList.add('hidden');
-        
+
 
         // Focus and select input
         inputField.focus();
@@ -239,6 +239,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Reset isAcademicSelect
+        const currentIsAcademic = isAcademicDisplay.textContent;
+        isAcademicSelect.value = currentIsAcademic === 'Yes' ? 'true' : 'false';
+
+        // Reset timeframeInput
+        timeframeInput.value = timeframeDisplay.textContent.replace(' hrs', '').trim();
+
         displaySpan.classList.remove('hidden');
         deptDisplaySpan.classList.remove('hidden');
         inputField.classList.add('hidden');
@@ -278,29 +285,29 @@ document.addEventListener('DOMContentLoaded', () => {
         timeframeInput.disabled = true;
 
         try {
-            const response = await fetch(`/api/v1/orgs/courses/${id}/`, {
+            const response = await fetch(`/api/v1/orgs/categories/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 },
-                body: JSON.stringify({ course_name: newName, department: newDeptId })
+                body: JSON.stringify({ category_name: newName, department: newDeptId, is_academic: newIsAcademic, resolution_timeframe: newTimeframe })
             });
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to update course');
+                throw new Error(data.error || 'Failed to update issue category');
             }
 
             // Update UI success state
-            const displaySpan = row.querySelector('.course-name-display');
-            const deptDisplaySpan = row.querySelector('.course-department-display');
+            const displaySpan = row.querySelector('.issue-category-name-display');
+            const deptDisplaySpan = row.querySelector('.issue-category-department-display');
             const isAcademicDisplay = row.querySelector('.issue-category-is-academic-display');
             const timeframeDisplay = row.querySelector('.issue-category-timeframe-display');
             displaySpan.textContent = newName;
             deptDisplaySpan.textContent = deptSelect.options[deptSelect.selectedIndex].text;
-            isAcademicDisplay.textContent = newIsAcademic;
-            timeframeDisplay.textContent = newTimeframe;
+            isAcademicDisplay.textContent = newIsAcademic === 'true' ? 'Yes' : 'No';
+            timeframeDisplay.textContent = newTimeframe + ' hrs';
             alert('Issue category updated successfully', 'success');
 
             // Toggle back to read mode
@@ -318,13 +325,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.deleteCourse = async function (id) {
+    window.deleteIssueCategory = async function (id) {
         if (!confirm('Are you sure you want to delete this issue category? This action cannot be undone.')) {
             return;
         }
 
         try {
-            const response = await fetch(`/api/v1/orgs/courses/${id}/`, {
+            const response = await fetch(`/api/v1/orgs/categories/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -337,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             alert('Issue category deleted successfully', 'success');
-            loadCourses(); // Reload the list
+            loadIssueCategories(); // Reload the list
         } catch (error) {
             console.error('Error deleting issue category:', error);
             alert(error.message, 'error');
@@ -348,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showLoading() {
         tableBody.innerHTML = `
-            <tr id="loadingCoursesRow">
+            <tr id="loadingIssueCategoriesRow">
                 <td colspan="5" class="text-center">
                     <i class="fa-solid fa-spinner fa-spin"></i> Loading issue categories...
                 </td>

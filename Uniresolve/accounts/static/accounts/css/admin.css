@@ -423,8 +423,11 @@
     align-items: center;
 }
 
-.dept-input {
+.dept-input,
+.add-dept-form select {
     flex: 1;
+    width: 100%;
+    box-sizing: border-box;
     padding: 0.75rem 1rem;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -433,7 +436,8 @@
     transition: border-color 0.2s;
 }
 
-.dept-input:focus {
+.dept-input:focus,
+.add-dept-form select:focus {
     outline: none;
     border-color: #CC0000;
     background-color: white;
@@ -503,8 +507,17 @@
     width: 35%;
 }
 
+#issueCategoriesTable .col-name {
+    width: 20%;
+    padding-left: 1rem;
+}
+
 .col-actions {
     width: 30%;
+    text-align: right;
+}
+
+.col-actions-category {
     text-align: right;
 }
 
@@ -526,14 +539,16 @@
     background: #b71c1c;
 }
 
-.action-btn.delete-btn, .action-btn.cancel-btn {
+.action-btn.delete-btn,
+.action-btn.cancel-btn {
     background: none;
     border: 1px solid #dc3545;
     color: #dc3545;
     padding: 0.4rem 0.8rem;
 }
 
-.action-btn.delete-btn:hover, .action-btn.cancel-btn:hover {
+.action-btn.delete-btn:hover,
+.action-btn.cancel-btn:hover {
     background: #feebee;
     border-color: #ffcdd2;
 }
