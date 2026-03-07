@@ -9,18 +9,18 @@
 </div>
 
 <!-- Add New Department Card -->
-<div class="dept-card">
-    <div class="dept-card-header">
-        <h3 class="dept-card-title">Add New Department</h3>
-        <p class="dept-card-subtitle">Enter the department name to add to the system</p>
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">Add New Department</h3>
+        <p class="management-card-subtitle">Enter the department name to add to the system</p>
     </div>
-    <div class="dept-card-body">
-        <form id="addDepartmentForm" class="add-dept-form">
+    <div class="management-card-body">
+        <form id="addDepartmentForm" class="add-management-form">
             <div class="form-group">
                 <label for="departmentName">Department Name *</label>
                 <div class="input-with-button">
-                    <input type="text" id="departmentName" class="dept-input" placeholder="Enter department name..."
-                        required>
+                    <input type="text" id="departmentName" class="management-input"
+                        placeholder="Enter department name..." required>
                     <button type="submit" class="btn-primary" id="addDeptBtn">
                         <i class="fa-solid fa-plus"></i> Add Department
                     </button>
@@ -31,14 +31,14 @@
 </div>
 
 <!-- All Departments List Card -->
-<div class="dept-card">
-    <div class="dept-card-header">
-        <h3 class="dept-card-title">All Departments</h3>
-        <p class="dept-card-subtitle" id="departmentsCount">0 departments in the system</p>
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">All Departments</h3>
+        <p class="management-card-subtitle" id="departmentsCount">0 departments in the system</p>
     </div>
-    <div class="dept-card-body">
-        <div class="dept-table-container">
-            <table class="dept-table" id="departmentsTable">
+    <div class="management-card-body">
+        <div class="management-table-container">
+            <table class="management-table" id="departmentsTable">
                 <thead>
                     <tr>
                         <th class="col-name">Department Name</th>

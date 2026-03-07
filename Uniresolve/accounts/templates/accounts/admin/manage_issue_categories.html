@@ -9,16 +9,17 @@
 </div>
 
 <!-- Add New Issue Category Card -->
-<div class="dept-card">
-    <div class="dept-card-header">
-        <h3 class="dept-card-title">Add New Issue Category</h3>
-        <p class="dept-card-subtitle">Enter the issue category name to add to the system</p>
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">Add New Issue Category</h3>
+        <p class="management-card-subtitle">Enter the issue category name to add to the system</p>
     </div>
-    <div class="dept-card-body">
-        <form id="addIssueCategoryForm" class="add-dept-form">
+    <div class="management-card-body">
+        <form id="addIssueCategoryForm" class="add-management-form">
             <div class="form-group" id="issueCategoryNameGroup">
                 <label for="issueCategoryName">Issue Category Name </label>
-                <input type="text" id="issueCategoryName" class="dept-input" placeholder="Enter issue category name..." required>
+                <input type="text" id="issueCategoryName" class="management-input"
+                    placeholder="Enter issue category name..." required>
             </div>
             <div class="form-group" id="departmentSelectGroup">
                 <label for="selectDepartment">Select Department</label>
@@ -37,7 +38,8 @@
             </div>
             <div class="form-group" id="timeframeGroup">
                 <label for="timeframe">Timeframe </label>
-                <input type="number" id="timeframe" class="dept-input" placeholder="Enter timeframe (hours)..." required>
+                <input type="number" id="timeframe" class="management-input" placeholder="Enter timeframe (hours)..."
+                    required>
             </div>
             <button type="submit" class="btn-primary" id="addIssueCategoryBtn">
                 <i class="fa-solid fa-plus"></i> Add Issue Category
@@ -47,14 +49,14 @@
 </div>
 
 <!-- All Courses List Card -->
-<div class="dept-card">
-    <div class="dept-card-header">
-        <h3 class="dept-card-title">All Issue Categories</h3>
-        <p class="dept-card-subtitle" id="issueCategoriesCount">0 issue categories in the system</p>
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">All Issue Categories</h3>
+        <p class="management-card-subtitle" id="issueCategoriesCount">0 issue categories in the system</p>
     </div>
-    <div class="dept-card-body">
-        <div class="dept-table-container">
-            <table class="dept-table" id="issueCategoriesTable">
+    <div class="management-card-body">
+        <div class="management-table-container">
+            <table class="management-table" id="issueCategoriesTable">
                 <thead>
                     <tr>
                         <th class="col-name">Issue Category</th>

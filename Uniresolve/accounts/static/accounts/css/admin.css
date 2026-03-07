@@ -356,8 +356,8 @@
     cursor: not-allowed;
 }
 
-/* --- Departments Management Page --- */
-.dept-card {
+/* --- Management Pages --- */
+.management-card {
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -366,25 +366,25 @@
     max-width: 900px;
 }
 
-.dept-card-header {
+.management-card-header {
     padding: 1.5rem;
     border-bottom: 1px solid #f0f0f0;
 }
 
-.dept-card-title {
+.management-card-title {
     font-size: 1.1rem;
     font-weight: 600;
     color: #333;
     margin: 0 0 0.25rem 0;
 }
 
-.dept-card-subtitle {
+.management-card-subtitle {
     font-size: 0.9rem;
     color: #666;
     margin: 0;
 }
 
-.dept-card-body {
+.management-card-body {
     padding: 1.5rem;
 }
 
@@ -405,11 +405,11 @@
     font-size: 14px;
     color: var(--text-color);
 } */
-.add-dept-form .form-group {
+.add-management-form .form-group {
     margin-bottom: 0;
 }
 
-.add-dept-form label {
+.add-management-form label {
     display: block;
     font-size: 0.9rem;
     color: #333;
@@ -423,8 +423,7 @@
     align-items: center;
 }
 
-.dept-input,
-.add-dept-form select {
+.management-input {
     flex: 1;
     width: 100%;
     box-sizing: border-box;
@@ -436,8 +435,7 @@
     transition: border-color 0.2s;
 }
 
-.dept-input:focus,
-.add-dept-form select:focus {
+.management-input:focus {
     outline: none;
     border-color: #CC0000;
     background-color: white;
@@ -470,16 +468,16 @@
 }
 
 /* List Table Structure */
-.dept-table-container {
+.management-table-container {
     overflow-x: auto;
 }
 
-.dept-table {
+.management-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.dept-table th {
+.management-table th {
     text-align: left;
     padding: 1rem 0;
     border-bottom: 2px solid #f0f0f0;
@@ -488,14 +486,14 @@
     font-size: 0.95rem;
 }
 
-.dept-table td {
+.management-table td {
     padding: 1.25rem 0;
     border-bottom: 1px solid #f0f0f0;
     color: #333;
     vertical-align: middle;
 }
 
-.dept-table tr:last-child td {
+.management-table tr:last-child td {
     border-bottom: none;
 }
 
@@ -584,6 +582,6 @@
     color: #c62828;
 }
 
-.dept-table th.col-actions {
+.management-table th.col-actions {
     text-align: right;
 }
