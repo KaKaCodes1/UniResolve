@@ -1,0 +1,83 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}Manage Issue Categories - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Issue Categories Management</h2>
+</div>
+
+<!-- Add New Issue Category Card -->
+<div class="dept-card">
+    <div class="dept-card-header">
+        <h3 class="dept-card-title">Add New Issue Category</h3>
+        <p class="dept-card-subtitle">Enter the issue category name to add to the system</p>
+    </div>
+    <div class="dept-card-body">
+        <form id="addIssueCategoryForm" class="add-dept-form">
+            <div class="form-group" id="issueCategoryNameGroup">
+                <label for="issueCategoryName">Issue Category Name </label>
+                <input type="text" id="issueCategoryName" class="dept-input" placeholder="Enter issue category name..." required>
+            </div>
+            <div class="form-group" id="departmentSelectGroup">
+                <label for="selectDepartment">Select Department</label>
+                <select id="selectDepartment">
+                    <option value="">-- Choose Department --</option>
+                    <!-- Departments loaded asynchronously by escalation.js -->
+                </select>
+            </div>
+            <div class="form-group" id="isAcademicGroup">
+                <label for="isAcademic">Is Academic?</label>
+                <select id="isAcademic">
+                    <option value="">-- Choose Yes/No --</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+            <div class="form-group" id="timeframeGroup">
+                <label for="timeframe">Timeframe </label>
+                <input type="number" id="timeframe" class="dept-input" placeholder="Enter timeframe (hours)..." required>
+            </div>
+            <button type="submit" class="btn-primary" id="addIssueCategoryBtn">
+                <i class="fa-solid fa-plus"></i> Add Issue Category
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- All Courses List Card -->
+<div class="dept-card">
+    <div class="dept-card-header">
+        <h3 class="dept-card-title">All Issue Categories</h3>
+        <p class="dept-card-subtitle" id="issueCategoriesCount">0 issue categories in the system</p>
+    </div>
+    <div class="dept-card-body">
+        <div class="dept-table-container">
+            <table class="dept-table" id="issueCategoriesTable">
+                <thead>
+                    <tr>
+                        <th class="col-name">Issue Category</th>
+                        <th class="col-name">Department</th>
+                        <th class="col-name">Is Academic</th>
+                        <th class="col-name">Timeframe</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="issueCategoriesTableBody">
+                    <!-- Loading state -->
+                    <tr id="loadingIssueCategoriesRow">
+                        <td colspan="5" class="text-center">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading issue categories...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'accounts/js/manage_issue_categories.js' %}"></script>
+{% endblock %}

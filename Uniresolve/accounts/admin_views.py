@@ -115,6 +115,10 @@ class AdminManageDepartmentsPageView(TemplateView):
 @method_decorator(never_cache, name='dispatch')
 class AdminManageCoursesPageView(TemplateView):
     template_name = 'accounts/admin/manage_courses.html'   
+
+@method_decorator(never_cache, name='dispatch')
+class AdminManageIssueCategoriesPageView(TemplateView):
+    template_name = 'accounts/admin/manage_issue_categories.html'   
             
 #Viewsets
 class UsersViewSet(viewsets.ReadOnlyModelViewSet):

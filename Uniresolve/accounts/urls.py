@@ -19,7 +19,8 @@ from .admin_views import (
     AdminAllStudentsPageView,
     AdminAllStaffPageView,
     AdminManageDepartmentsPageView,
-    AdminManageCoursesPageView
+    AdminManageCoursesPageView,
+    AdminManageIssueCategoriesPageView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
@@ -47,6 +48,7 @@ urlpatterns = [
     path('admin-dashboard/bulk-import/', AdminBulkImportPageView.as_view(), name='admin_bulk_import'),
     path('admin-dashboard/manage-departments/', AdminManageDepartmentsPageView.as_view(), name='admin_manage_departments'),
     path('admin-dashboard/manage-courses/', AdminManageCoursesPageView.as_view(), name='admin_manage_courses'),
+    path('admin-dashboard/manage-issue-categories/', AdminManageIssueCategoriesPageView.as_view(), name='admin_manage_issue_categories'),
 
     # Profile Endpoint
     path('profile/', UserProfileView.as_view(), name='user_profile'),
