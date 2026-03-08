@@ -276,7 +276,7 @@ body {
 /* Page Content */
 .content-wrapper {
     padding: 40px;
-    max-width: 1000px;
+    /* max-width: 1000px; */
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
@@ -1490,8 +1490,8 @@ select {
 
 /* Ticket Detail Page Styles */
 .ticket-detail-container {
-    max-width: 900px;
-    margin: 0 auto;
+    /* max-width: 900px; */
+    /* margin: 0 auto; */
     padding: 24px;
     background: #ffffff;
     border-radius: 12px;
@@ -1499,8 +1499,9 @@ select {
 }
 
 .breadcrumb {
-    max-width: 900px;
-    margin: 0 auto 20px auto;
+    /* max-width: 900px; */
+    /* margin: 0 auto 20px auto; */
+    margin-bottom: 20px;
     font-size: 14px;
     color: var(--text-muted);
 }

@@ -106,7 +106,7 @@
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    max-width: 800px;
+    /* max-width: 800px; */
     margin: 0 auto;
 }
 
@@ -363,7 +363,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     margin-bottom: 2rem;
     overflow: hidden;
-    max-width: 900px;
+    /* max-width: 900px; */
 }
 
 .management-card-header {
@@ -475,36 +475,50 @@
 .management-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 .management-table th {
     text-align: left;
-    padding: 1rem 0;
+    padding: 16px;
     border-bottom: 2px solid #f0f0f0;
-    color: #333;
-    font-weight: 500;
-    font-size: 0.95rem;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .management-table td {
-    padding: 1.25rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 16px;
+    border-bottom: 1px solid #E0E0E0;
     color: #333;
-    vertical-align: middle;
+    /* vertical-align: middle; */
+    font-size: 14px;
 }
-
+.management-table tr:hover {
+    background-color: #fcebeb;
+}
 .management-table tr:last-child td {
     border-bottom: none;
 }
 
-.col-name {
+#departmentsTable .col-name {
     width: 70%;
+}
+
+#departmentsTable .col-actions {
+    width: 30%;
+    text-align: right;
 }
 
 #coursesTable .col-name {
     width: 35%;
 }
 
+#coursesTable .col-actions {
+    width: 30%;
+    text-align: right;
+}
+/* 
 #issueCategoriesTable .col-name {
     width: 20%;
     padding-left: 1rem;
@@ -517,7 +531,7 @@
 
 .col-actions-category {
     text-align: right;
-}
+} */
 
 /* Inline Actions */
 .action-btn {
@@ -582,6 +596,6 @@
     color: #c62828;
 }
 
-.management-table th.col-actions {
+/* .management-table th.col-actions {
     text-align: right;
-}
+} */
