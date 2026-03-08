@@ -1,5 +1,7 @@
 from rest_framework import permissions, viewsets
 import openpyxl
+from datetime import timedelta
+from django.utils import timezone
 from .validators import validate_excel_file
 from .serializers import UserProfileSerializer
 from django.contrib.auth import get_user_model
@@ -32,19 +34,76 @@ class AdminDashboardPageView(TemplateView):
         user = self.request.user
         
         if user.is_authenticated and user.role == 'Admin':
+            now = timezone.now()
+            one_week_ago = now - timedelta(days=7)
+            two_weeks_ago = now - timedelta(days=14)
+
+            def get_rate(number_of_tickets, total_tickets):
+                if total_tickets == 0:
+                    return 0
+                return round((number_of_tickets / total_tickets) * 100)
+
+            def get_trend(this_week, last_week):
+                if last_week == 0:
+                    if this_week > 0:
+                        trend = 100
+                    else:
+                        trend = 0
+                    
+                    return trend, this_week >= last_week
+                
+                diff = this_week - last_week
+                trend = round((abs(diff) / last_week) * 100)
+                return trend, diff >= 0
+
             # Dashboard Stats
             total_tickets = Ticket.objects.count()
             resolved_tickets = Ticket.objects.filter(status='RESOLVED').count()
+            pending_tickets = Ticket.objects.filter(status='PENDING').count()
+            closed_tickets = Ticket.objects.filter(status='CLOSED').count()
+            escalated_tickets = Ticket.objects.filter(status='ESCALATED').count()
             
             context['total_tickets_count'] = total_tickets
-            context['pending_tickets_count'] = Ticket.objects.filter(status='PENDING').count()
-            context['active_users_count'] = User.objects.filter(is_active=True).count()
+            context['pending_tickets_count'] = pending_tickets
             
-            # Resolution Rate Calculation
-            if total_tickets > 0:
-                context['resolution_rate'] = round((resolved_tickets / total_tickets) * 100)
-            else:
-                context['resolution_rate'] = 0
+            context['resolution_rate'] = get_rate(resolved_tickets, total_tickets)
+            context['satisfaction_rate'] = get_rate(closed_tickets, total_tickets)
+            context['escalation_rate'] = get_rate(escalated_tickets, total_tickets)
+
+            # This Week
+            tw_total = Ticket.objects.filter(created_at__gte=one_week_ago).count()
+            tw_resolved = Ticket.objects.filter(created_at__gte=one_week_ago, status='RESOLVED').count()
+            tw_closed = Ticket.objects.filter(created_at__gte=one_week_ago, status='CLOSED').count()
+            tw_escalated = Ticket.objects.filter(created_at__gte=one_week_ago, status='ESCALATED').count()
+
+            tw_res_rate = get_rate(tw_resolved, tw_total)
+            tw_sat_rate = get_rate(tw_closed, tw_total)
+            tw_esc_rate = get_rate(tw_escalated, tw_total)
+
+            # Last Week
+            lw_total = Ticket.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago).count()
+            lw_resolved = Ticket.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago, status='RESOLVED').count()
+            lw_closed = Ticket.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago, status='CLOSED').count()
+            lw_escalated = Ticket.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago, status='ESCALATED').count()
+
+            lw_res_rate = get_rate(lw_resolved, lw_total)
+            lw_sat_rate = get_rate(lw_closed, lw_total)
+            lw_esc_rate = get_rate(lw_escalated, lw_total)
+
+            # Trends
+            total_trend, total_up = get_trend(tw_total, lw_total)
+            res_trend, res_up = get_trend(tw_res_rate, lw_res_rate)
+            sat_trend, sat_up = get_trend(tw_sat_rate, lw_sat_rate)
+            esc_trend, esc_up = get_trend(tw_esc_rate, lw_esc_rate)
+
+            context['total_trend'] = total_trend
+            context['total_up'] = total_up
+            context['res_trend'] = res_trend
+            context['res_up'] = res_up
+            context['sat_trend'] = sat_trend
+            context['sat_up'] = sat_up
+            context['esc_trend'] = esc_trend
+            context['esc_up'] = esc_up
 
             # Pending Staff Approvals
             context['pending_staff'] = User.objects.filter(role='Staff', is_active=False).select_related('staff_profile', 'staff_profile__department')
