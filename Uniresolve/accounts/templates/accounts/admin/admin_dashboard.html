@@ -78,6 +78,41 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="charts-section-grid">
+    <!-- Issues by Category (HTML/CSS Bar Chart) -->
+    <div class="admin-chart-card">
+        <div class="chart-header">
+            <h3><i class="fa-solid fa-chart-simple text-red"></i> Issues by Category</h3>
+        </div>
+        <div class="bar-chart-container">
+            {% for cat in category_data %}
+            <div class="bar-row">
+                <span class="bar-label">{{ cat.category__category_name }}</span>
+                <div class="bar-track">
+                    <!-- H -->
+                    <div class="bar-fill" style="width: {% widthratio cat.count max_category_count 100 %}%;"></div>
+                </div>
+                <span class="bar-value">{{ cat.count }}</span>
+            </div>
+            {% empty %}
+            <p class="text-center" style="color:#999; padding: 20px;">No category data available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Status Distribution (Chart.js Pie Chart) -->
+    <div class="admin-chart-card">
+        <div class="chart-header">
+            <h3><i class="fa-solid fa-chart-pie text-red"></i> Status Distribution</h3>
+        </div>
+        <div class="doughnut-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <!-- <div id="statusLegend" class="chart-custom-legend"></div> -->
+    </div>
+</div>
+
 <!-- Pending Staff Approvals Section -->
 <!-- <div class="content-card approvals-card">
     <div class="card-header">
@@ -174,7 +209,92 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+    // Status Distribution Pie Chart
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+
+        const data = {
+            labels: ['Resolved', 'Pending', 'Open', 'Closed', 'Transferred', 'Escalated', 'Reopened'],
+            datasets: [{
+                data: [
+                    // wrapped with number() to ensure it's a number preventing IDE syntax highlighting error
+                    Number("{{ chart_resolved_tickets }}"),
+                    Number("{{ chart_pending_tickets }}"),
+                    Number("{{ chart_open_tickets }}"),
+                    Number("{{ chart_closed_tickets }}"),
+                    Number("{{ chart_transferred_tickets }}"),
+                    Number("{{ chart_escalated_tickets }}"),
+                    Number("{{ chart_reopened_tickets }}")
+                ],
+                backgroundColor: [
+                    '#039835', // for Resolved
+                    '#f57f17', // for Pending
+                    '#1565c0', // for Open
+                    '#09ef15', // for Closed
+                    '#c2185b', // for Transferred
+                    '#6a1b9a', // for Escalated
+                    '#083d79'  // for Reopened
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        };
+
+        const statusChart = new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            padding: 10,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Generate Custom Legend
+        // const legendContainer = document.getElementById('statusLegend');
+        // const labels = data.labels;
+        // const colors = data.datasets[0].backgroundColor;
+
+        // let legendHTML = '';
+        // labels.forEach((label, index) => {
+        //     legendHTML += `
+        //         <div class="legend-item">
+        //             <span class="legend-color" style="background-color: ${colors[index]}"></span>
+        //             <span class="legend-label">${label}</span>
+        //         </div>
+        //     `;
+        // });
+        // legendContainer.innerHTML = legendHTML;
+    });
+
     let selectedStaffId = null;
 
     function openApprovalModal(id, name) {

@@ -22,6 +22,7 @@ from .models import StudentProfile, StaffProfile
 from organization.models import Department, Category, Course 
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 
 User = get_user_model()
 
@@ -65,10 +66,31 @@ class AdminDashboardPageView(TemplateView):
             
             context['total_tickets_count'] = total_tickets
             context['pending_tickets_count'] = pending_tickets
-            
             context['resolution_rate'] = get_rate(resolved_tickets, total_tickets)
             context['satisfaction_rate'] = get_rate(closed_tickets, total_tickets)
             context['escalation_rate'] = get_rate(escalated_tickets, total_tickets)
+
+            #Additional stats for the charts
+            open_tickets = Ticket.objects.filter(status='OPEN').count()
+            transferred_tickets = Ticket.objects.filter(status='TRANSFERRED').count()
+            reopened_tickets = Ticket.objects.filter(status='REOPENED').count()
+
+            # Charts Data
+            # Get top 6 categories by ticket count (arrange in descending order)
+            category_data = list(Ticket.objects.values('category__category_name').annotate(count=Count('id')).order_by('-count')[:6])
+            context['category_data'] = category_data
+
+            # Get the maximum count of tickets in any category to help calculate the percentage for the bar chart
+            context['max_category_count'] = max([item['count'] for item in category_data]) if category_data else 1
+
+            context['chart_open_tickets'] = open_tickets
+            context['chart_closed_tickets'] = closed_tickets
+            context['chart_resolved_tickets'] = resolved_tickets
+            context['chart_pending_tickets'] = pending_tickets
+            context['chart_transferred_tickets'] = transferred_tickets
+            context['chart_escalated_tickets'] = escalated_tickets
+            context['chart_reopened_tickets'] = reopened_tickets
+
 
             # This Week
             tw_total = Ticket.objects.filter(created_at__gte=one_week_ago).count()
