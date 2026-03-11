@@ -1,4 +1,4 @@
-from .serializers import TicketSerializer, ResolutionSerializer, StudentFeedbackSerializer
+from .serializers import TicketSerializer, ResolutionSerializer, StudentFeedbackSerializer, AdditionalInfoSerializer
 from rest_framework import viewsets, permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -442,6 +442,43 @@ class TicketViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=201)
         
         return Response(serializer.errors, status=400)
+
+    @action(detail=True, methods=['post'])
+    def add_additional_info(self, request, pk=None):
+        ticket = self.get_object()
+        user = request.user
+        
+        # Security checks
+        if ticket.owner != user:
+            return Response({'error': 'You are not authorized to add information to this ticket.'}, status=403)
+        if ticket.status != 'PENDING':
+            return Response({'error': 'You can only add additional information to pending tickets.'}, status=400)
+
+        # Validate data with serializer
+        serializer = AdditionalInfoSerializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                # Save the additional info
+                info = serializer.save(ticket=ticket, added_by=user)
+
+                # Update ticket status if the additional info is submitted
+                if info:
+                    ticket.status = 'IN_PROGRESS'
+                    ticket.save()
+                    
+                    # Log an automatic resolution to show the timeline event
+                    Resolution.objects.create(
+                        ticket=ticket,
+                        resolved_by=None,  # System message
+                        status='IN_PROGRESS',
+                        feedback=f"Student ({user.first_name} {user.last_name}) provided additional information. Status updated to IN PROGRESS."
+                    )
+                
+            return Response(serializer.data, status=201)
+        
+        return Response(serializer.errors, status=400)
+        
+        
     @action(detail=True, methods=['post'])
     def escalate_ticket(self, request, pk=None):
         """

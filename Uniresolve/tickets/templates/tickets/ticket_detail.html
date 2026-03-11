@@ -82,6 +82,58 @@
             <button id="reopenTicketBtn" class="btn-primary" disabled>Reopen Ticket</button>
         </div>
     </div>
+
+    <!-- Additional Information Section -->
+    <div class="additional-info-section" id="additionalInfoSection" style="display: none;">
+        <h3>ADDITIONAL INFORMATION (Required)</h3>
+        
+        <div id="pendingMessageContainer" class="pending-message-container">
+            <strong class="pending-message-label">STAFF MESSAGE:</strong>
+            <p id="pendingMessageText" class="pending-message-text">Loading message...</p>
+        </div>
+
+        <form id="additionalInfoForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="additionalInfo">Your Response</label>
+                <textarea id="additionalInfo" name="info" class="form-control" style="background-color: #fff;" placeholder="Provide additional information..."
+                    rows="5" required></textarea>
+                <div id="additionalInfo_error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label>Attachment (Optional)</label>
+                <div class="file-upload-container" id="dropZone" style="background-color: #fff;">
+                    <input type="file" id="attachment" name="attachment" accept=".png, .jpg, .jpeg, .pdf" hidden>
+                    <div class="upload-content">
+                        <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
+                        <p><strong>Upload a file</strong> or drag and drop</p>
+                        <span class="upload-hint">PNG, JPG, PDF up to 10MB</span>
+                    </div>
+                    <!-- File preview area -->
+                    <div id="filePreview" class="file-preview" style="display: none;">
+                        <i class="fa-regular fa-file"></i>
+                        <span id="fileName">filename.pdf</span>
+                        <i class="fa-solid fa-xmark remove-file" id="removeFile"></i>
+                    </div>
+                </div>
+                <div id="attachment_error" class="error-message"></div>
+            </div>
+            <!-- <div class="form-actions" style="display: flex; justify-content: flex-end; margin-top: 20px;"> -->
+            <!-- <div class="form-actions">
+                <button type="submit" class="btn-primary" id="submitInfoBtn" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-paper-plane"></i> Submit Response
+                </button>
+            </div> -->
+
+            <div class="form-actions" id="student_ticket_formActions">
+                <a href="{% url 'my_history' %}" class="btn-cancel"
+                    style="text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
+                <button type="submit" class="btn-primary" id="submitInfoBtn">
+                    <i class="fa-regular fa-paper-plane"></i> Submit Response
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
@@ -91,8 +143,114 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         setupResolutionConfirmation();
+        setupAdditionalInfoForm();
         await loadTicketDetails();
     });
+
+    function setupAdditionalInfoForm() {
+        const form = document.getElementById('additionalInfoForm');
+        const submitBtn = document.getElementById('submitInfoBtn');
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+            const formData = new FormData();
+            formData.append('info', document.getElementById('additionalInfo').value);
+            
+            const fileInput = document.getElementById('attachment');
+            if (fileInput.files.length > 0) {
+                formData.append('attachment', fileInput.files[0]);
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+            try {
+                const response = await fetch(`/api/v1/tickets/${ticketId}/add_additional_info/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Information submitted successfully!');
+                    form.reset();
+                    document.getElementById('filePreview').style.display = 'none';
+                    document.querySelector('.upload-content').style.display = 'flex';
+                    await loadTicketDetails();
+                } else {
+                    const errorData = await response.json();
+                    alert('Error submitting information: ' + JSON.stringify(errorData));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('A network error occurred.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> Submit Response';
+            }
+        });
+
+        // Setup File Upload Logic
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('attachment');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        const removeFileBtn = document.getElementById('removeFile');
+        const uploadContent = document.querySelector('.upload-content');
+
+        if (dropZone && fileInput) {
+            dropZone.addEventListener('click', (e) => {
+                if(e.target !== removeFileBtn && e.target !== filePreview) {
+                    fileInput.click();
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert("File is too large! Maximum allowed size is 10MB.");
+                        fileInput.value = '';
+                        return;
+                    }
+                    uploadContent.style.display = 'none';
+                    fileName.textContent = file.name;
+                    filePreview.style.display = 'flex';
+                }
+            });
+
+            removeFileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fileInput.value = '';
+                filePreview.style.display = 'none';
+                uploadContent.style.display = 'flex';
+            });
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('highlight');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('highlight');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('highlight');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        }
+    }
 
     function setupResolutionConfirmation() {
         const btnYes = document.getElementById('btnSatisfiedYes');
@@ -301,6 +459,25 @@
             document.getElementById('feedbackSection').style.display = 'block';
         } else {
             document.getElementById('feedbackSection').style.display = 'none';
+        }
+
+        // Additional Info Section setup depending on PENDING status
+        const addInfoSection = document.getElementById('additionalInfoSection');
+        if (ticket.status === 'PENDING') {
+            addInfoSection.style.display = 'block';
+            
+            let pendingMsg = "Please provide the requested additional information.";
+            if (ticket.resolutions && ticket.resolutions.length > 0) {
+                const pendingResolutions = ticket.resolutions.filter(r => r.status === 'PENDING');
+                if (pendingResolutions.length > 0) {
+                    // Get the most recent pending resolution
+                    pendingResolutions.sort((a, b) => new Date(b.resolved_at) - new Date(a.resolved_at));
+                    pendingMsg = pendingResolutions[0].feedback;
+                }
+            }
+            document.getElementById('pendingMessageText').textContent = pendingMsg;
+        } else {
+            addInfoSection.style.display = 'none';
         }
     }
 </script>

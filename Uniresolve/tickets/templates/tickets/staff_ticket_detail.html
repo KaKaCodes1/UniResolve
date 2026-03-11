@@ -70,7 +70,7 @@
 
         <div class="form-group">
             <label for="resolutionStatus">Update Status</label>
-            <select id="resolutionStatus" class="form-control">
+            <select id="resolutionStatus" class="form-control" style="background-color: #fff;">
                 <option value="PENDING">Pending (For asking for more details)</option>
                 <option value="IN_PROGRESS">In Progress (For working on the issue)</option>
                 <option value="RESOLVED">Resolved (For resolving the issue)</option>
@@ -79,13 +79,12 @@
 
         <div class="form-group">
             <label for="resolutionFeedback">Response/Feedback</label>
-            <textarea id="resolutionFeedback" class="form-control" rows="5"
+            <textarea id="resolutionFeedback" class="form-control" rows="5" style="background-color: #fff;"
                 placeholder="Enter your response or resolution details for the student..."></textarea>
         </div>
 
         <!-- Buttons Area -->
-        <div class="staff-modal-footer"
-            style="background: transparent; border-top: none; padding: 10px 0 0 0; display: flex; justify-content: space-between;">
+        <div class="staff-modal-footer">
             <button type="button" id="escalateBtn" class="btn-escalate" onclick="openEscalateModal()">
                 <i class="fa-solid fa-triangle-exclamation"></i> <span
                     class="escalate-modal-text">Escalate/Transfer</span>

@@ -1424,7 +1424,7 @@ select {
     font-weight: 600;
 }
 
-.ticket-summary-card, .resolution-timeline-card {
+.ticket-summary-card, .resolution-timeline-card, .additional-info-section {
     background-color: #f8f9fa;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1617,4 +1617,32 @@ select {
     font-size: 14px;
     resize: vertical;
     min-height: 80px;
+}
+
+#student_ticket_formActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.pending-message-container {
+    background-color: #fff;
+    padding: 15px;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.pending-message-label {
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.pending-message-text {
+    margin: 0;
+    color: #4b5563;
+    font-size: 14px;
 }
