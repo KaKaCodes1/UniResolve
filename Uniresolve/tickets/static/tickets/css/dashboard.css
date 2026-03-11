@@ -1515,7 +1515,7 @@ select {
     color: #212529;
 }
 
-.resolution-timeline-card h3 {
+.resolution-timeline-card h3 , .additional-info-section h3{
     font-size: 16px;
     margin-top: 0;
     margin-bottom: 20px;

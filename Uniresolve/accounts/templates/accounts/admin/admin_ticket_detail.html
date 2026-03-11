@@ -49,6 +49,14 @@
             </a>
         </div>
     </div>
+    
+    <!-- Additional Information Section -->
+    <div class="additional-info-section" id="additionalInfoSection" style="display: none;">
+        <h3>ADDITIONAL INFORMATION</h3>
+        <div id="additionalInfoContent" class="info-content">
+            <!-- Additional info will be loaded here -->
+        </div>
+    </div>
 
     <!-- Resolution Timeline -->
     <div class="resolution-timeline-card">
@@ -64,6 +72,7 @@
 
 {% block extra_js %}
 <!-- <script src="{% static 'tickets/js/escalation.js' %}?v=3"></script> -->
+<script src="{% static 'common/js/ticket_details.js' %}"></script>
 <script>
     const ticketId = window.location.pathname.split('/').filter(Boolean).pop();
     let currentTicket = null;
@@ -95,102 +104,6 @@
             }
         } catch (error) {
             console.error('Error fetching ticket details:', error);
-        }
-    }
-
-    function populateDetails(ticket) {
-        // IDs & Headers
-        const ticketYear = new Date(ticket.created_at).getFullYear();
-        const displayId = `TICK-${ticketYear}-${ticket.id}`;
-
-        document.getElementById('breadcrumbId').textContent = `Ticket ${displayId}`;
-        document.getElementById('detailTitle').textContent = ticket.title;
-        document.getElementById('detailId').textContent = displayId;
-
-        // Prepare Escalation Modal Title
-        const escTitle = document.getElementById('escTicketTitle');
-        if (escTitle) escTitle.textContent = ticket.title;
-
-        // Meta Info
-        document.getElementById('detailCategory').textContent = ticket.category_name;
-        document.getElementById('detailOwner').textContent = ticket.owner || 'N/A';
-
-        const dateObj = new Date(ticket.created_at);
-        document.getElementById('detailDate').textContent = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-        // Status Badge
-        const statusEl = document.getElementById('detailStatus');
-        statusEl.textContent = ticket.status;
-        statusEl.className = `status-badge status-${ticket.status.toLowerCase()}`;
-
-        // Description
-        document.getElementById('detailDescription').textContent = ticket.description;
-
-        // Attachment
-        const attachmentSection = document.getElementById('detailAttachmentSection');
-        if (ticket.attachment) {
-            attachmentSection.style.display = 'block';
-            const link = document.getElementById('detailAttachmentLink');
-            link.href = ticket.attachment;
-            document.getElementById('detailAttachmentName').textContent = ticket.attachment.split('/').pop();
-        } else {
-            attachmentSection.style.display = 'none';
-        }
-
-        // Timeline
-        const timelineContainer = document.getElementById('timelineContainer');
-        timelineContainer.innerHTML = '';
-        const events = [];
-
-        if (ticket.resolutions) {
-            ticket.resolutions.forEach(res => {
-                events.push({ type: 'resolution', date: new Date(res.resolved_at), data: res });
-            });
-        }
-        if (ticket.student_feedbacks) {
-            ticket.student_feedbacks.forEach(fb => {
-                events.push({ type: 'feedback', date: new Date(fb.created_at), data: fb });
-            });
-        }
-
-        if (events.length === 0) {
-            timelineContainer.innerHTML = '<p class="empty-timeline">No feedback recorded yet.</p>';
-        } else {
-            events.sort((a, b) => a.date - b.date);
-            events.reverse().forEach(event => {
-                const entryDate = event.date;
-                const timeString = `${entryDate.toLocaleDateString()} at ${entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                const entryEl = document.createElement('div');
-                entryEl.className = 'timeline-entry';
-
-                if (event.type === 'resolution') {
-                    const res = event.data;
-                    entryEl.innerHTML = `
-                        <div class="timeline-meta">
-                            <strong>Resolved by: ${res.resolved_by || 'System'}</strong> 
-                            <span class="timeline-date">${timeString}</span>
-                        </div>
-                        <div class="timeline-feedback">${res.feedback}</div>
-                        <div>
-                            <span class="status-badge status-${(res.status || 'open').toLowerCase()}">Status updated to: ${res.status || 'OPEN'}</span>
-                        </div>
-                    `;
-                } else if (event.type === 'feedback') {
-                    const fb = event.data;
-                    const defaultComment = fb.is_satisfied ? 'Satisfied with resolution.' : 'Needs more help.';
-                    entryEl.innerHTML = `
-                        <div class="timeline-meta" style="color: #6c757d;">
-                            <strong>Feedback from: Student</strong> 
-                            <span class="timeline-date">${timeString}</span>
-                        </div>
-                        <div class="timeline-feedback"><em>${fb.comments || defaultComment}</em></div>
-                        <div>
-                            <span class="status-badge status-${fb.is_satisfied ? 'closed' : 'reopened'}">Status updated to: ${fb.is_satisfied ? 'CLOSED' : 'REOPENED'}</span>
-                        </div>
-                    `;
-                }
-                timelineContainer.appendChild(entryEl);
-            });
         }
     }
 </script>
