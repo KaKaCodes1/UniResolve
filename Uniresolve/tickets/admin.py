@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Resolution, Ticket, StudentFeedback
+from .models import Resolution, Ticket, StudentFeedback, AdditionalInfo
 # Register your models here.
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
@@ -18,6 +18,13 @@ class StudentFeedbackAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'student', 'is_satisfied', 'created_at')
     list_filter = ('is_satisfied', 'created_at')
     search_fields = ('ticket__title', 'student__email', 'comments')
+
+@admin.register(AdditionalInfo)
+class AdditionalInfoAdmin(admin.ModelAdmin):
+    list_display = ('ticket', 'added_by', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('ticket__title', 'added_by__email', 'info')
+
 
 # admin.site.register(Ticket)
 # admin.site.register(Resolution)
