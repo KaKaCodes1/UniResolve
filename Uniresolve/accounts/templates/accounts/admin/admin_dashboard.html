@@ -90,7 +90,8 @@
             <div class="bar-row">
                 <span class="bar-label">{{ cat.category__category_name }}</span>
                 <div class="bar-track">
-                    <!-- H -->
+                    <!-- This helps calculate the width of the bar based on the count of the category -->
+                    <!-- widthratio calculates: (The number of tickets in this category / The number of tickets in the largest category) × 100-->
                     <div class="bar-fill" style="width: {% widthratio cat.count max_category_count 100 %}%;"></div>
                 </div>
                 <span class="bar-value">{{ cat.count }}</span>

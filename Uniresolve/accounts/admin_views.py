@@ -163,6 +163,10 @@ class AdminBulkImportPageView(TemplateView):
     template_name = 'accounts/admin/bulk_import.html'
 
 @method_decorator(never_cache, name='dispatch')
+class AdminTicketDetailView(TemplateView):
+    template_name = 'accounts/admin/admin_ticket_detail.html'
+
+@method_decorator(never_cache, name='dispatch')
 class AdminAllIssuesPageView(TemplateView):
     template_name = 'accounts/admin/admin_allissues.html'
 

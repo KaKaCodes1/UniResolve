@@ -199,7 +199,7 @@
         tickets.forEach(ticket => {
             const row = document.createElement('tr');
             const date = new Date(ticket.created_at).toLocaleDateString();
-
+            row.onclick = () => window.location.href = '/api/accounts/admin-dashboard/ticket/' + ticket.id + '/';
             row.innerHTML = `
                 <td><span class="ticket-id">#${ticket.id}</span></td>
                 <td>${ticket.owner || 'N/A'}</td>
