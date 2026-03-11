@@ -17,7 +17,7 @@ class ResolutionSerializer(serializers.ModelSerializer):
 
     def validate_status(self,value):
         status_input = value.upper()
-        valid_choices = ['PENDING', 'RESOLVED', 'ESCALATED', 'TRANSFERRED']
+        valid_choices = ['PENDING', 'RESOLVED', 'ESCALATED', 'TRANSFERRED', 'IN_PROGRESS']
 
         if status_input not in valid_choices:
             raise serializers.ValidationError(

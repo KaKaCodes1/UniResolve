@@ -543,8 +543,10 @@ class ResolutionViewSet(viewsets.ModelViewSet):
                 ticket.status = 'PENDING'
             elif new_status == 'RESOLVED':
                 ticket.status = 'RESOLVED'
+            elif new_status == 'IN_PROGRESS':
+                ticket.status = 'IN_PROGRESS'
             else:
-                print(f"WARNING! new_status '{new_status}' did not match PENDING or RESOLVED.")
+                print(f"WARNING! new_status '{new_status}' did not match PENDING, IN_PROGRESS or RESOLVED.")
 
             # Save the ticket
             ticket.save()
