@@ -9,7 +9,8 @@ class Ticket(models.Model):
         ('ESCALATED','escalated'),
         ('TRANSFERRED','transferred'),
         ('CLOSED', 'closed'),
-        ('REOPENED', 'reopened')
+        ('REOPENED', 'reopened'),
+        ('IN_PROGRESS', 'in progress')
     ]
     title = models.CharField(max_length=200)
     description = models.TextField()
