@@ -56,6 +56,14 @@
         </div>
     </div>
 
+    <!-- Additional Information Section -->
+    <div class="additional-info-section" id="additionalInfoSection" style="display: none;">
+        <h3>ADDITIONAL INFORMATION</h3>
+        <div id="additionalInfoContent" class="info-content">
+            <!-- Additional info will be loaded here -->
+        </div>
+    </div>
+
     <!-- Resolution Timeline -->
     <div class="resolution-timeline-card">
         <h3>RESOLUTION TIMELINE</h3>
@@ -226,6 +234,48 @@
             document.getElementById('detailAttachmentName').textContent = ticket.attachment.split('/').pop();
         } else {
             attachmentSection.style.display = 'none';
+        }
+
+        // Additional Information
+        const addInfoSection = document.getElementById('additionalInfoSection');
+        const addInfoContent = document.getElementById('additionalInfoContent');
+        if (ticket.additional_info && ticket.additional_info.length > 0) {
+            addInfoSection.style.display = 'block';
+            addInfoContent.innerHTML = ''; // clear loading state
+            
+            // Sort to show oldest first, or newest first depending on preference. Here oldest first looks like a natural conversation flow.
+            const sortedInfo = [...ticket.additional_info].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            
+            sortedInfo.forEach(info => {
+                const infoDate = new Date(info.created_at);
+                const timeString = `${infoDate.toLocaleDateString()} at ${infoDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                
+                let html = `
+                    <div class="additional-info-entry">
+                        <div class="additional-info-meta">
+                            <strong>Added by: ${info.added_by_name || 'Student'}</strong> 
+                            <span style="margin-left: 10px;"><i class="fa-regular fa-clock"></i> ${timeString}</span>
+                        </div>
+                        <div class="additional-info-text">${info.info}</div>
+                `;
+                
+                if (info.attachment) {
+                    const fileName = info.attachment.split('/').pop();
+                    html += `
+                        <div class="additional-info-attachment">
+                            <a href="${info.attachment}" target="_blank" class="attachment-pill small-pill">
+                                <i class="fa-solid fa-paperclip"></i>
+                                <span>${fileName}</span>
+                            </a>
+                        </div>
+                    `;
+                }
+                
+                html += `</div>`;
+                addInfoContent.innerHTML += html;
+            });
+        } else {
+            addInfoSection.style.display = 'none';
         }
 
         // Timeline

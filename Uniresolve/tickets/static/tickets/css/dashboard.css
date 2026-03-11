@@ -1646,3 +1646,40 @@ select {
     color: #4b5563;
     font-size: 14px;
 }
+
+/* Additional Info Entries (Staff View) */
+.additional-info-entry {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 15px;
+}
+
+.additional-info-meta {
+    margin-bottom: 10px;
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.additional-info-text {
+    white-space: pre-wrap;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.additional-info-attachment {
+    margin-top: 15px;
+}
+
+.attachment-pill.small-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 13px;
+}
