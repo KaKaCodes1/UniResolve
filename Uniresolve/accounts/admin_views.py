@@ -176,7 +176,7 @@ class AdminAllIssuesPageView(TemplateView):
         
         if user.is_authenticated and user.role == 'Admin':
             context['departments'] = Department.objects.all()
-            context['status'] = [choice[0] for choice in Ticket.status_choices]
+            context['status_choices'] = Ticket.status_choices
             context['categories'] = Category.objects.all()
         return context
 
@@ -190,7 +190,7 @@ class AdminAllResolutionsPageView(TemplateView):
         
         if user.is_authenticated and user.role == 'Admin':
             context['departments'] = Department.objects.all()
-            context['status'] = [choice[0] for choice in Ticket.status_choices]
+            context['status_choices'] = Ticket.status_choices
         return context
 
 @method_decorator(never_cache, name='dispatch')

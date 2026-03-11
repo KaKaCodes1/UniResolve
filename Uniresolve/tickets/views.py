@@ -186,6 +186,7 @@ class StaffAllIssuesPageView(TemplateView):
              # Pass categories for the dropdown filter
              staff_dept = user.staff_profile.department
              context['categories'] = Category.objects.filter(department=staff_dept)
+             context['status_choices'] = Ticket.status_choices
         return context
 
 
@@ -203,6 +204,7 @@ class AllResolutionsPageView(TemplateView):
              # Assuming we can find other staff by filtering profiles linked to this dept
              # If `StaffProfile` has `department`, we can query User where staff_profile__department=staff_dept
              context['staff_members'] = User.objects.filter(staff_profile__department=staff_dept, role='Staff')
+             context['status_choices'] = Ticket.status_choices
              
         return context
 

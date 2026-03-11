@@ -23,12 +23,9 @@
             <label for="statusFilter">Status</label>
             <select id="statusFilter" class="filter-select">
                 <option value="All Statuses">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="ESCALATED">Escalated</option>
-                <option value="TRANSFERRED">Transferred</option>
-                <option value="CLOSED">Closed</option>
-                <option value="REOPENED">Reopened</option>
+                {% for value, name in status_choices %}
+                <option value="{{ value }}">{{ name|title }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class="filter-group">
