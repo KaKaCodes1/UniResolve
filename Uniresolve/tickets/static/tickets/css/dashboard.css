@@ -551,8 +551,13 @@ select {
 }
 
 .status-pending {
-    background-color: #fff8e1;
+    background-color: #ffefb9;
     color: #f57f17;
+}
+
+.status-in_progress {
+    background-color: #f5f1c6;
+    color: #fe7a1c;
 }
 
 .status-resolved {

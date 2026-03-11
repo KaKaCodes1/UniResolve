@@ -72,6 +72,7 @@ class AdminDashboardPageView(TemplateView):
 
             #Additional stats for the charts
             open_tickets = Ticket.objects.filter(status='OPEN').count()
+            in_progress_tickets = Ticket.objects.filter(status='IN_PROGRESS').count()
             transferred_tickets = Ticket.objects.filter(status='TRANSFERRED').count()
             reopened_tickets = Ticket.objects.filter(status='REOPENED').count()
 
@@ -84,6 +85,7 @@ class AdminDashboardPageView(TemplateView):
             context['max_category_count'] = max([item['count'] for item in category_data]) if category_data else 1
 
             context['chart_open_tickets'] = open_tickets
+            context['chart_in_progress_tickets'] = in_progress_tickets
             context['chart_closed_tickets'] = closed_tickets
             context['chart_resolved_tickets'] = resolved_tickets
             context['chart_pending_tickets'] = pending_tickets

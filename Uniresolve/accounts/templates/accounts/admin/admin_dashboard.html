@@ -219,12 +219,13 @@
         const ctx = document.getElementById('statusChart').getContext('2d');
 
         const data = {
-            labels: ['Resolved', 'Pending', 'Open', 'Closed', 'Transferred', 'Escalated', 'Reopened'],
+            labels: ['Resolved', 'Pending', 'In Progress', 'Open', 'Closed', 'Transferred', 'Escalated', 'Reopened'],
             datasets: [{
                 data: [
                     // wrapped with number() to ensure it's a number preventing IDE syntax highlighting error
                     Number("{{ chart_resolved_tickets }}"),
                     Number("{{ chart_pending_tickets }}"),
+                    Number("{{ chart_in_progress_tickets }}"),
                     Number("{{ chart_open_tickets }}"),
                     Number("{{ chart_closed_tickets }}"),
                     Number("{{ chart_transferred_tickets }}"),
@@ -234,6 +235,7 @@
                 backgroundColor: [
                     '#039835', // for Resolved
                     '#f57f17', // for Pending
+                    '#fbc02d', // for In Progress
                     '#1565c0', // for Open
                     '#09ef15', // for Closed
                     '#c2185b', // for Transferred
