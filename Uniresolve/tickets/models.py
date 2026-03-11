@@ -82,3 +82,24 @@ class StudentFeedback(models.Model):
     def __str__(self):
         status = "Satisfied" if self.is_satisfied else "Not Satisfied"
         return f"Feedback for {self.ticket.id} - {status}"
+
+class AdditionalInfo(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.PROTECT,
+        related_name='additional_info'
+    )
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='additional_info_added'
+    )
+    info = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    attachment = models.FileField(upload_to='additional_info_attachments/', null=True, blank=True)
+
+
+    def __str__(self):
+        return f"Additional Info for {self.ticket.id} by {self.added_by}"
+    

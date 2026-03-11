@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Ticket, Resolution, StudentFeedback
+from .models import Ticket, Resolution, StudentFeedback, AdditionalInfo
 from .validators import validate_file_attachment
 
 class ResolutionSerializer(serializers.ModelSerializer):
@@ -33,6 +33,16 @@ class StudentFeedbackSerializer(serializers.ModelSerializer):
         fields = ['id', 'ticket', 'ticket_title', 'student', 'student_name', 'is_satisfied', 'comments', 'created_at']
         read_only_fields = ['student', 'created_at', 'ticket']
 
+class AdditionalInfoSerializer(serializers.ModelSerializer):
+    ticket_title = serializers.CharField(source='ticket.title', read_only=True)
+    added_by_name = serializers.StringRelatedField(source='added_by', read_only=True)
+    attachment = serializers.FileField(required=False, validators=[validate_file_attachment])
+
+    class Meta:
+        model = AdditionalInfo
+        fields = ['id','ticket', 'ticket_title', 'added_by', 'added_by_name', 'info', 'created_at', 'attachment']
+        read_only_fields = ['added_by', 'created_at', 'ticket']
+
 class TicketSerializer(serializers.ModelSerializer):
     # Display the student's name and category name instead of their ID
     owner = serializers.StringRelatedField(read_only=True)
@@ -43,6 +53,7 @@ class TicketSerializer(serializers.ModelSerializer):
     #Nested serializer to allow a student to see staff's remarks when they view their ticket
     resolutions = ResolutionSerializer(many=True, read_only=True)
     student_feedbacks = StudentFeedbackSerializer(many=True, read_only=True)
+    additional_info = AdditionalInfoSerializer(many=True, read_only=True)
     
     class Meta:
         model = Ticket
@@ -60,7 +71,8 @@ class TicketSerializer(serializers.ModelSerializer):
             'owner', 
             'created_at',
             'resolutions',
-            'student_feedbacks'
+            'student_feedbacks',
+            'additional_info'
         ]
         read_only_fields = ['status', 'created_at', 'owner','due_date', 'current_department']
 
