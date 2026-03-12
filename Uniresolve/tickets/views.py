@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from organization.models import Department
-from .utils import auto_escalate_overdue_tickets
+from .utils.auto_escalate_util import auto_escalate_overdue_tickets
 
 
 #Import User model

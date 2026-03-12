@@ -1,5 +1,8 @@
 from django.db import models
 from django.conf import settings #To be able to reference the User model
+from django.utils import timezone
+from datetime import timedelta
+
 # Create your models here.
 class Ticket(models.Model):
     status_choices = [
@@ -38,6 +41,47 @@ class Ticket(models.Model):
     due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    pending_since = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            # Get the previous state of the ticket to compare statuses
+            try:
+                old_ticket = Ticket.objects.get(pk=self.pk)
+                
+                # Switching TO PENDING (Pause the clock)
+                if self.status == 'PENDING' and old_ticket.status != 'PENDING':
+                    if not self.pending_since:
+                        self.pending_since = timezone.now()
+                        
+                # Leaving PENDING TO IN_PROGRESS (Unpause the clock)
+                elif old_ticket.status == 'PENDING' and self.status != 'PENDING':
+                    # Unpausing the clock
+                    if self.pending_since and self.due_date:
+                        time_spent_paused = timezone.now() - self.pending_since
+                        self.due_date += time_spent_paused
+                    self.pending_since = None # Clear the tracker
+                    
+                # Changing to TRANSFERRED, ESCALATED, or REOPENED (Reset SLA clock)
+                if self.status in ['TRANSFERRED', 'ESCALATED', 'REOPENED'] and old_ticket.status != self.status:
+                    if self.category:
+                        # 50% of the category's standard resolution timeframe
+                        half_timeframe_hours = self.category.resolution_timeframe / 2.0
+                        
+                        # Apply minimum floor of 24 hours
+                        final_timeframe_hours = max(half_timeframe_hours, 24.0)
+                        
+                        self.due_date = timezone.now() + timedelta(hours=final_timeframe_hours)
+                        self.pending_since = None # Ensure pending tracker is cleared
+
+            except Ticket.DoesNotExist:
+                pass
+        else:
+            # If a brand new ticket is being created for the first time, set the initial deadline
+            if not self.due_date and getattr(self, 'category', None):
+                self.due_date = timezone.now() + timedelta(hours=self.category.resolution_timeframe)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} - {self.status}"
