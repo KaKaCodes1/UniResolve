@@ -619,7 +619,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         # Filters
         status_param = request.query_params.get('status')
         if status_param and status_param != 'All Statuses':
-            queryset = queryset.filter(ticket__status=status_param.upper())
+            queryset = queryset.filter(status=status_param.upper())
 
         # category_param = request.query_params.get('category')
         # if category_param and category_param != 'All Categories':
