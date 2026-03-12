@@ -118,7 +118,7 @@
                     <label for="editStatus">Account Status</label>
                     <select id="editStatus" class="form-control">
                         <option value="active">Active</option>
-                        <option value="suspended">Suspended</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                 </div>
 
@@ -314,7 +314,7 @@
 
         // Populate Active Controls
         const statusSelect = document.getElementById('editStatus');
-        statusSelect.value = user.is_active ? 'active' : 'suspended';
+        statusSelect.value = user.is_active ? 'active' : 'inactive';
 
         const roleSelect = document.getElementById('editStaffRole');
         const currentRole = user.profile_data.staff_role || 'STAFF';

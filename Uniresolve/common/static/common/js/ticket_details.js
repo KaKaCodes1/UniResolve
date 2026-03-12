@@ -39,7 +39,7 @@ function populateDetails(ticket) {
     const dateObj = new Date(ticket.created_at);
     const detailDateEl = document.getElementById('detailDate');
     if (detailDateEl) {
-        detailDateEl.textContent = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        detailDateEl.textContent = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     // Status Badge
