@@ -1,5 +1,5 @@
 from django.utils import timezone
-from .models import Ticket, Resolution
+from ..models import Ticket, Resolution
 
 def auto_escalate_overdue_tickets():
     """
@@ -8,7 +8,7 @@ def auto_escalate_overdue_tickets():
     """
     overdue_tickets = Ticket.objects.filter(
         due_date__lt=timezone.now(),
-        status__in=['OPEN', 'PENDING'],
+        status__in=['OPEN', 'IN_PROGRESS', 'TRANSFERRED', 'REOPENED'],
         is_escalated=False
     )
     
