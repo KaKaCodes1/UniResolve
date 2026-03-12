@@ -464,6 +464,8 @@ class TicketViewSet(viewsets.ModelViewSet):
                 # ANY STAFF CAN TRANSFER CROSS-DEPARTMENT
                 try:
                     target_dept = Department.objects.get(id=target_dept_id)
+                    if target_dept == ticket.current_department:
+                        return Response({'error': 'You cannot transfer a ticket to the same department.'}, status=400)
                 except Department.DoesNotExist:
                     return Response({'error': 'Invalid destination department.'}, status=400)
 
