@@ -607,8 +607,13 @@ class ResolutionViewSet(viewsets.ModelViewSet):
         staff_dept = user.staff_profile.department
         
         # Base Query: Resolutions linked to tickets currently in the staff's department
-        queryset = Resolution.objects.filter(ticket__current_department=staff_dept).order_by('-resolved_at')
+        # queryset = Resolution.objects.filter(ticket__current_department=staff_dept).order_by('-resolved_at')
 
+        #Base Query: Resolutions a staff themselves have made if regular staff, else all resolutions in their department
+        if user.staff_profile.staff_role == 'STAFF':
+            queryset = Resolution.objects.filter(resolved_by=user).order_by('-resolved_at')
+        else:
+            queryset = Resolution.objects.filter(ticket__current_department=staff_dept).order_by('-resolved_at')
         # Filtering 
         # 1. Status (of the Resolution itself, not the Ticket's current status)
         status_param = request.query_params.get('status')
