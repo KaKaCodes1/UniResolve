@@ -30,6 +30,12 @@ function populateDetails(ticket) {
     const detailOwnerEl = document.getElementById('detailOwner');
     if (detailOwnerEl) detailOwnerEl.textContent = ticket.owner || 'N/A';
 
+    const detailDueDateEl = document.getElementById('detailDueDate');
+    if (detailDueDateEl) {
+        const dueDate = new Date(ticket.due_date);
+        detailDueDateEl.textContent = dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' , hour: '2-digit', minute: '2-digit' });
+    }
+
     const dateObj = new Date(ticket.created_at);
     const detailDateEl = document.getElementById('detailDate');
     if (detailDateEl) {
@@ -63,31 +69,18 @@ function populateDetails(ticket) {
 
     // Additional Information 
     const addInfoSection = document.getElementById('additionalInfoSection');
+    const addInfoFormSection = document.getElementById('additionalInfoFormSection');
     
     if (addInfoSection) {
-        // Find containers (they might exist depending on the template)
-        // Staff/Admin typically use a dedicated 'additionalInfoContent' div for the history
-        // Student template might have both the form and need a place to show history
         let addInfoContent = document.getElementById('additionalInfoContent'); 
         
-        // If the student template doesn't have the content div but we have info to show, 
-        // we'll inject it before the form.
-        if (!addInfoContent && document.getElementById('additionalInfoForm')) {
-            addInfoContent = document.createElement('div');
-            addInfoContent.id = 'additionalInfoContent';
-            addInfoContent.className = 'info-content';
-            const formContainer = document.getElementById('additionalInfoForm');
-            // Insert the history container right before the form
-            addInfoSection.insertBefore(addInfoContent, formContainer);
-        }
-
-        // Render History (Applies to Admin, Staff, AND Student views now)
+        // Render History
         if (addInfoContent) {
             if (ticket.additional_info && ticket.additional_info.length > 0) {
                 addInfoSection.style.display = 'block';
                 addInfoContent.innerHTML = ''; // clear loading state
                 
-                // Sort to show oldest first, as a natural conversation flow
+                // Sort to show oldest first
                 const sortedInfo = [...ticket.additional_info].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 
                 sortedInfo.forEach(info => {
@@ -118,42 +111,32 @@ function populateDetails(ticket) {
                     addInfoContent.innerHTML += html;
                 });
             } else {
-                // Only hide if there's no history AND we aren't about to show the form below
-                if (!document.getElementById('additionalInfoForm') || ticket.status !== 'PENDING') {
-                    addInfoSection.style.display = 'none';
-                }
+                addInfoSection.style.display = 'none';
             }
         } 
-        
-        // Student View specific: Show Form and Pending Message if PENDING
-        if (document.getElementById('additionalInfoForm')) {
-            const formEl = document.getElementById('additionalInfoForm');
+    }
+
+    // Form rendering (Student View specific)
+    if (addInfoFormSection) {
+        if (ticket.status === 'PENDING') {
+            addInfoFormSection.style.display = 'block';
+            
             const pendingMsgContainer = document.getElementById('pendingMessageContainer');
-
-            if (ticket.status === 'PENDING') {
-                addInfoSection.style.display = 'block';
-                formEl.style.display = 'block';
-                if(pendingMsgContainer) pendingMsgContainer.style.display = 'block';
-                
-                let pendingMsg = "Please provide the requested additional information.";
-                if (ticket.resolutions && ticket.resolutions.length > 0) {
-                    const pendingResolutions = ticket.resolutions.filter(r => r.status === 'PENDING');
-                    if (pendingResolutions.length > 0) {
-                        // Get the most recent pending resolution
-                        pendingResolutions.sort((a, b) => new Date(b.resolved_at) - new Date(a.resolved_at));
-                        pendingMsg = pendingResolutions[0].feedback;
-                    }
+            if (pendingMsgContainer) pendingMsgContainer.style.display = 'block';
+            
+            let pendingMsg = "Please provide the requested additional information.";
+            if (ticket.resolutions && ticket.resolutions.length > 0) {
+                const pendingResolutions = ticket.resolutions.filter(r => r.status === 'PENDING');
+                if (pendingResolutions.length > 0) {
+                    // Get the most recent pending resolution
+                    pendingResolutions.sort((a, b) => new Date(b.resolved_at) - new Date(a.resolved_at));
+                    pendingMsg = pendingResolutions[0].feedback;
                 }
-                const pendingMessageTextEl = document.getElementById('pendingMessageText');
-                if (pendingMessageTextEl) pendingMessageTextEl.textContent = pendingMsg;
-            } else {
-                // Not PENDING, so the form and the message is hidden
-                formEl.style.display = 'none';
-                if(pendingMsgContainer) pendingMsgContainer.style.display = 'none';
-
-                // If we had no history earlier, the section would be hidden by the logic above. 
-                // But if we DO have history, the section remains block, just the form is hidden.
             }
+            const pendingMessageTextEl = document.getElementById('pendingMessageText');
+            if (pendingMessageTextEl) pendingMessageTextEl.textContent = pendingMsg;
+        } else {
+            addInfoFormSection.style.display = 'none';
         }
     }
 
