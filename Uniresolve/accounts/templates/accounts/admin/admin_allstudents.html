@@ -30,6 +30,15 @@
         </div>
 
         <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
             <label for="deptFilter">Department</label>
             <select id="deptFilter" class="filter-select">
                 <option value="">All Departments</option>
@@ -138,8 +147,8 @@
 {% block extra_js %}
 <script>
     const userSearch = document.getElementById('userSearch');
-    // const roleFilter = document.getElementById('roleFilter');
     const deptFilter = document.getElementById('deptFilter');
+    const statusFilter = document.getElementById('statusFilter');
     const courseFilter = document.getElementById('courseFilter');
     const usersTableBody = document.getElementById('usersTableBody');
     const usersCount = document.getElementById('usersCount');
@@ -157,13 +166,13 @@
         showLoading(true);
         currentPage = page;
         const search = userSearch.value;
-        // const role = roleFilter.value;
         const dept = deptFilter.value;
+        const status = statusFilter.value;
         const course = courseFilter.value;
 
         let url = `/api/accounts/users/all_students/?search=${encodeURIComponent(search)}&page=${page}`;
-        // if (role) url += `&role=${encodeURIComponent(role)}`;
         if (dept) url += `&department=${encodeURIComponent(dept)}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
         if (course) url += `&course=${encodeURIComponent(course)}`;
 
         try {
@@ -367,6 +376,7 @@
     // roleFilter.addEventListener('change', () => fetchUsers(1));
     deptFilter.addEventListener('change', () => fetchUsers(1));
     courseFilter.addEventListener('change', () => fetchUsers(1));
+    statusFilter.addEventListener('change', () => fetchUsers(1));
 
     // Initial Fetch
     // document.addEventListener('DOMContentLoaded', () => {

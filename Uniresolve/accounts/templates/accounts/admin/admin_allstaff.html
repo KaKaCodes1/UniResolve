@@ -28,6 +28,15 @@
                 {% endfor %}
             </select>
         </div>
+        
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
 
         <div class="filter-group">
             <label for="deptFilter">Department</label>
@@ -148,6 +157,7 @@
     const userSearch = document.getElementById('userSearch');
     const roleFilter = document.getElementById('roleFilter');
     const deptFilter = document.getElementById('deptFilter');
+    const statusFilter = document.getElementById('statusFilter');
     const usersTableBody = document.getElementById('usersTableBody');
     const usersCount = document.getElementById('usersCount');
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -166,10 +176,12 @@
         const search = userSearch.value;
         const role = roleFilter.value;
         const dept = deptFilter.value;
+        const status = statusFilter.value;
 
         let url = `/api/accounts/users/all_staff/?search=${encodeURIComponent(search)}&page=${page}`;
         if (role) url += `&staff_role=${encodeURIComponent(role)}`;
         if (dept) url += `&department=${encodeURIComponent(dept)}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
 
         try {
             const response = await fetch(url, {
@@ -380,6 +392,7 @@
 
     roleFilter.addEventListener('change', () => fetchUsers(1));
     deptFilter.addEventListener('change', () => fetchUsers(1));
+    statusFilter.addEventListener('change', () => fetchUsers(1));
 
     // Initial Fetch
     // document.addEventListener('DOMContentLoaded', () => {

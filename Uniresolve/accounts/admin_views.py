@@ -225,6 +225,7 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         # Filters
         staff_role = request.query_params.get('staff_role')
         department_id = request.query_params.get('department')
+        status = request.query_params.get('status')
         search_query = request.query_params.get('search')
 
         if staff_role:
@@ -234,6 +235,12 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 Q(staff_profile__department_id=department_id) 
             )
+
+        if status:
+            if status == 'active':
+                queryset = queryset.filter(is_active=True)
+            elif status == 'inactive':
+                queryset = queryset.filter(is_active=False)
 
         if search_query:
             queryset = queryset.filter(
@@ -271,14 +278,17 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = User.objects.all().filter(role='Student').select_related('student_profile', 'student_profile__course', 'student_profile__course__department')
 
         # Filters
-        # role = request.query_params.get('role')
+        status = request.query_params.get('status')
         department_id = request.query_params.get('department')
         course_id = request.query_params.get('course')
         search_query = request.query_params.get('search')
 
-        # if role:
-        #     queryset = queryset.filter(role=role)
-        
+        if status:
+            if status == 'active':
+                queryset = queryset.filter(is_active=True)
+            elif status == 'inactive':
+                queryset = queryset.filter(is_active=False)
+
         if department_id:
             queryset = queryset.filter(
                 Q(student_profile__course__department_id=department_id)
