@@ -82,7 +82,7 @@
 <!-- This table displays specifically the NEW OPEN issues that need attention -->
 <div class="content-card">
     <div class="card-header">
-        <h3>Incoming Issues Queue</h3>
+        <h3>Incoming/Unresolved Issues Queue</h3>
         <p>All reported issues for your department requiring attention</p>
     </div>
 
@@ -147,7 +147,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                latestTickets = data.new_tickets; // Store for modal access
+                latestTickets = data.incoming_tickets; // Store for modal access
 
                 // --- Update Statistics Cards ---
                 updateElementText('totalTickets', data.total_tickets);
@@ -161,7 +161,7 @@
                 const tableBody = document.getElementById('ticketTableBody');
                 tableBody.innerHTML = ''; // Clear loading spinner
 
-                if (data.new_tickets.length === 0) {
+                if (data.incoming_tickets.length === 0) {
                     tableBody.innerHTML = `
                         <tr>
                             <td colspan="8" style="text-align: center; padding: 30px;">
@@ -171,7 +171,7 @@
                      `;
                 } else {
                     // Iterate through each ticket and create a table row
-                    data.new_tickets.forEach(ticket => {
+                    data.incoming_tickets.forEach(ticket => {
                         const row = document.createElement('tr');
 
                         const date = new Date(ticket.created_at).toLocaleDateString(undefined, {

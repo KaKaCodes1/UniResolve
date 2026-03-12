@@ -37,7 +37,7 @@
             <select id="categoryFilter" class="filter-select">
                 <option value="All Categories">All Categories</option>
                 {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
+                <option value="{{ category.id }}">{{ category.category_name }}</option>
                 {% endfor %}
             </select>
         </div>

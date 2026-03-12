@@ -80,8 +80,9 @@ function populateDetails(ticket) {
                 addInfoSection.style.display = 'block';
                 addInfoContent.innerHTML = ''; // clear loading state
                 
-                // Sort to show oldest first
-                const sortedInfo = [...ticket.additional_info].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                // Sort to show newest first
+                //Using spread operator to avoid mutating the original array
+                const sortedInfo = [...ticket.additional_info].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 
                 sortedInfo.forEach(info => {
                     const infoDate = new Date(info.created_at);
@@ -91,7 +92,7 @@ function populateDetails(ticket) {
                         <div class="additional-info-entry">
                             <div class="additional-info-meta">
                                 <strong>Added by: ${info.added_by_name || 'Student'}</strong> 
-                                <span style="margin-left: 10px;"><i class="fa-regular fa-clock"></i> ${timeString}</span>
+                                <span> ${timeString}</span>
                             </div>
                             <div class="additional-info-text">${info.info}</div>
                     `;

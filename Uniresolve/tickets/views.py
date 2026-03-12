@@ -64,17 +64,8 @@ class StudentDashboardPageView(TemplateView):
         context['recent_tickets'] = []
 
         if user.is_authenticated and user.role == 'Student':
-            # Get all tickets for this student
-            tickets = Ticket.objects.filter(owner=user)
-            
-            # Calculate counts
-            context['total_tickets'] = tickets.count()
-            context['open_tickets'] = tickets.filter(status='OPEN').count()
-            context['pending_tickets'] = tickets.filter(status='PENDING').count()
-            context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
-            
-            # Get 3 most recent tickets
-            context['recent_tickets'] = tickets.order_by('-created_at')[:3]
+            # Statistics are fetched via JS API call for dynamic updates
+            pass
             
         return context
 
@@ -105,29 +96,11 @@ class StaffDashboardPageView(TemplateView):
         context['open_tickets'] = 0
         context['pending_tickets'] = 0
         context['resolved_tickets'] = 0
-        context['new_tickets'] = []
+        context['incoming_tickets'] = []
 
         if user.is_authenticated and user.role == 'Staff':
-            # Get the staff member's department
-            # We assume a staff member has a 'staff_profile' with a 'department' field
-            if hasattr(user, 'staff_profile') and user.staff_profile.department:
-                staff_dept = user.staff_profile.department
-                
-                # Filter tickets that belong to this department's current queue
-                tickets = Ticket.objects.filter(current_department=staff_dept)
-
-                # Calculate counts based on status
-                context['total_tickets'] = tickets.count()
-                context['open_tickets'] = tickets.filter(status='OPEN').count()
-                context['pending_tickets'] = tickets.filter(status='PENDING').count()
-                context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
-                
-                # Get "New" tickets: recent tickets with status 'OPEN'
-                # Show top 5 for the initial server-side render (though we might use JS mainly)
-                context['new_tickets'] = tickets.filter(status='OPEN').order_by('-created_at')[:5]
-            else:
-               # Handle case where staff has no profile/department
-               pass 
+            # Statistics are fetched via JS API call
+            pass 
 
         return context
 
@@ -147,30 +120,11 @@ class SeniorStaffDashboardPageView(TemplateView):
         context['pending_tickets'] = 0
         context['resolved_tickets'] = 0
         context['escalated_tickets'] = 0
-        context['new_tickets'] = []
+        context['incoming_tickets'] = []
 
         if user.is_authenticated and user.role == 'Senior Staff':
-            # Get the staff member's department
-            # We assume a staff member has a 'staff_profile' with a 'department' field
-            if hasattr(user, 'staff_profile') and user.staff_profile.department:
-                staff_dept = user.staff_profile.department
-                
-                # Filter tickets that belong to this department's current queue
-                tickets = Ticket.objects.filter(current_department=staff_dept)
-
-                # Calculate counts based on status
-                context['total_tickets'] = tickets.count()
-                context['open_tickets'] = tickets.filter(status='OPEN').count()
-                context['pending_tickets'] = tickets.filter(status='PENDING').count()
-                context['resolved_tickets'] = tickets.filter(status='RESOLVED').count()
-                context['escalated_tickets'] = tickets.filter(status='ESCALATED').count()
-                
-                # Get "New" tickets: recent tickets with status 'ESCALATED'
-                # Show top 5 for the initial server-side render (though we might use JS mainly)
-                context['new_tickets'] = tickets.filter(status='ESCALATED').order_by('-created_at')[:5]
-            else:
-               # Handle case where staff has no profile/department
-               pass 
+            # Statistics are fetched via JS API call
+            pass 
 
         return context
 
@@ -252,7 +206,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             'open_tickets': tickets.filter(status='OPEN').count(),
             'pending_tickets': tickets.filter(status='PENDING').count(),
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
-            'recent_tickets': TicketSerializer(tickets.order_by('-created_at')[:3], many=True).data
+            'recent_tickets': TicketSerializer(tickets.order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 
@@ -282,9 +236,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             'open_tickets': tickets.filter(status='OPEN').count(),
             'pending_tickets': tickets.filter(status='PENDING').count(),
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
-            # 'new_tickets' will populated the Incoming Issues Queue
-            # We filter for 'OPEN' tickets and order by newest first
-            'new_tickets': TicketSerializer(tickets.filter(status='OPEN').order_by('-created_at')[:5], many=True).data
+            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED']).order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 
@@ -308,9 +260,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
             'transferred_tickets': tickets.filter(status='TRANSFERRED').count(),
             'escalated_tickets': tickets.filter(status='ESCALATED').count(),
-
-            # For Senior Staff, the "Incoming Queue" should display Escalated tickets that need their attention
-            'new_tickets': TicketSerializer(tickets.filter(status='ESCALATED').order_by('-created_at')[:5], many=True).data
+            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED']).order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 

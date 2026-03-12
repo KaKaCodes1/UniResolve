@@ -1658,8 +1658,10 @@ select {
 
 .additional-info-meta {
     margin-bottom: 10px;
-    color: #6c757d;
+    color: var(--text-muted);
     font-size: 13px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .additional-info-text {
