@@ -14,17 +14,18 @@ def auto_escalate_overdue_tickets():
     
     if overdue_tickets.exists():
         resolutions = []
-        # Prepare resolution objects to log the system action
+        # Prepare resolution objects and update tickets individually so .save() logic runs
         for ticket in overdue_tickets:
+            ticket.is_escalated = True
+            ticket.status = 'ESCALATED'
+            ticket.save() # This triggers the SLA recalculation in models.py
+            
             resolutions.append(Resolution(
                 ticket=ticket,
                 resolved_by=None,  # System generated
                 status='ESCALATED',
                 feedback="[AUTOMATIC ESCALATION]: Ticket exceeded the due date and was escalated automatically."
             ))
-            
-        # Bulk Update Tickets
-        overdue_tickets.update(is_escalated=True, status='ESCALATED')
         
         # Bulk Create Resolutions
         if resolutions:
