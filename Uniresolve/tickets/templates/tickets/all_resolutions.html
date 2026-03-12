@@ -28,7 +28,8 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="filter-group">
+        {% if request.user.staff_profile.staff_role == 'SENIOR' %}
+        <div class="filter-group" id="staffFilterGroup">
             <label for="staffFilter">Staff Member</label>
             <select id="staffFilter" class="filter-select">
                 <option value="All Staff">All Staff</option>
@@ -37,6 +38,7 @@
                 {% endfor %}
             </select>
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -86,7 +88,9 @@
         // Event Listeners for Filters
         document.getElementById('searchInput').addEventListener('input', debounce(loadResolutions, 500));
         document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
-        document.getElementById('staffFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        if (document.getElementById('staffFilter')) {
+            document.getElementById('staffFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        }
     });
 
     // Debounce helper
@@ -106,7 +110,8 @@
         currentPage = page;
         const search = document.getElementById('searchInput').value;
         const status = document.getElementById('statusFilter').value;
-        const staff = document.getElementById('staffFilter').value;
+        const staffElement = document.getElementById('staffFilter');
+        const staff = staffElement ? staffElement.value : 'All Staff';
 
         const accessToken = localStorage.getItem('access_token');
         if (!accessToken) return;
