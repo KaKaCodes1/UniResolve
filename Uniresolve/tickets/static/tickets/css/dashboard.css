@@ -580,6 +580,11 @@ select {
     color: #c2185b;
 }
 
+.status-rejected {
+    background-color: #fce8e6;
+    color: #d93025;
+}
+
 /* Modal */
 .modal-overlay {
     position: fixed;

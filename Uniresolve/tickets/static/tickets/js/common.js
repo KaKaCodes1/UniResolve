@@ -9,6 +9,9 @@ function getTimeframeDisplay(dueDateString, status) {
     if (status === 'RESOLVED' || status === 'CLOSED') {
         return '<span style="color: gray;">Completed</span>';
     }
+    if (status === 'REJECTED') {
+        return '<span style="color: gray;">Rejected</span>';
+    }
     if (status === 'PENDING') {
         return '<span style="color: #714c2fff;">Paused (Awaiting Student)</span>';
     }

@@ -214,7 +214,7 @@ function populateDetails(ticket) {
     // Staff Context - Action Area
     const actionArea = document.getElementById('staffActionArea');
     if (actionArea) {
-        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED') {
             actionArea.style.display = 'none';
         } else {
             actionArea.style.display = 'block';

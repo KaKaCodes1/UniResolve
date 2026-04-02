@@ -183,7 +183,7 @@
                 </td>
                 <td>
                     <a href="/api/v1/staff-dashboard/ticket/${ticket.id}/" class="btn-primary btn-sm" style="text-decoration: none;">
-                        ${ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? 'View' : 'Resolve'}
+                        ${ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED' ? 'View' : 'Resolve'}
                     </a>
                 </td>
             `;

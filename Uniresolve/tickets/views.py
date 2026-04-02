@@ -236,7 +236,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             'open_tickets': tickets.filter(status='OPEN').count(),
             'pending_tickets': tickets.filter(status='PENDING').count(),
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
-            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED']).order_by('-created_at')[:5], many=True).data
+            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED','REJECTED']).order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 
@@ -260,7 +260,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
             'transferred_tickets': tickets.filter(status='TRANSFERRED').count(),
             'escalated_tickets': tickets.filter(status='ESCALATED').count(),
-            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED']).order_by('-created_at')[:5], many=True).data
+            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED','REJECTED']).order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 
@@ -534,8 +534,10 @@ class ResolutionViewSet(viewsets.ModelViewSet):
                 ticket.status = 'RESOLVED'
             elif new_status == 'IN_PROGRESS':
                 ticket.status = 'IN_PROGRESS'
+            elif new_status == 'REJECTED':
+                ticket.status = 'REJECTED'
             else:
-                print(f"WARNING! new_status '{new_status}' did not match PENDING, IN_PROGRESS or RESOLVED.")
+                print(f"WARNING! new_status '{new_status}' did not match PENDING, IN_PROGRESS or RESOLVED or REJECTED.")
 
             # Save the ticket
             ticket.save()
