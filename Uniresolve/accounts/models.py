@@ -93,6 +93,7 @@ class Notification(models.Model):
         related_name='notifications'
     )
     message = models.CharField(max_length=255)
+    link = models.CharField(max_length=255, blank=True, null=True, help_text="URL to redirect to when clicked")
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

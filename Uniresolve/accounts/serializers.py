@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import StaffProfile, StudentProfile
+from .models import StaffProfile, StudentProfile, Notification
 from django.contrib.auth import get_user_model
 from django.db import transaction #Used to enforce atomicity
 from organization.models import Department, Course 
@@ -188,3 +188,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data['staff_role'] = self.user.staff_profile.staff_role
 
         return data
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'link', 'is_read', 'created_at']
+        read_only_fields = ['id', 'message', 'link', 'created_at']
