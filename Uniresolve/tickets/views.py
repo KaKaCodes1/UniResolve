@@ -21,6 +21,15 @@ from .utils.auto_escalate_util import auto_escalate_overdue_tickets
 #Import User model
 User = get_user_model()
 
+#Helper to broadcast a notification to all staff in a specific department.
+def notify_department_staff(department, message, link):
+    staff_users = User.objects.filter(staff_profile__department=department).exclude(role='Student')
+    notifications = []
+    for staff in staff_users:
+        notifications.append(Notification(user=staff, message=message, link=link))
+    if notifications:
+        Notification.objects.bulk_create(notifications)
+
 #Preventing page caching to prevent users from accessing pages when they logout
 @method_decorator(never_cache, name='dispatch')
 class SubmitIssuePageView(TemplateView):
@@ -287,10 +296,16 @@ class TicketViewSet(viewsets.ModelViewSet):
             current_dept = category.department
 
         #preventing impersonation, a ticket is associated with the person logged in
-        serializer.save(
+        ticket = serializer.save(
             owner=user, 
             current_department=current_dept,
             due_date=due_date
+        )
+
+        notify_department_staff(
+            department=current_dept,
+            message=f'New ticket "#{ticket.id}" submitted by {user.first_name} {user.last_name}.',
+            link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
         )
 
     @action(detail=False, methods=['get'])
@@ -386,8 +401,18 @@ class TicketViewSet(viewsets.ModelViewSet):
                 # Update ticket status based on satisfaction
                 if feedback.is_satisfied:
                     ticket.status = 'CLOSED'
+                    notify_department_staff(
+                        department=ticket.current_department,
+                        message=f'Ticket "#{ticket.id}" was CLOSED by {user.first_name} {user.last_name} based on feedback.',
+                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
+                    )
                 else:
                     ticket.status = 'REOPENED'
+                    notify_department_staff(
+                        department=ticket.current_department,
+                        message=f'Ticket "#{ticket.id}" was REOPENED by {user.first_name} {user.last_name} based on feedback.',
+                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
+                    )
                 ticket.save()
                 
             return Response(serializer.data, status=201)
@@ -423,6 +448,12 @@ class TicketViewSet(viewsets.ModelViewSet):
                         resolved_by=None,  # System message
                         status='IN_PROGRESS',
                         feedback=f"Student ({user.first_name} {user.last_name}) provided additional information. Status updated to IN PROGRESS."
+                    )
+                    
+                    notify_department_staff(
+                        department=ticket.current_department,
+                        message=f'{user.first_name} {user.last_name} provided additional info for ticket "#{ticket.id}".',
+                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
                     )
                 
             return Response(serializer.data, status=201)
@@ -470,7 +501,8 @@ class TicketViewSet(viewsets.ModelViewSet):
                 except Department.DoesNotExist:
                     return Response({'error': 'Invalid destination department.'}, status=400)
 
-                old_dept_name = ticket.current_department.department_name
+                old_dept = ticket.current_department
+                old_dept_name = old_dept.department_name
                 
                 # Execute Transfer
                 ticket.current_department = target_dept
@@ -487,10 +519,25 @@ class TicketViewSet(viewsets.ModelViewSet):
                 
                 ticket.save()
 
+                #Create notification message for Student
                 Notification.objects.create(
                     user=ticket.owner,
                     message=f'Your ticket "#{ticket.id}" has been transferred to {target_dept.department_name}.',
                     link=f'/api/v1/ticket/{ticket.id}/'
+                )
+
+                #Notify staff in the old department
+                notify_department_staff(
+                    department=old_dept,
+                    message=f'Ticket "#{ticket.id}" was transferred out to {target_dept.department_name}.',
+                    link=f'/api/v1/staff-dashboard/all-issues/'
+                )
+
+                #Notify staff in the new department
+                notify_department_staff(
+                    department=target_dept,
+                    message=f'Ticket "#{ticket.id}" was transferred into your department from {old_dept_name}.',
+                    link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
                 )
 
                 return Response({'message': f'Ticket successfully transferred to {target_dept.department_name}.'})
@@ -511,10 +558,18 @@ class TicketViewSet(viewsets.ModelViewSet):
 
                     ticket.save()
 
+                    #Create notification message for Student
                     Notification.objects.create(
                         user=ticket.owner,
                         message=f'Your ticket "#{ticket.id}" has been escalated.',
                         link=f'/api/v1/ticket/{ticket.id}/'
+                    )
+
+                    #Notify staff in the same department
+                    notify_department_staff(
+                        department=ticket.current_department,
+                        message=f'Ticket "#{ticket.id}" has been escalated to Senior Staff.',
+                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
                     )
 
                     return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
