@@ -5,3 +5,18 @@ venv/
 # Python Caches
 __pycache__/
 *.pyc
+
+# Django Database
+db.sqlite3
+
+# Media / Uploaded Files
+media/
+
+# Collected Static Files
+staticfiles/
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
