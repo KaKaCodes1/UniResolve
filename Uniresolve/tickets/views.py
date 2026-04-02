@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from organization.models import Department
+from accounts.models import Notification
 from .utils.auto_escalate_util import auto_escalate_overdue_tickets
 
 
@@ -485,6 +486,13 @@ class TicketViewSet(viewsets.ModelViewSet):
                 )
                 
                 ticket.save()
+
+                Notification.objects.create(
+                    user=ticket.owner,
+                    message=f'Your ticket "#{ticket.id}" has been transferred to {target_dept.department_name}.',
+                    link=f'/api/v1/ticket/{ticket.id}/'
+                )
+
                 return Response({'message': f'Ticket successfully transferred to {target_dept.department_name}.'})
                 
             else:
@@ -502,6 +510,13 @@ class TicketViewSet(viewsets.ModelViewSet):
                     )
 
                     ticket.save()
+
+                    Notification.objects.create(
+                        user=ticket.owner,
+                        message=f'Your ticket "#{ticket.id}" has been escalated.',
+                        link=f'/api/v1/ticket/{ticket.id}/'
+                    )
+
                     return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
                 else:
                     return Response({'error': 'Seniors cannot escalate internally, they can only transfer or resolve.'}, status=400)
@@ -541,6 +556,20 @@ class ResolutionViewSet(viewsets.ModelViewSet):
 
             # Save the ticket
             ticket.save()
+
+            #Create notification message
+            if new_status == 'PENDING':
+                notif_msg = f'Your ticket "#{ticket.id}" requires additional information.'
+            elif new_status == 'RESOLVED':
+                notif_msg = f'Your ticket "#{ticket.id}" has been resolved. Please provide feedback to close it.'
+            else:
+                notif_msg = f'Your ticket "#{ticket.id}" status was updated to {new_status}.'
+
+            Notification.objects.create(
+                user=ticket.owner,
+                message=notif_msg,
+                link=f'/api/v1/ticket/{ticket.id}/'
+            )
             
             # Refresh from DB to confirm it stuck
             ticket.refresh_from_db()

@@ -1,5 +1,6 @@
 from django.utils import timezone
 from ..models import Ticket, Resolution
+from accounts.models import Notification
 
 def auto_escalate_overdue_tickets():
     """
@@ -19,6 +20,13 @@ def auto_escalate_overdue_tickets():
             ticket.is_escalated = True
             ticket.status = 'ESCALATED'
             ticket.save() # This triggers the SLA recalculation in models.py
+            
+            #Create notification message
+            Notification.objects.create(
+                user=ticket.owner,
+                message=f'Your ticket "#{ticket.id}" status was updated to ESCALATED through auto-escalation.',
+                link=f'/api/v1/ticket/{ticket.id}/'
+            )
             
             resolutions.append(Resolution(
                 ticket=ticket,
