@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework.permissions import AllowAny
-from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, NotificationSerializer
+from .models import Notification
 from django.contrib.auth import get_user_model, login
 from django.views.generic import TemplateView 
 from organization.models import Course, Department
@@ -67,9 +68,23 @@ class CustomLoginView(TokenObtainPairView):
         
         return Response(serializer.validated_data, status=200)
 
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return self.request.user.notifications.all()
 
-        
-        
-        
+# View to mark a notification as read
+class NotificationMarkReadView(generics.UpdateAPIView):
+    queryset = Notification.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
+    def update(self, request, *args, **kwargs):
+        notification = self.get_object()
+        if notification.user != request.user:
+            return Response({"error": "Unauthorized"}, status=403)
+        
+        notification.is_read = True
+        notification.save()
+        return Response({"status": "marked as read"})

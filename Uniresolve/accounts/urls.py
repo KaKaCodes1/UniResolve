@@ -7,7 +7,8 @@ from .views import (
     LoginPageView,
     UserProfileView,
     CustomLoginView,
-
+    NotificationListView,
+    NotificationMarkReadView
 )
 from .admin_views import (
     AdminViewSet,
@@ -33,6 +34,10 @@ router.register(r'users', UsersViewSet, basename='user')
 urlpatterns = [
     # Router URLs
     path('', include(router.urls)),
+
+    # Notification Endpoints
+    path('notifications/', NotificationListView.as_view(), name='notifications-list'),
+    path('notifications/<int:pk>/read/', NotificationMarkReadView.as_view(), name='notifications-mark-read'),
 
     # API Endpoint for registration
     path('register/', UserRegistrationView.as_view(),name='register'),
