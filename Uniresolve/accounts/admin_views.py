@@ -75,6 +75,8 @@ class AdminDashboardPageView(TemplateView):
             in_progress_tickets = Ticket.objects.filter(status='IN_PROGRESS').count()
             transferred_tickets = Ticket.objects.filter(status='TRANSFERRED').count()
             reopened_tickets = Ticket.objects.filter(status='REOPENED').count()
+            rejected_tickets = Ticket.objects.filter(status='REJECTED').count()
+
 
             # Charts Data
             # Get top 6 categories by ticket count (arrange in descending order)
@@ -92,6 +94,7 @@ class AdminDashboardPageView(TemplateView):
             context['chart_transferred_tickets'] = transferred_tickets
             context['chart_escalated_tickets'] = escalated_tickets
             context['chart_reopened_tickets'] = reopened_tickets
+            context['chart_rejected_tickets'] = rejected_tickets
 
 
             # This Week
