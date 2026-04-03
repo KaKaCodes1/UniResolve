@@ -29,18 +29,30 @@ def auto_escalate_overdue_tickets():
                 link=f'/api/v1/ticket/{ticket.id}/'
             )
             
-            # Create notifications for Staff
+            # Notify SENIOR staff (link to ticket)
             User = get_user_model()
-            staff_users = User.objects.filter(staff_profile__department=ticket.current_department).exclude(role='Student')
-            staff_notifications = [
+            senior_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='SENIOR')
+            senior_notifications = [
                 Notification(
-                    user=staff,
+                    user=su,
                     message=f'Ticket "#{ticket.id}" was AUTO-ESCALATED to Senior Staff due to deadline breach.',
                     link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
-                ) for staff in staff_users
+                ) for su in senior_users
             ]
-            if staff_notifications:
-                Notification.objects.bulk_create(staff_notifications)
+            if senior_notifications:
+                Notification.objects.bulk_create(senior_notifications)
+
+            # Notify REGULAR staff (link to all issues)
+            regular_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+            regular_notifications = [
+                Notification(
+                    user=ru,
+                    message=f'Ticket "#{ticket.id}" was AUTO-ESCALATED to Senior Staff due to deadline breach.',
+                    link='/api/v1/staff-dashboard/all-issues/'
+                ) for ru in regular_users
+            ]
+            if regular_notifications:
+                Notification.objects.bulk_create(regular_notifications)
             
             resolutions.append(Resolution(
                 ticket=ticket,

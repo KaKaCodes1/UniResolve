@@ -565,12 +565,29 @@ class TicketViewSet(viewsets.ModelViewSet):
                         link=f'/api/v1/ticket/{ticket.id}/'
                     )
 
-                    #Notify staff in the same department
-                    notify_department_staff(
-                        department=ticket.current_department,
-                        message=f'Ticket "#{ticket.id}" has been escalated to Senior Staff.',
-                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
-                    )
+                    # Notify SENIOR staff (link to ticket)
+                    senior_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='SENIOR')
+                    senior_notifications = [
+                        Notification(
+                            user=su, 
+                            message=f'Ticket "#{ticket.id}" has been escalated to Senior Staff.', 
+                            link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
+                        ) for su in senior_users
+                    ]
+                    if senior_notifications:
+                        Notification.objects.bulk_create(senior_notifications)
+
+                    # Notify REGULAR staff (link to all issues)
+                    regular_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+                    regular_notifications = [
+                        Notification(
+                            user=ru, 
+                            message=f'Ticket "#{ticket.id}" has been escalated to Senior Staff.', 
+                            link='/api/v1/staff-dashboard/all-issues/'
+                        ) for ru in regular_users
+                    ]
+                    if regular_notifications:
+                        Notification.objects.bulk_create(regular_notifications)
 
                     return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
                 else:
