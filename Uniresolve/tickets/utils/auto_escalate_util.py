@@ -64,3 +64,54 @@ def auto_escalate_overdue_tickets():
         # Bulk Create Resolutions
         if resolutions:
             Resolution.objects.bulk_create(resolutions)
+
+
+def issue_deadline_warnings():
+    """
+    Finds tickets that have less than 40% of their resolution timeframe left
+    and issues a warning notification to the department's Regular staff.
+    """
+    active_tickets = Ticket.objects.filter(
+        status__in=['OPEN', 'IN_PROGRESS', 'TRANSFERRED', 'REOPENED'],
+        is_escalated=False,
+        is_deadline_warning_sent=False,
+        due_date__isnull=False
+    ).select_related('category', 'current_department')
+
+    if not active_tickets.exists():
+        return
+
+    tickets_to_update = []
+    notifications_to_create = []
+    User = get_user_model()
+
+    for ticket in active_tickets:
+        if not getattr(ticket, 'category', None):
+            continue
+            
+        time_left_td = ticket.due_date - timezone.now()
+        time_left_hours = time_left_td.total_seconds() / 3600.0
+        
+        # 40% of the category's standard resolution timeframe
+        threshold_hours = ticket.category.resolution_timeframe * 0.40
+        
+        if 0 < time_left_hours <= threshold_hours:
+            ticket.is_deadline_warning_sent = True
+            tickets_to_update.append(ticket)
+            
+            # Notify REGULAR staff
+            staff_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+            for staff in staff_users:
+                notifications_to_create.append(
+                    Notification(
+                        user=staff,
+                        message=f'WARNING: Ticket "#{ticket.id}" is approaching its deadline. Less than {threshold_hours:g} hours remain.',
+                        link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
+                    )
+                )
+
+    if tickets_to_update:
+        Ticket.objects.bulk_update(tickets_to_update, ['is_deadline_warning_sent'])
+    
+    if notifications_to_create:
+        Notification.objects.bulk_create(notifications_to_create)

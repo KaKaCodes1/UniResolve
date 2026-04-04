@@ -21,6 +21,7 @@ class Ticket(models.Model):
     attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=status_choices, default='OPEN')
     is_escalated = models.BooleanField(default=False)
+    is_deadline_warning_sent = models.BooleanField(default=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -74,6 +75,7 @@ class Ticket(models.Model):
                         
                         self.due_date = timezone.now() + timedelta(hours=final_timeframe_hours)
                         self.pending_since = None # Ensure pending tracker is cleared
+                        self.is_deadline_warning_sent = False # Allow warning again on new timeline
 
             except Ticket.DoesNotExist:
                 pass

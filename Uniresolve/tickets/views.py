@@ -15,7 +15,7 @@ from django.utils import timezone
 from datetime import timedelta
 from organization.models import Department
 from accounts.models import Notification
-from .utils.auto_escalate_util import auto_escalate_overdue_tickets
+from .utils.auto_escalate_util import auto_escalate_overdue_tickets, issue_deadline_warnings
 
 
 #Import User model
@@ -100,6 +100,7 @@ class StaffDashboardPageView(TemplateView):
         user = self.request.user
         
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         
         # Initialize default values
         context['total_tickets'] = 0
@@ -123,6 +124,7 @@ class SeniorStaffDashboardPageView(TemplateView):
         user = self.request.user
         
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         
         # Initialize default values
         context['total_tickets'] = 0
@@ -179,6 +181,7 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         user = self.request.user
 
         #Students only see tickets they created
@@ -205,6 +208,7 @@ class TicketViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def dashboard_stats(self, request):
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         user = request.user
         if not user.is_authenticated or user.role != 'Student':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -223,6 +227,7 @@ class TicketViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def staffdashboard_stats(self, request):
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         user = request.user
         if not user.is_authenticated or user.role != 'Staff':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -253,6 +258,7 @@ class TicketViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def seniorstaffdashboard_stats(self, request):
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         user = request.user
         if not user.is_authenticated or user.role != 'Staff':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -315,6 +321,7 @@ class TicketViewSet(viewsets.ModelViewSet):
         This allows staff to view only department-specific tickets.
         """
         auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
+        issue_deadline_warnings() # Evaluate deadline warnings
         user = request.user
         
         # 1. Security Check: Only Staff members are allowed
