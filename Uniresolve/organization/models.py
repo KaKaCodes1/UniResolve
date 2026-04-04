@@ -9,7 +9,7 @@ class Department(models.Model):
 
 class Category(models.Model):
     category_name = models.CharField(max_length=100)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='categories')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='categories')
     is_academic = models.BooleanField(
         default=False, 
         help_text="If True, issues in this category are routed to the student's home department first."
