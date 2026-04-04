@@ -95,17 +95,22 @@ def issue_deadline_warnings():
         # 40% of the category's standard resolution timeframe
         threshold_hours = ticket.category.resolution_timeframe * 0.40
         
-        if 0 < time_left_hours <= threshold_hours:
+        if time_left_hours > 0 and time_left_hours <= threshold_hours:
             ticket.is_deadline_warning_sent = True
             tickets_to_update.append(ticket)
             
             # Notify REGULAR staff
             staff_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+            
+            hours = int(time_left_hours)
+            minutes = int((time_left_hours - hours) * 60)
+            time_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+            
             for staff in staff_users:
                 notifications_to_create.append(
                     Notification(
                         user=staff,
-                        message=f'WARNING: Ticket "#{ticket.id}" is approaching its deadline. Less than {threshold_hours:g} hours remain.',
+                        message=f'WARNING: Ticket "#{ticket.id}" is approaching its deadline. Only {time_str} remaining.',
                         link=f'/api/v1/staff-dashboard/ticket/{ticket.id}/'
                     )
                 )
