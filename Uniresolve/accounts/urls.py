@@ -8,7 +8,8 @@ from .views import (
     UserProfileView,
     CustomLoginView,
     NotificationListView,
-    NotificationMarkReadView
+    NotificationMarkReadView,
+    ChangePasswordView
 )
 from .admin_views import (
     AdminViewSet,
@@ -41,11 +42,12 @@ urlpatterns = [
 
     # API Endpoint for registration
     path('register/', UserRegistrationView.as_view(),name='register'),
+    path('change-password/', ChangePasswordView.as_view(), name='change_password'),
 
     # Frontend Pages
     path('signin/', LoginPageView.as_view(), name='signin'),
-    path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
-    path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
+    # path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
+    # path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
     path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
     path('admin-dashboard/all-staff/', AdminAllStaffPageView.as_view(), name='admin_all_staff'),
     path('admin-dashboard/all-students/', AdminAllStudentsPageView.as_view(), name='admin_all_students'),

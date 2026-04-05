@@ -1,6 +1,5 @@
 from rest_framework import generics, permissions
-from rest_framework.permissions import AllowAny
-from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, NotificationSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, NotificationSerializer, ChangePasswordSerializer
 from .models import Notification
 from django.contrib.auth import get_user_model, login
 from django.views.generic import TemplateView 
@@ -13,7 +12,8 @@ User = get_user_model()
 class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
-    permission_classes = [AllowAny] #allow access to this view to anyone as it is the registration view
+    permission_classes = [permissions.IsAdminUser] # only admins can register users
+    # permission_classes = [permissions.AllowAny]
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -88,3 +88,29 @@ class NotificationMarkReadView(generics.UpdateAPIView):
         notification.is_read = True
         notification.save()
         return Response({"status": "marked as read"})
+
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.validated_data.get("old_password")):
+                return Response({"old_password": ["Wrong old password."]}, status=400)
+            
+            # Update password and flag
+            self.object.set_password(serializer.validated_data.get("new_password"))
+            self.object.must_change_password = False
+            self.object.save()
+            
+            return Response({"status": "Password changed successfully."}, status=200)
+
+        return Response(serializer.errors, status=400)
+

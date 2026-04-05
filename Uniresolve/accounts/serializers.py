@@ -194,3 +194,14 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'message', 'link', 'is_read', 'created_at']
         read_only_fields = ['id', 'message', 'link', 'created_at']
+
+#Serializer for password change endpoint.
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        # Enforce Django's password validation rules (length, complexity)
+        user = self.context['request'].user if 'request' in self.context else None
+        validate_password(value, user=user)
+        return value
