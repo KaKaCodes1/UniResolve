@@ -64,6 +64,17 @@
                 // Success! Store tokens.
                 localStorage.setItem('access_token', data.access);
                 localStorage.setItem('refresh_token', data.refresh);
+                
+                // Store roles for later redirect if forced password change occurs
+                localStorage.setItem('user_role', data.role);
+                if (data.staff_role) {
+                    localStorage.setItem('staff_role', data.staff_role);
+                }
+
+                if (data.must_change_password) {
+                    window.location.href = "{% url 'force_password_change' %}";
+                    return;
+                }
 
                 alert('Login Successful!');
                 // Redirect to Dashboards based on user role

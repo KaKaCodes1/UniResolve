@@ -49,6 +49,9 @@ class StaffSignUpPageView(TemplateView):
 class LoginPageView(TemplateView):
     template_name = 'accounts/login.html'
 
+class ForcePasswordChangePageView(TemplateView):
+    template_name = 'accounts/force_change_password.html'
+
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 

@@ -258,3 +258,25 @@ body {
 .checklist-item.invalid {
     color: #dc3545;
 }
+
+/* Change Password Layout Modifiers */
+.auth-container.change-password-container {
+    min-height: auto;
+    max-width: 600px; 
+    height: auto; 
+    border-radius: 12px; 
+}
+
+.change-password-container .auth-content {
+    height: auto;
+    padding: 40px; 
+    background: white; 
+    border-radius: 12px; 
+    overflow-y: visible; 
+    height: auto;
+}
+
+.change-password-container .auth-header p {
+    line-height: 1.5;
+    font-size: 0.95rem;
+}

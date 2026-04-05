@@ -5,8 +5,8 @@ from .models import User, StudentProfile, StaffProfile, Notification
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('first_name', 'last_name', 'email','role', 'must_change_password')
-    list_filter = ('role', 'must_change_password')
+    list_display = ('first_name', 'last_name', 'email','role', 'must_change_password','is_active')
+    list_filter = ('role', 'must_change_password','is_active')
     search_fields = ('first_name', 'last_name', 'email', 'student_profile__reg_number', 'staff_profile__employee_id')
 
     fieldsets = UserAdmin.fieldsets + (

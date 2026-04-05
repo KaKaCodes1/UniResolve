@@ -9,7 +9,8 @@ from .views import (
     CustomLoginView,
     NotificationListView,
     NotificationMarkReadView,
-    ChangePasswordView
+    ChangePasswordView,
+    ForcePasswordChangePageView
 )
 from .admin_views import (
     AdminViewSet,
@@ -46,6 +47,7 @@ urlpatterns = [
 
     # Frontend Pages
     path('signin/', LoginPageView.as_view(), name='signin'),
+    path('force-change-password/', ForcePasswordChangePageView.as_view(), name='force_password_change'),
     # path('signup/student/', StudentSignUpPageView.as_view(), name='signup_student'),
     # path('signup/staff/', StaffSignUpPageView.as_view(), name='signup_staff'),
     path('admin-dashboard/', AdminDashboardPageView.as_view(), name='admin_dashboard'),
