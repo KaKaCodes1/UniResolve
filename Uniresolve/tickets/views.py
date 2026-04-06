@@ -23,7 +23,11 @@ User = get_user_model()
 
 #Helper to broadcast a notification to all staff in a specific department.
 def notify_department_staff(department, message, link):
-    staff_users = User.objects.filter(staff_profile__department=department).exclude(role='Student')
+    staff_users = User.objects.filter(
+        staff_profile__department=department,
+        must_change_password=False,
+        is_active=True
+    ).exclude(role='Student')
     notifications = []
     for staff in staff_users:
         notifications.append(Notification(user=staff, message=message, link=link))

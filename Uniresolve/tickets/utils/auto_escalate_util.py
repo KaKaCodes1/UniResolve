@@ -31,7 +31,12 @@ def auto_escalate_overdue_tickets():
             
             # Notify SENIOR staff (link to ticket)
             User = get_user_model()
-            senior_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='SENIOR')
+            senior_users = User.objects.filter(
+                staff_profile__department=ticket.current_department, 
+                staff_profile__staff_role='SENIOR',
+                must_change_password=False,
+                is_active=True
+            )
             senior_notifications = [
                 Notification(
                     user=su,
@@ -43,7 +48,12 @@ def auto_escalate_overdue_tickets():
                 Notification.objects.bulk_create(senior_notifications)
 
             # Notify REGULAR staff (link to all issues)
-            regular_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+            regular_users = User.objects.filter(
+                staff_profile__department=ticket.current_department, 
+                staff_profile__staff_role='STAFF',
+                must_change_password=False,
+                is_active=True
+            )
             regular_notifications = [
                 Notification(
                     user=ru,
@@ -100,7 +110,12 @@ def issue_deadline_warnings():
             tickets_to_update.append(ticket)
             
             # Notify REGULAR staff
-            staff_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
+            staff_users = User.objects.filter(
+                staff_profile__department=ticket.current_department, 
+                staff_profile__staff_role='STAFF',
+                must_change_password=False,
+                is_active=True
+            )
             
             hours = int(time_left_hours)
             minutes = int((time_left_hours - hours) * 60)
