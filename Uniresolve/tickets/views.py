@@ -15,6 +15,7 @@ from django.utils import timezone
 from datetime import timedelta
 from organization.models import Department
 from accounts.models import Notification
+from accounts.utils.email_notification_util import trigger_async_emails
 from .utils.auto_escalate_util import auto_escalate_overdue_tickets, issue_deadline_warnings
 
 
@@ -33,6 +34,7 @@ def notify_department_staff(department, message, link):
         notifications.append(Notification(user=staff, message=message, link=link))
     if notifications:
         Notification.objects.bulk_create(notifications)
+        trigger_async_emails(notifications)
 
 #Preventing page caching to prevent users from accessing pages when they logout
 @method_decorator(never_cache, name='dispatch')
@@ -531,11 +533,12 @@ class TicketViewSet(viewsets.ModelViewSet):
                 ticket.save()
 
                 #Create notification message for Student
-                Notification.objects.create(
+                notification = Notification.objects.create(
                     user=ticket.owner,
                     message=f'Your ticket "#{ticket.id}" has been transferred to {target_dept.department_name}.',
                     link=f'/api/v1/ticket/{ticket.id}/'
                 )
+                trigger_async_emails([notification])
 
                 #Notify staff in the old department
                 notify_department_staff(
@@ -570,11 +573,12 @@ class TicketViewSet(viewsets.ModelViewSet):
                     ticket.save()
 
                     #Create notification message for Student
-                    Notification.objects.create(
+                    notification = Notification.objects.create(
                         user=ticket.owner,
                         message=f'Your ticket "#{ticket.id}" has been escalated.',
                         link=f'/api/v1/ticket/{ticket.id}/'
                     )
+                    trigger_async_emails([notification])
 
                     # Notify SENIOR staff (link to ticket)
                     senior_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='SENIOR')
@@ -587,6 +591,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                     ]
                     if senior_notifications:
                         Notification.objects.bulk_create(senior_notifications)
+                        trigger_async_emails(senior_notifications)
 
                     # Notify REGULAR staff (link to all issues)
                     regular_users = User.objects.filter(staff_profile__department=ticket.current_department, staff_profile__staff_role='STAFF')
@@ -599,6 +604,7 @@ class TicketViewSet(viewsets.ModelViewSet):
                     ]
                     if regular_notifications:
                         Notification.objects.bulk_create(regular_notifications)
+                        trigger_async_emails(regular_notifications)
 
                     return Response({'message': 'Ticket successfully escalated to Senior Staff.'})
                 else:
@@ -648,11 +654,13 @@ class ResolutionViewSet(viewsets.ModelViewSet):
             else:
                 notif_msg = f'Your ticket "#{ticket.id}" status was updated to {new_status}.'
 
-            Notification.objects.create(
+            notification = Notification.objects.create(
                 user=ticket.owner,
                 message=notif_msg,
                 link=f'/api/v1/ticket/{ticket.id}/'
             )
+            trigger_async_emails([notification])
+
             
             # Refresh from DB to confirm it stuck
             ticket.refresh_from_db()

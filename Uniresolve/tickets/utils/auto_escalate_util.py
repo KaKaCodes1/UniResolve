@@ -1,6 +1,7 @@
 from django.utils import timezone
 from ..models import Ticket, Resolution
 from accounts.models import Notification
+from accounts.utils.email_notification_util import trigger_async_emails
 from django.contrib.auth import get_user_model
 
 def auto_escalate_overdue_tickets():
@@ -23,11 +24,12 @@ def auto_escalate_overdue_tickets():
             ticket.save() # This triggers the SLA recalculation in models.py
             
             #Create notification message for Student
-            Notification.objects.create(
+            notification = Notification.objects.create(
                 user=ticket.owner,
                 message=f'Your ticket "#{ticket.id}" status was updated to ESCALATED through auto-escalation.',
                 link=f'/api/v1/ticket/{ticket.id}/'
             )
+            trigger_async_emails([notification])
             
             # Notify SENIOR staff (link to ticket)
             User = get_user_model()
@@ -46,6 +48,7 @@ def auto_escalate_overdue_tickets():
             ]
             if senior_notifications:
                 Notification.objects.bulk_create(senior_notifications)
+                trigger_async_emails(senior_notifications)
 
             # Notify REGULAR staff (link to all issues)
             regular_users = User.objects.filter(
@@ -63,6 +66,7 @@ def auto_escalate_overdue_tickets():
             ]
             if regular_notifications:
                 Notification.objects.bulk_create(regular_notifications)
+                trigger_async_emails(regular_notifications)
             
             resolutions.append(Resolution(
                 ticket=ticket,
@@ -135,3 +139,4 @@ def issue_deadline_warnings():
     
     if notifications_to_create:
         Notification.objects.bulk_create(notifications_to_create)
+        trigger_async_emails(notifications_to_create)

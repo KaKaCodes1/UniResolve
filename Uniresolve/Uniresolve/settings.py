@@ -177,3 +177,6 @@ if not DEBUG:
     # Enforce HTTPS
     SECURE_SSL_REDIRECT = True #Forces all non-HTTPS traffic to redirect to HTTPS.
 
+# Email Settings for local testing
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
