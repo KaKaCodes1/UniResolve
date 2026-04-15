@@ -1,0 +1,37 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'common/css/resolution_modal.css' %}">
+
+<!-- Resolution Detail Modal -->
+<div id="resolutionModal" class="staff-modal">
+    <div class="staff-modal-content">
+        <div class="staff-modal-header">
+            <h3><span id="modalTicketTitle">Resolution Details</span></h3>
+            <button class="close-btn" onclick="closeResolutionModal()">&times;</button>
+        </div>
+        <div class="staff-modal-body">
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Ticket ID:</span>
+                <span id="modalTicketId" class="ticket-id modal-ticket-id"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Status:</span>
+                <span id="modalStatus" class="status-badge"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Staff Member:</span>
+                <span id="modalStaffName"></span>
+            </div>
+            <div id="modalDepartmentContainer" class="modal-detail-row">
+                <span class="modal-detail-label">Department:</span>
+                <span id="modalDepartment"></span>
+            </div>
+            <hr class="modal-divider">
+            <div class="modal-feedback-label">Full Feedback Details:</div>
+            <p id="modalFeedback" class="modal-feedback-content"></p>
+        </div>
+        <div class="staff-modal-footer">
+            <button class="btn-secondary" onclick="closeResolutionModal()">Close</button>
+            <a id="modalTicketLink" href="#" class="btn-primary modal-action-link">View Expected Ticket Details</a>
+        </div>
+    </div>
+</div>

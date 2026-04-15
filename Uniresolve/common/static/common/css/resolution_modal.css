@@ -1,0 +1,41 @@
+
+.modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-detail-label {
+    font-weight: 600;
+}
+
+.modal-ticket-id {
+    font-size: 1rem;
+}
+
+.modal-divider {
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    margin: 15px 0;
+}
+
+.modal-feedback-label {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.modal-feedback-content {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #334155;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.modal-action-link {
+    text-decoration: none;
+}

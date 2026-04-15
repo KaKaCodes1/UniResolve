@@ -1,5 +1,5 @@
 {% extends 'tickets/base_staffdashboard.html' %}
-
+{% load static %}
 {% block title %}All Resolutions - Staff Dashboard{% endblock %}
 
 {% block content %}
@@ -76,10 +76,14 @@
         <!-- Buttons injected by JS -->
     </div>
 </div>
+{% include 'common/partials/resolution_modal.html' %}
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'common/js/resolution_modal.js' %}"></script>
 <script>
+    // Get the staff role from the request
+    const staffRole = "{{ request.user.staff_profile.staff_role }}";
     let currentPage = 1;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -154,16 +158,38 @@
 
         resolutions.forEach(res => {
             const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.title = "Click to view full resolution details";
+
             const date = new Date(res.resolved_at).toLocaleDateString() + ' ' + new Date(res.resolved_at).toLocaleTimeString();
 
             // Truncate feedback if too long
             const feedbackShort = res.feedback.length > 50 ? res.feedback.substring(0, 50) + '...' : res.feedback;
 
+            let isRestricted = false;
+            const statusStr = res.status ? res.status.toUpperCase() : '';
+            if (staffRole === 'SENIOR') {
+                isRestricted = (statusStr === 'TRANSFERRED');
+            } else {
+                isRestricted = ['ESCALATED', 'TRANSFERRED'].includes(statusStr);
+            }
+
+            row.onclick = () => openResolutionModal(
+                res.ticket,
+                res.ticket_title,
+                res.resolved_by,
+                res.status || 'Open',
+                res.feedback,
+                null, // No department needed in this view
+                '/api/v1/staff-dashboard/ticket/',
+                isRestricted
+            );
+
             row.innerHTML = `
                 <td><span class="ticket-id">#${res.ticket}</span></td>
                 <td class="ticket-subject">${res.ticket_title}</td>
                 <td>${res.resolved_by}</td>
-                <td title="${res.feedback}">${feedbackShort}</td>
+                <td>${feedbackShort}</td>
                 <td>
                     <span class="status-badge status-${res.status ? res.status.toLowerCase() : 'open'}">${res.status || 'Open'}</span>
                 </td>

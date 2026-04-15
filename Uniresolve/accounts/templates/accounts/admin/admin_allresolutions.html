@@ -76,9 +76,10 @@
     <div class="pagination-container" id="paginationControls">
         <!-- Buttons injected by JS -->
     </div>
-</div>
+{% include 'common/partials/resolution_modal.html' %}
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'common/js/resolution_modal.js' %}"></script>
 <script>
     let currentPage = 1;
 
@@ -177,17 +178,31 @@
 
         resolutions.forEach(resolution => {
             const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.title = "Click to view full resolution details";
+            
             const date = new Date(resolution.resolved_at).toLocaleDateString();
 
             // Truncate feedback if too long
             const feedbackShort = resolution.feedback.length > 50 ? resolution.feedback.substring(0, 50) + '...' : resolution.feedback;
+
+            // Setup onclick referencing raw properties for the modal
+            row.onclick = () => openResolutionModal(
+                resolution.ticket,
+                resolution.ticket_title,
+                resolution.resolved_by,
+                resolution.status || 'Open',
+                resolution.feedback,
+                resolution.department_name,
+                '/api/accounts/admin-dashboard/ticket/'
+            );
 
             row.innerHTML = `
                 <td><span class="ticket-id">#${resolution.ticket}</span></td>
                 <td>${resolution.ticket_title}</td>
                 <td>${resolution.resolved_by}</td>
                 <td>${resolution.department_name}</td>
-                <td title="${resolution.feedback}">${feedbackShort}</td>
+                <td>${feedbackShort}</td>
                 <td>
                     <span class="status-badge status-${resolution.status ? resolution.status.toLowerCase() : 'open'}">${resolution.status || 'Open'}</span>
                 </td>
@@ -225,6 +240,5 @@
         nextBtn.onclick = () => loadResolutions(data.current_page + 1);
         paginationControls.appendChild(nextBtn);
     }
-
 </script>
 {% endblock %}
