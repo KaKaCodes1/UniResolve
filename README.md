@@ -9,13 +9,15 @@ This project is built as a Minimum Viable Product (MVP) for the ALX Backend Engi
 * **Framework:** Django & Django REST Framework (DRF)
 * **Database:** MySQL
 * **Authentication:** Token-based (JWT)
+* **Asynchronous Tasks:** Threading (for non-blocking email functionality)
 * **Tools:** Postman (for testing)
 
 ##  Key Features
-* **User Authentication:** Secure registration and login for Students.
+* **User Authentication:** Secure registration and login for Students and Staff, with a forced password-change captive portal on first login.
 * **Smart Issue Tracking:** Students can view their own tickets; Staff view department-specific tickets.
-* **Ticket Management:** Create, Read, and Update issue details.
-* **Resolution Workflow:** Staff can resolve tickets and provide written feedback.
+* **Comprehensive Notification System:** Threaded asynchronous email and in-app alerts for system events (SLA deadlines, escalations).
+* **Ticket Management & Escalation:** Automated escalation workflows for overdue tickets and proactive deadline warnings.
+* **Resolution Workflow:** Staff can resolve/transfer tickets, and request/receive additional information from students seamlessly.
 
 ### Installation
 1. **Clone the repo:**
