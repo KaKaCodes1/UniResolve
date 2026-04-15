@@ -186,6 +186,19 @@ class AdminAllIssuesPageView(TemplateView):
         return context
 
 @method_decorator(never_cache, name='dispatch')
+class AdminCriticalTicketsPageView(TemplateView):
+    template_name = 'accounts/admin/admin_critical_tickets.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if user.is_authenticated and user.role == 'Admin':
+            context['departments'] = Department.objects.all()
+            context['categories'] = Category.objects.all()
+        return context
+
+@method_decorator(never_cache, name='dispatch')
 class AdminAllResolutionsPageView(TemplateView):
     template_name = 'accounts/admin/admin_allresolutions.html'
 
@@ -575,6 +588,67 @@ class AdminViewSet(viewsets.GenericViewSet):
         status_param = request.query_params.get('status')
         if status_param and status_param != 'All Statuses':
             queryset = queryset.filter(status=status_param.upper())
+
+        category_param = request.query_params.get('category')
+        if category_param and category_param != 'All Categories':
+            try:
+                queryset = queryset.filter(category_id=int(category_param))
+            except ValueError:
+                pass
+
+        department_param = request.query_params.get('department')
+        if department_param and department_param != 'All Departments':
+            try:
+                queryset = queryset.filter(current_department_id=int(department_param))
+            except ValueError:
+                pass
+
+        #Search
+        search_query = request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(id__icontains=search_query) |
+                Q(owner__first_name__icontains=search_query) |
+                Q(owner__last_name__icontains=search_query) |
+                Q(category__category_name__icontains=search_query) 
+            )
+        
+        #Pagination
+        page_number = request.query_params.get('page', 1)
+        page_size = 10
+        paginator = Paginator(queryset, page_size)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except Exception:
+            page_obj = paginator.page(1)
+
+        serializer = self.get_serializer(page_obj, many=True)
+        return Response({
+            'tickets': serializer.data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'total_count': paginator.count
+        })
+
+    @action(detail=False, methods=['get'], url_path='critical-tickets')
+    def get_critical_tickets(self, request):
+        """
+        Get all tickets that are overdue (due_date < now) and not resolved/closed/reject/pending
+        """
+        if not self.check_admin(request.user):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        # Base query for critical tickets
+        queryset = Ticket.objects.filter(
+            due_date__lt=timezone.now()
+        ).exclude(
+            status__in=['RESOLVED', 'CLOSED', 'REJECTED']
+        ).select_related('owner', 'category', 'current_department').order_by('due_date')
 
         category_param = request.query_params.get('category')
         if category_param and category_param != 'All Categories':

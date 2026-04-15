@@ -68,20 +68,36 @@
                     </div>
                 </div>
 
-                <a href="{% url 'admin_all_issues' %}"
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_issues' or request.resolver_match.url_name == 'admin_critical_tickets' %}open{% endif %}">
+                    <div class="nav-dropdown-toggle" id="TicketsDropdown">
+                        <div>
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Tickets</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'admin_all_issues' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">All Issues</a>
+                        <a href="{% url 'admin_critical_tickets' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_critical_tickets' %}active{% endif %}">Critical Tickets</a>
+                    </div>
+                </div>
+
+                <!-- <a href="{% url 'admin_all_issues' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">
                     <i class="fa-solid fa-list"></i>
                     <span>All Issues</span>
                 </a>
+                <a href="{% url 'admin_critical_tickets' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_critical_tickets' %}active{% endif %}"
+                    style="color: #e53e3e;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Critical Tickets</span> 
+                </a>-->
                 <a href="{% url 'admin_all_resolutions' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'admin_all_resolutions' %}active{% endif %}">
                     <i class="fa-solid fa-circle-check"></i>
                     <span>All Resolutions</span>
                 </a>
-                <!-- <a href="#" class="nav-item">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Configuration</span>
-                </a> -->
 
                 <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_manage_departments' or request.resolver_match.url_name == 'admin_manage_courses' %}open{% endif %}">
                     <div class="nav-dropdown-toggle" id="SettingsDropdown">
@@ -122,6 +138,13 @@
             if (settingsDropdown) {
                 settingsDropdown.addEventListener('click', () => {
                     settingsDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            const ticketsDropdown = document.getElementById('TicketsDropdown');
+            if (ticketsDropdown) {
+                ticketsDropdown.addEventListener('click', () => {
+                    ticketsDropdown.parentElement.classList.toggle('open');
                 });
             }
 
