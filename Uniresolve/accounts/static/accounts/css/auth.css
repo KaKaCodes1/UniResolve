@@ -53,6 +53,12 @@ body {
     text-align: center;
 }
 
+.auth-logo {
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
 .auth-sidebar h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
