@@ -159,7 +159,7 @@ function populateDetails(ticket) {
         }
 
         if (events.length === 0) {
-            timelineContainer.innerHTML = '<p class="empty-timeline">No feedback recorded yet.</p>';
+            timelineContainer.innerHTML = '<p class="empty-timeline">No Staff Resolution recorded yet.</p>';
         } else {
             events.sort((a, b) => a.date - b.date);
             events.reverse().forEach(event => {
