@@ -261,33 +261,4 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // function showToast(message, type = 'info') {
-    //     // We'll use a simple alert for now, but a real toast should be used in production
-    //     // Assuming there isn't a global toast system based on current files
-    //     // But if there is, replace this with the global toast function
-    //     const toastDiv = document.createElement('div');
-    //     toastDiv.className = `custom-toast ${type}`;
-    //     toastDiv.textContent = message;
-
-    //     // Basic styling for the isolated toast directly injected
-    //     Object.assign(toastDiv.style, {
-    //         position: 'fixed',
-    //         bottom: '20px',
-    //         right: '20px',
-    //         padding: '12px 24px',
-    //         background: type === 'error' ? '#c62828' : '#2e7d32',
-    //         color: 'white',
-    //         borderRadius: '4px',
-    //         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-    //         zIndex: '9999',
-    //         transition: 'opacity 0.3s ease'
-    //     });
-
-    //     document.body.appendChild(toastDiv);
-
-    //     setTimeout(() => {
-    //         toastDiv.style.opacity = '0';
-    //         setTimeout(() => toastDiv.remove(), 300);
-    //     }, 3000);
-    // }
 });
