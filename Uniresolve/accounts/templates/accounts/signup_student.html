@@ -1,0 +1,165 @@
+{% extends 'accounts/base_auth.html' %}
+
+{% block title %}Student Sign Up - UniResolve{% endblock %}
+
+{% block content %}
+<div class="auth-header">
+    <h2>Student Registration</h2>
+    <p>Create your student account</p>
+</div>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+    <a href="{% url 'signup_student' %}" class="role-btn active">Student</a>
+    <a href="{% url 'signup_staff' %}" class="role-btn">Staff</a>
+</div>
+
+
+
+<form id="studentSignupForm">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="first_name">First Name</label>
+        <input type="text" id="first_name" name="first_name" class="form-control" required>
+        <div id="first_name_error" class="error-message"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="last_name">Last Name</label>
+        <input type="text" id="last_name" name="last_name" class="form-control" required>
+        <div id="last_name_error" class="error-message"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+        <div id="email_error" class="error-message"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+        <i class="fa-solid fa-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
+        <div id="password_error" class="error-message"></div>
+
+        <!-- Password Strength Checklist -->
+        <div class="password-checklist">
+            <div class="checklist-item invalid" id="length-check">
+                <i class="fa-solid fa-xmark"></i> At least 8 characters
+            </div>
+            <div class="checklist-item invalid" id="number-check">
+                <i class="fa-solid fa-xmark"></i> At least one number
+            </div>
+            <div class="checklist-item invalid" id="upper-check">
+                <i class="fa-solid fa-xmark"></i> At least one uppercase letter
+            </div>
+            <div class="checklist-item invalid" id="lower-check">
+                <i class="fa-solid fa-xmark"></i> At least one lowercase letter
+            </div>
+            <div class="checklist-item invalid" id="symbol-check">
+                <i class="fa-solid fa-xmark"></i> At least one special symbol
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Specific Fields -->
+    <div class="form-group">
+        <label for="reg_number">Registration Number</label>
+        <input type="text" id="reg_number" name="reg_number" class="form-control" required>
+        <div id="reg_number_error" class="error-message"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="course">Course</label>
+        <select id="course" name="course" class="form-control" required>
+            <option value="" disabled selected>Select your course</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.course_name }}</option>
+            {% endfor %}
+        </select>
+        <div id="course_error" class="error-message"></div>
+    </div>
+
+    <button type="submit" class="btn-primary" id="submitBtn">Create Account</button>
+</form>
+
+<div class="auth-footer">
+    Already have an account? <a href="{% url 'signin' %}">Log In</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('studentSignupForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        // Disable the button and change its text to indicate that the form is being submitted
+        // prevents multiple clicks
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Creating Account...';
+
+        // Clear previous errors that may have been displayed on the form
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.innerText = '';
+            el.style.display = 'none';
+        });
+
+        const formData = {
+            role: 'Student',
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            reg_number: document.getElementById('reg_number').value,
+            course_id: document.getElementById('course').value // Serializer expects course_id
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            const response = await fetch('/api/accounts/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Account created successfully! Redirecting to login...');
+                window.location.href = "{% url 'signin' %}"; // Redirect to login
+            } else {
+                // Handle Errors
+                for (const [key, value] of Object.entries(data)) {
+                    // Map API field names to Error Div IDs
+                    // e.g. 'course_id' -> 'course_error'
+                    let errorDivId = key + '_error';
+                    if (key === 'course_id') errorDivId = 'course_error';
+
+                    const errorDiv = document.getElementById(errorDivId);
+                    if (errorDiv) {
+                        errorDiv.innerText = Array.isArray(value) ? value[0] : value;
+                        errorDiv.style.display = 'block';
+                    } else {
+                        // Global error or unmapped field
+                        alert(`Error: ${key} - ${value}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Create Account';
+        }
+    });
+
+
+
+</script>
+{% endblock %}

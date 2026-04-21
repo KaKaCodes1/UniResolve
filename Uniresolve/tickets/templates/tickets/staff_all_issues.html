@@ -1,0 +1,226 @@
+{% extends 'tickets/base_staffdashboard.html' %}
+{% load static %}
+
+{% block title %}All Issues - Staff Dashboard{% endblock %}
+
+
+
+{% block content %}
+<div class="page-header">
+    <h2>All Issues</h2>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter department issues</p>
+    </div>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" class="search-input"
+            placeholder="Search by ticket ID, subject, student name or reg number...">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                {% for value, name in status_choices %}
+                <option value="{{ value }}">{{ name|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="categoryFilter">Category</label>
+            <select id="categoryFilter" class="filter-select">
+                <option value="All Categories">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.category_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Issues List -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Issues List</h3>
+        <span class="issues-count" id="issuesCount">Loading...</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Student Name</th>
+                    <th>Category</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Timeframe</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="ticketTableBody">
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading tickets...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'tickets/js/escalation.js' %}"></script>
+<script src="{% static 'common/js/get_timeframe.js' %}"></script>
+<script>
+    let currentPage = 1;
+    let allTickets = [];
+    let currentTicketId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTickets();
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadTickets, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
+        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
+    });
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    /*
+      Main function to fetch tickets based on current filters.
+      Called on page load, search, filter change, or pagination.
+    */
+    async function loadTickets(page = 1) {
+        currentPage = page;
+        // 1. Gather current state from DOM elements
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const category = document.getElementById('categoryFilter').value;
+
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) return; // Handler redirect or error
+
+        // 2. Build Query Parameters for the API
+        const params = new URLSearchParams({ page: currentPage });
+        if (search) params.append('search', search);
+        if (status !== 'All Statuses') params.append('status', status);
+        if (category !== 'All Categories') params.append('category', category);
+
+        try {
+            // 3. Fetch Data from the API
+            const response = await fetch(`/api/v1/tickets/all_issues/?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                allTickets = data.tickets; // Store for modal access
+
+                // 4. Update UI Elements
+                // Update Count
+                document.getElementById('issuesCount').textContent = `${data.total_count} issue${data.total_count !== 1 ? 's' : ''} found`;
+
+                renderTable(data.tickets);
+                renderPagination(data);
+            } else {
+                console.error("Failed to load tickets");
+            }
+        } catch (e) {
+            console.error("Error:", e);
+        }
+    }
+
+    function renderTable(tickets) {
+        const tbody = document.getElementById('ticketTableBody');
+        tbody.innerHTML = '';
+
+        if (tickets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">No tickets found matching your criteria.</td></tr>`;
+            return;
+        }
+
+        tickets.forEach(ticket => {
+            const row = document.createElement('tr');
+            const date = new Date(ticket.created_at).toLocaleDateString();
+            const timeframeHTML = getTimeframeDisplay(ticket.due_date, ticket.status);
+
+            row.innerHTML = `
+                <td><span class="ticket-id">#${ticket.id}</span></td>
+                <td>${ticket.owner || 'N/A'}</td>
+                <td>${ticket.category_name}</td>
+                <td class="ticket-subject">${ticket.title}</td>
+                <td>${date}</td>
+                <td>${timeframeHTML}</td>
+                <td>
+                    <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
+                </td>
+                <td>
+                    <a href="/api/v1/staff-dashboard/ticket/${ticket.id}/" class="btn-primary btn-sm" style="text-decoration: none;">
+                        ${ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED' ? 'View' : 'Resolve'}
+                    </a>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderPagination(data) {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (data.total_pages <= 1) return;
+
+        // Previous
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Previous';
+        prevBtn.className = 'page-btn';
+        prevBtn.disabled = !data.has_previous;
+        prevBtn.onclick = () => loadTickets(data.current_page - 1);
+        container.appendChild(prevBtn);
+
+        // Page number
+        const pageInd = document.createElement('span');
+        pageInd.style.alignSelf = 'center';
+        pageInd.style.color = '#666';
+        pageInd.innerText = ` Page ${data.current_page} of ${data.total_pages} `;
+        container.appendChild(pageInd);
+
+        // Next
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.className = 'page-btn';
+        nextBtn.disabled = !data.has_next;
+        nextBtn.onclick = () => loadTickets(data.current_page + 1);
+        container.appendChild(nextBtn);
+    }
+
+
+</script>
+{% endblock %}

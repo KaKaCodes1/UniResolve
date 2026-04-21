@@ -1,0 +1,232 @@
+{% extends 'tickets/base_staffdashboard.html' %}
+{% load static %}
+{% block title %}All Resolutions - Staff Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>All Resolutions</h2>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter historical resolutions</p>
+    </div>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by ticket ID or title...">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                {% for value, name in status_choices %}
+                <option value="{{ value }}">{{ name|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if request.user.staff_profile.staff_role == 'SENIOR' %}
+        <div class="filter-group" id="staffFilterGroup">
+            <label for="staffFilter">Staff Member</label>
+            <select id="staffFilter" class="filter-select">
+                <option value="All Staff">All Staff</option>
+                {% for staff in staff_members %}
+                <option value="{{ staff.id }}">{{ staff.first_name }} {{ staff.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resolutions List -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Resolutions List</h3>
+        <span class="issues-count" id="resolutionsCount">Loading...</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Ticket Title</th>
+                    <th>Staff Name</th>
+                    <th>Feedback</th>
+                    <th>Status</th>
+                    <th>Date Resolved</th>
+                </tr>
+            </thead>
+            <tbody id="resolutionTableBody">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading resolutions...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
+    </div>
+</div>
+{% include 'common/partials/resolution_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'common/js/resolution_modal.js' %}"></script>
+<script>
+    // Get the staff role from the request
+    const staffRole = "{{ request.user.staff_profile.staff_role }}";
+    let currentPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadResolutions();
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadResolutions, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        if (document.getElementById('staffFilter')) {
+            document.getElementById('staffFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        }
+    });
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    async function loadResolutions(page = 1) {
+        currentPage = page;
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const staffElement = document.getElementById('staffFilter');
+        const staff = staffElement ? staffElement.value : 'All Staff';
+
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) return;
+
+        // Build URL Params
+        const params = new URLSearchParams({ page: currentPage });
+        if (search) params.append('search', search);
+        if (status !== 'All Statuses') params.append('status', status);
+        if (staff !== 'All Staff') params.append('staff', staff);
+
+        try {
+            const response = await fetch(`/api/v1/resolutions/all_resolutions/?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Update Count
+                document.getElementById('resolutionsCount').textContent = `${data.total_count} resolution${data.total_count !== 1 ? 's' : ''} found`;
+
+                renderTable(data.resolutions);
+                renderPagination(data);
+            } else {
+                console.error("Failed to load resolutions");
+            }
+        } catch (e) {
+            console.error("Error:", e);
+        }
+    }
+
+    function renderTable(resolutions) {
+        const tbody = document.getElementById('resolutionTableBody');
+        tbody.innerHTML = '';
+
+        if (resolutions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px;">No resolutions found matching your criteria.</td></tr>`;
+            return;
+        }
+
+        resolutions.forEach(res => {
+            const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.title = "Click to view full resolution details";
+
+            const date = new Date(res.resolved_at).toLocaleDateString() + ' ' + new Date(res.resolved_at).toLocaleTimeString();
+
+            // Truncate feedback if too long
+            const feedbackShort = res.feedback.length > 50 ? res.feedback.substring(0, 50) + '...' : res.feedback;
+
+            let isRestricted = false;
+            const statusStr = res.status ? res.status.toUpperCase() : '';
+            if (staffRole === 'SENIOR') {
+                isRestricted = (statusStr === 'TRANSFERRED');
+            } else {
+                isRestricted = ['ESCALATED', 'TRANSFERRED'].includes(statusStr);
+            }
+
+            row.onclick = () => openResolutionModal(
+                res.ticket,
+                res.ticket_title,
+                res.resolved_by,
+                res.status || 'Open',
+                res.feedback,
+                null, // No department needed in this view
+                '/api/v1/staff-dashboard/ticket/',
+                isRestricted
+            );
+
+            row.innerHTML = `
+                <td><span class="ticket-id">#${res.ticket}</span></td>
+                <td class="ticket-subject">${res.ticket_title}</td>
+                <td>${res.resolved_by}</td>
+                <td>${feedbackShort}</td>
+                <td>
+                    <span class="status-badge status-${res.status ? res.status.toLowerCase() : 'open'}">${res.status || 'Open'}</span>
+                </td>
+                <td>${date}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function renderPagination(data) {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (data.total_pages <= 1) return;
+
+        // Previous
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Previous';
+        prevBtn.className = 'page-btn';
+        prevBtn.disabled = !data.has_previous;
+        prevBtn.onclick = () => loadResolutions(data.current_page - 1);
+        container.appendChild(prevBtn);
+
+        // Page number
+        const pageInd = document.createElement('span');
+        pageInd.style.alignSelf = 'center';
+        pageInd.style.color = '#666';
+        pageInd.innerText = ` Page ${data.current_page} of ${data.total_pages} `;
+        container.appendChild(pageInd);
+
+        // Next
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.className = 'page-btn';
+        nextBtn.disabled = !data.has_next;
+        nextBtn.onclick = () => loadResolutions(data.current_page + 1);
+        container.appendChild(nextBtn);
+    }
+</script>
+{% endblock %}

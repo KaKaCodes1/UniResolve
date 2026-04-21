@@ -1,0 +1,167 @@
+{% extends 'tickets/base_dashboard.html' %}
+
+{% block title %}Student Dashboard - UniResolve{% endblock %}
+
+
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+</div>
+
+<!-- Stats Rows -->
+<div class="dashboard-stats">
+    <!-- Total Card -->
+    <div class="stat-card">
+        <span class="stat-label">Total Submitted</span>
+        <div class="stat-value" id="totalTickets">0</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-file-lines"></i>
+            <span>All issues</span>
+        </div>
+    </div>
+
+    <!-- Open Card -->
+    <div class="stat-card">
+        <span class="stat-label">Open</span>
+        <div class="stat-value" id="openTickets">0</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-file-lines"></i>
+            <span>Awaiting staff response</span>
+        </div>
+    </div>
+
+    <!-- Pending Card -->
+    <div class="stat-card">
+        <span class="stat-label">Pending</span>
+        <div class="stat-value" id="pendingTickets">0</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-clock"></i>
+            <span>Awaiting resolution</span>
+        </div>
+    </div>
+
+    <!-- Resolved Card -->
+    <div class="stat-card">
+        <span class="stat-label">Resolved</span>
+        <div class="stat-value" id="resolvedTickets">0</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-circle-check"></i>
+            <span>Successfully closed</span>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Issues Table -->
+<div class="content-card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3>Recent Issues</h3>
+            <p>Your latest submitted tickets</p>
+        </div>
+        <a href="{% url 'my_history' %}" class="btn-text">View All <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody id="ticketTableBody">
+                <!-- Tickets will be dynamically inserted here via javascript-->
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading tickets...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+    async function loadDashboardData() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            // Redirect or handle unauthenticated state (e.g. show 0s)
+            console.warn("No access token found, cannot fetch dashboard data.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/tickets/dashboard_stats/', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('totalTickets').textContent = data.total_tickets;
+                document.getElementById('openTickets').textContent = data.open_tickets;
+                document.getElementById('pendingTickets').textContent = data.pending_tickets;
+                document.getElementById('resolvedTickets').textContent = data.resolved_tickets;
+
+                // Update table
+                const tableBody = document.getElementById('ticketTableBody');
+                tableBody.innerHTML = ''; // Clear loading/existing
+
+                if (data.recent_tickets.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 30px;">
+                                <p>No recent tickets found.</p>
+                                <a href="{% url 'submit_issue' %}" class="btn-primary"
+                                    style="margin-top: 10px; display: inline-block;">Submit an Issue</a>
+                            </td>
+                        </tr>
+                     `;
+                } else {
+                    data.recent_tickets.forEach(ticket => {
+                        const row = document.createElement('tr');
+                        row.onclick = () => window.location.href = '/api/v1/ticket/' + ticket.id + '/';
+
+                        // Format date
+                        const date = new Date(ticket.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                        });
+
+                        row.innerHTML = `
+                            <td><span class="ticket-id">#${ticket.id}</span></td>
+                            <td class="ticket-subject">${ticket.title}</td>
+                            <td>${ticket.category_name || (ticket.category && ticket.category.department ? ticket.category.department.department_name : 'N/A')}</td>
+                            <td>
+                                <span class="status-badge status-${ticket.status.toLowerCase()}">
+                                    ${ticket.status}
+                                </span>
+                            </td>
+                            <td>${date}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+
+            } else {
+                console.error("Failed to load dashboard data", response.status);
+            }
+        } catch (e) {
+            console.error("Error loading dashboard data:", e);
+        }
+    }
+</script>
+{% endblock %}

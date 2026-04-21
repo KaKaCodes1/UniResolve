@@ -1,0 +1,244 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}All Resolutions - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>All Resolutions</h2>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-card">
+    <div class="filters-header">
+        <h3 class="filters-title">Filters</h3>
+        <p class="filters-subtitle">Search and filter all resolutions</p>
+    </div>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by ticket ID, title, staff name">
+    </div>
+
+    <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                {% for value, name in status_choices %}
+                <option value="{{ value }}">{{ name|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="departmentFilter">Department</label>
+            <select id="departmentFilter" class="filter-select">
+                <option value="All Departments">All Departments</option>
+                {% for department in departments %}
+                <option value="{{ department.id }}">{{ department.department_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Resolutions List -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Resolutions List</h3>
+        <span class="issues-count" id="resolutionsCount">Loading...</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Ticket Title</th>
+                    <th>Staff Name</th>
+                    <th>Department</th>
+                    <th>Feedback</th>
+                    <th>Status</th>
+                    <th>Date Resolved</th>
+                </tr>
+            </thead>
+            <tbody id="resolutionTableBody">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading resolutions...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationControls">
+        <!-- Buttons injected by JS -->
+    </div>
+{% include 'common/partials/resolution_modal.html' %}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'common/js/resolution_modal.js' %}"></script>
+<script>
+    let currentPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadResolutions();
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(loadResolutions, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+        document.getElementById('departmentFilter').addEventListener('change', () => { currentPage = 1; loadResolutions(); });
+    });
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    function showLoading(show) {
+        const tablebody = document.getElementById('resolutionTableBody');
+        if (show) {
+            tablebody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading resolutions...</div>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function loadResolutions(page = 1) {
+        currentPage = page;
+
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const department = document.getElementById('departmentFilter').value;
+
+        let url = `/api/accounts/admin/all-resolutions/?search=${encodeURIComponent(search)}&page=${page}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
+        if (department) url += `&department=${encodeURIComponent(department)}`;
+
+        try {
+            showLoading(true);
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch resolutions');
+            }
+            const data = await response.json();
+            displayResolutions(data.resolutions, data.total_count);
+            renderPagination(data);
+        }
+        catch (error) {
+            console.error('Error loading resolutions:', error);
+            document.getElementById('resolutionTableBody').innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; color: red;">
+                        Error loading resolutions. Please try again later.
+                    </td>
+                </tr>
+            `;
+            document.getElementById('resolutionsCount').textContent = '';
+            document.getElementById('paginationControls').innerHTML = '';
+        }
+        finally {
+            showLoading(false);
+        }
+    }
+    function displayResolutions(resolutions, totalCount) {
+        const totalCountElement = document.getElementById('resolutionsCount');
+        totalCountElement.innerText = `${totalCount} Resolution${totalCount !== 1 ? 's' : ''} found`;
+        const tableBody = document.getElementById('resolutionTableBody');
+        tableBody.innerHTML = '';
+
+        if (resolutions.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; color: red;">
+                        No tickets found.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        resolutions.forEach(resolution => {
+            const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.title = "Click to view full resolution details";
+            
+            const date = new Date(resolution.resolved_at).toLocaleDateString();
+
+            // Truncate feedback if too long
+            const feedbackShort = resolution.feedback.length > 50 ? resolution.feedback.substring(0, 50) + '...' : resolution.feedback;
+
+            // Setup onclick referencing raw properties for the modal
+            row.onclick = () => openResolutionModal(
+                resolution.ticket,
+                resolution.ticket_title,
+                resolution.resolved_by,
+                resolution.status || 'Open',
+                resolution.feedback,
+                resolution.department_name,
+                '/api/accounts/admin-dashboard/ticket/'
+            );
+
+            row.innerHTML = `
+                <td><span class="ticket-id">#${resolution.ticket}</span></td>
+                <td>${resolution.ticket_title}</td>
+                <td>${resolution.resolved_by}</td>
+                <td>${resolution.department_name}</td>
+                <td>${feedbackShort}</td>
+                <td>
+                    <span class="status-badge status-${resolution.status ? resolution.status.toLowerCase() : 'open'}">${resolution.status || 'Open'}</span>
+                </td>
+                <td>${date}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+    function renderPagination(data) {
+        const paginationControls = document.getElementById('paginationControls');
+        paginationControls.innerHTML = '';
+
+        if (data.total_pages <= 1) return;
+
+        //Previous
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Previous';
+        prevBtn.className = 'page-btn';
+        prevBtn.disabled = !data.has_previous;
+        prevBtn.onclick = () => loadResolutions(data.current_page - 1);
+        paginationControls.appendChild(prevBtn);
+
+        // Page number
+        const pageInd = document.createElement('span');
+        pageInd.style.alignSelf = 'center';
+        pageInd.style.color = '#666';
+        pageInd.innerText = ` Page ${data.current_page} of ${data.total_pages} `;
+        paginationControls.appendChild(pageInd);
+
+        //Next
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.className = 'page-btn';
+        nextBtn.disabled = !data.has_next;
+        nextBtn.onclick = () => loadResolutions(data.current_page + 1);
+        paginationControls.appendChild(nextBtn);
+    }
+</script>
+{% endblock %}

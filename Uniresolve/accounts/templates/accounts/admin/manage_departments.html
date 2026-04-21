@@ -1,0 +1,64 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}Manage Departments - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Departments Management</h2>
+</div>
+
+<!-- Add New Department Card -->
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">Add New Department</h3>
+        <p class="management-card-subtitle">Enter the department name to add to the system</p>
+    </div>
+    <div class="management-card-body">
+        <form id="addDepartmentForm" class="add-management-form">
+            <div class="form-group">
+                <label for="departmentName">Department Name *</label>
+                <div class="input-with-button">
+                    <input type="text" id="departmentName" class="management-input"
+                        placeholder="Enter department name..." required>
+                    <button type="submit" class="btn-primary" id="addDeptBtn">
+                        <i class="fa-solid fa-plus"></i> Add Department
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- All Departments List Card -->
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">All Departments</h3>
+        <p class="management-card-subtitle" id="departmentsCount">0 departments in the system</p>
+    </div>
+    <div class="management-card-body">
+        <div class="management-table-container">
+            <table class="management-table" id="departmentsTable">
+                <thead>
+                    <tr>
+                        <th class="col-name">Department Name</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="departmentsTableBody">
+                    <!-- Loading state -->
+                    <tr id="loadingDepartmentsRow">
+                        <td colspan="2" class="text-center">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading departments...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'accounts/js/manage_departments.js' %}"></script>
+{% endblock %}

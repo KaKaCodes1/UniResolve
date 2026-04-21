@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'accounts',
     'tickets',
     'organization',
+    'common',
 ]
 
 MIDDLEWARE = [
@@ -111,12 +112,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'accounts.validators.ComplexityValidator',
     },
 ]
 
@@ -138,6 +145,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 #Defining to the project that it must use the custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -148,8 +159,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT ={
-    #Set after how long the Access Token will expire - 60 mins for security.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    #Set after how long the Access Token will expire - 30 mins for security.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     #Refresh Token is used to get a new Access Token without logging in again.
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
@@ -165,4 +176,7 @@ if not DEBUG:
 
     # Enforce HTTPS
     SECURE_SSL_REDIRECT = True #Forces all non-HTTPS traffic to redirect to HTTPS.
+
+# Email Settings for local testing
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

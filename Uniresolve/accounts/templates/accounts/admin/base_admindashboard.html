@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - CUEA Issue Portal{% endblock %}</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="{% static 'tickets/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/admin.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <header class="top-header">
+        <div class="header-logo">
+            <img src="{% static 'common/images/cuea_logo.png' %}" alt="CUEA Logo" class="dashboard-logo">
+            <div class="logo-text">
+                <h1>CUEA Issue Portal - Admin</h1>
+                <p>System Administration</p>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="notification-bell">
+                <i class="fa-regular fa-bell" title="Notifications"></i>
+                <span class="badg-dot"></span>
+            </div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="welcome-text">Welcome,</span>
+                    <span class="user-name" id="user-name-display">Admin User</span>
+                </div>
+                <a href="#" class="logout-link" id="logoutBtn" title="Logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{% url 'admin_dashboard' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_students' or request.resolver_match.url_name == 'admin_all_staff' or request.resolver_match.url_name == 'admin_bulk_import' %}open{% endif %}">
+                    <div class="nav-dropdown-toggle" id="usersDropdown">
+                        <div>
+                            <i class="fa-solid fa-users"></i>
+                            <span>Users</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'admin_all_students' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_students' %}active{% endif %}">View Students</a>
+                        <a href="{% url 'admin_all_staff' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_staff' %}active{% endif %}">View Staff</a>
+                        <!-- <a href="#" class="sub-nav-item">Add Single User</a> -->
+                        <a href="{% url 'admin_bulk_import' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_bulk_import' %}active{% endif %}">Bulk Import</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_all_issues' or request.resolver_match.url_name == 'admin_critical_tickets' %}open{% endif %}">
+                    <div class="nav-dropdown-toggle" id="TicketsDropdown">
+                        <div>
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Tickets</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'admin_all_issues' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">All Issues</a>
+                        <a href="{% url 'admin_critical_tickets' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_critical_tickets' %}active{% endif %}">Critical Tickets</a>
+                    </div>
+                </div>
+
+                <!-- <a href="{% url 'admin_all_issues' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_all_issues' %}active{% endif %}">
+                    <i class="fa-solid fa-list"></i>
+                    <span>All Issues</span>
+                </a>
+                <a href="{% url 'admin_critical_tickets' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_critical_tickets' %}active{% endif %}"
+                    style="color: #e53e3e;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Critical Tickets</span> 
+                </a>-->
+                <a href="{% url 'admin_all_resolutions' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'admin_all_resolutions' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>All Resolutions</span>
+                </a>
+
+                <div class="nav-dropdown {% if request.resolver_match.url_name == 'admin_manage_departments' or request.resolver_match.url_name == 'admin_manage_courses' %}open{% endif %}">
+                    <div class="nav-dropdown-toggle" id="SettingsDropdown">
+                        <div>
+                            <i class="fa-solid fa-gear"></i>
+                            <span>System Settings</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'admin_manage_departments' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_manage_departments' %}active{% endif %}">Departments Management</a>
+                        <a href="{% url 'admin_manage_courses' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_manage_courses' %}active{% endif %}">Courses Management</a>
+                        <a href="{% url 'admin_manage_issue_categories' %}" class="sub-nav-item {% if request.resolver_match.url_name == 'admin_manage_issue_categories' %}active{% endif %}">Issues Configuration</a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Dropdown Toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const usersDropdown = document.getElementById('usersDropdown');
+            if (usersDropdown) {
+                usersDropdown.addEventListener('click', () => {
+                    usersDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            const settingsDropdown = document.getElementById('SettingsDropdown');
+            if (settingsDropdown) {
+                settingsDropdown.addEventListener('click', () => {
+                    settingsDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            const ticketsDropdown = document.getElementById('TicketsDropdown');
+            if (ticketsDropdown) {
+                ticketsDropdown.addEventListener('click', () => {
+                    ticketsDropdown.parentElement.classList.toggle('open');
+                });
+            }
+
+            // Sync name display
+            const firstName = localStorage.getItem('first_name');
+            if (firstName) {
+                document.getElementById('user-name-display').innerText = `${firstName} (Admin)`;
+            }
+        });
+
+        // Logout Handler
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = "{% url 'signin' %}";
+            }
+        });
+    </script>
+    <script src="{% static 'common/js/notifications.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

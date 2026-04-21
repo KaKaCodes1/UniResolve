@@ -1,0 +1,118 @@
+{% extends base_template %}
+
+{% block title %}Profile - UniResolve{% endblock %}
+
+
+
+{% block content %}
+<div class="page-header">
+    <h2>Profile</h2>
+</div>
+
+<div class="profile-grid" id="profile-container">
+    <!-- Loaded via JS -->
+    <div class="profile-box">
+        <h3>Loading Profile...</h3>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        window.location.href = "{% url 'signin' %}";
+    }
+
+    async function loadProfile() {
+        try {
+            // Correct API endpoint
+            const response = await fetch('/api/accounts/profile/', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                renderProfile(data);
+            } else {
+                console.error('Failed to load profile');
+                document.getElementById('profile-container').innerHTML = `
+                    <div class="profile-box">
+                        <h3>Error</h3>
+                        <p>Could not load profile information. Please try again later.</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function renderProfile(data) {
+        const container = document.getElementById('profile-container');
+
+        // Common User Info Box
+        let html = `
+            <div class="profile-box">
+                <h3>User Information</h3>
+                <div class="info-group">
+                    <span class="info-label">Full Name</span>
+                    <div class="info-value">${data.first_name} ${data.last_name}</div>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Email</span>
+                    <div class="info-value">${data.email}</div>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Role</span>
+                    <div class="info-value">${data.role}</div>
+                </div>
+            </div>
+        `;
+
+        // Role Specific Info Box
+        if (data.role === 'Student' && data.profile_data) {
+            html += `
+                <div class="profile-box">
+                    <h3>Student Details</h3>
+                    <div class="info-group">
+                        <span class="info-label">Registration Number</span>
+                        <div class="info-value">${data.profile_data.reg_number || '-'}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Course</span>
+                        <div class="info-value">${data.profile_data.course || '-'}</div>
+                    </div>
+                </div>
+            `;
+        } else if (data.role === 'Staff' && data.profile_data) {
+            html += `
+                <div class="profile-box">
+                    <h3>Staff Details</h3>
+                    <div class="info-group">
+                        <span class="info-label">Employee ID</span>
+                        <div class="info-value">${data.profile_data.employee_id || '-'}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Department</span>
+                        <div class="info-value">${data.profile_data.department || '-'}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Title</span>
+                        <div class="info-value">${data.profile_data.staff_role || '-'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // Call loadProfile when page loads
+    document.addEventListener('DOMContentLoaded', loadProfile);
+
+</script>
+{% endblock %}

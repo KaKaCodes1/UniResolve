@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sign Up - UniResolve{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <!-- Sidebar (Branding) -->
+        <div class="auth-sidebar">
+            <img src="{% static 'common/images/cuea_logo.png' %}" alt="CUEA Logo" class="auth-logo">
+            <h1>Catholic University of Eastern Africa</h1>
+            <p>Digital Issue Reporting & Resolution System</p>
+        </div>
+
+        <!-- content (Form) -->
+        <div class="auth-content">
+            <div class="auth-wrapper">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Shared Auth JS -->
+    <script src="{% static 'accounts/js/auth.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

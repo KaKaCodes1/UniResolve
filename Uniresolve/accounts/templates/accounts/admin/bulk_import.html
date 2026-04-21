@@ -1,0 +1,302 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}Bulk Import Users - Admin Dashboard{% endblock %}
+
+
+
+
+{% block content %}
+<div class="page-header">
+    <h2>Bulk Import Users</h2>
+</div>
+<div class="bulk-import-container">
+    <!-- Download Templates -->
+    <div class="import-step">
+        <div class="step-header">
+            <h4 class="step-title">Step 1: Download Templates</h4>
+            <p class="step-desc">Use these templates to format your data correctly</p>
+        </div>
+
+        <div class="templates-grid">
+            <!-- Student Template Card -->
+            <div class="template-card">
+                <div class="card-header">
+                    <div class="card-icon icon-student">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div class="card-info">
+                        <h4>Students</h4>
+                        <p>Bulk register students</p>
+                    </div>
+                </div>
+                <button onclick="downloadTemplate('Student')" class="download-btn">
+                    <i class="fa-solid fa-download"></i> Download Excel Template
+                </button>
+            </div>
+
+            <!-- Staff Template Card -->
+            <div class="template-card">
+                <div class="card-header">
+                    <div class="card-icon icon-staff">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div class="card-info">
+                        <h4>Staff</h4>
+                        <p>Bulk register staff members</p>
+                    </div>
+                </div>
+                <button onclick="downloadTemplate('Staff')" class="download-btn">
+                    <i class="fa-solid fa-download"></i> Download Excel Template
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Data -->
+    <div class="import-step">
+        <div class="step-header">
+            <h4 class="step-title">Step 2: Upload Data</h4>
+            <p class="step-desc">Select the user role and upload your formatted file to import users</p>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="role-selector">
+            <input type="radio" id="roleStudent" name="importRole" value="Student" class="role-radio" hidden>
+            <label for="roleStudent" class="role-label">Student</label>
+
+            <input type="radio" id="roleStaff" name="importRole" value="Staff" class="role-radio" hidden>
+            <label for="roleStaff" class="role-label">Staff</label>
+        </div>
+
+        <div class="file-upload-container" id="dropZone">
+            <input type="file" id="fileInput" hidden accept=".xlsx">
+
+            <div class="upload-content" id="uploadContent">
+                <i class="fa-solid fa-arrow-up-from-bracket upload-icon"></i>
+                <p><strong>Upload a file</strong> or drag and drop</p>
+                <span class="upload-hint">Supported formats: Excel (.xlsx)</span>
+            </div>
+
+            <!-- File preview area (hidden by default) -->
+            <div id="filePreview" class="file-preview" style="display: none;">
+                <i class="fa-regular fa-file-excel"></i>
+                <span id="selectedFileName">filename.xlsx</span>
+                <i class="fa-solid fa-xmark remove-file" id="removeFile"></i>
+            </div>
+        </div>
+        <div id="file_upload_error" class="error-message"></div>
+        {% csrf_token %}
+        <button class="import-btn" id="importBtn" disabled>
+            <i class="fa-solid fa-upload"></i> Upload & Import Users
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function downloadTemplate(role) {
+        try {
+            const response = await fetch(`/api/accounts/admin/download_template/?role=${role}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+
+            if (response.status === 401) {
+                alert('Session expired. Please login again.');
+                window.location.href = "{% url 'signin' %}";
+                return;
+            }
+
+            if (!response.ok) throw new Error('Failed to download template');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${role}_Import_Template.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Error downloading template. Please try again.');
+        }
+    }
+
+    // Upload Data Logic
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const importBtn = document.getElementById('importBtn');
+    const uploadContent = document.getElementById('uploadContent');
+    const filePreview = document.getElementById('filePreview');
+    const selectedFileNameDisplay = document.getElementById('selectedFileName');
+    const removeFile = document.getElementById('removeFile');
+    const roleRadios = document.querySelectorAll('input[name="importRole"]');
+
+    let selectedRole = null;
+    let selectedFile = null;
+
+    // Check if form is ready to submit
+    function checkImportReady() {
+        if (selectedRole && selectedFile) {
+            importBtn.disabled = false;
+        } else {
+            importBtn.disabled = true;
+        }
+    }
+
+    // Handle Role Selection
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedRole = e.target.value;
+            checkImportReady();
+        });
+    });
+
+    // Trigger file input on click
+    dropZone.addEventListener('click', (e) => {
+        // Only trigger click if we aren't clicking the remove button or the preview container itself
+        if (e.target !== removeFile && e.target !== filePreview && e.target !== selectedFileNameDisplay) {
+            fileInput.click();
+        }
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!selectedFile) {
+            dropZone.classList.add('highlight');
+        }
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('highlight');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('highlight');
+
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files[0]);
+            fileInput.files = e.dataTransfer.files; // Sync to input
+        }
+    });
+
+    // Handle File Selection via click
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        // Basic frontend validation for extension
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            document.getElementById('file_upload_error').innerText = "Please upload an Excel (.xlsx) file.";
+            document.getElementById('file_upload_error').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('file_upload_error').style.display = 'none';
+        selectedFile = file;
+
+        // Toggle visibility
+        uploadContent.style.display = 'none';
+        filePreview.style.display = 'flex';
+
+        // Display file name
+        selectedFileNameDisplay.textContent = selectedFile.name;
+
+        checkImportReady();
+    }
+
+    // Remove file
+    removeFile.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent triggering the dropZone click
+
+        // Reset file state
+        fileInput.value = '';
+        selectedFile = null;
+
+        // Toggle visibility back
+        uploadContent.style.display = 'flex';
+        filePreview.style.display = 'none';
+        selectedFileNameDisplay.textContent = '';
+        document.getElementById('file_upload_error').style.display = 'none';
+
+        checkImportReady();
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Handle Import Button Click
+    importBtn.addEventListener('click', async () => {
+        if (!selectedRole || !selectedFile) return;
+
+        // Visual feedback
+        const originalText = importBtn.innerHTML;
+        importBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Importing Users...';
+        importBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('role', selectedRole);
+
+        try {
+            const response = await fetch('/api/accounts/admin/bulk_import/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`Success: ${data.message}`);
+                // Reset form state
+                removeFile.click();
+                document.querySelectorAll('.role-radio').forEach(r => r.checked = false);
+                selectedRole = null;
+                document.getElementById('file_upload_error').style.display = 'none';
+                checkImportReady();
+            } else {
+                let errorMsg = `Error: ${data.error || 'Failed to import users.'}`;
+                if (data.details && data.details.length > 0) {
+                    errorMsg += '\n\nDetails:\n' + data.details.join('\n');
+                    document.getElementById('file_upload_error').innerText = errorMsg;
+                }
+                alert(errorMsg);
+                document.getElementById('file_upload_error').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Import error:', error);
+            alert('An unexpected error occurred during the import.');
+        } finally {
+            importBtn.innerHTML = originalText;
+            checkImportReady(); // Ensure button state matches selection state
+        }
+    });
+</script>
+{% endblock %}

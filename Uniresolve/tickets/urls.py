@@ -1,13 +1,37 @@
 from django.urls import path, include
-from .views import TicketViewSet, ResolutionViewSet
+from .views import (
+    TicketViewSet,
+    ResolutionViewSet,
+    SubmitIssuePageView,
+    MyHistoryPageView,
+    ProfilePageView,
+    StudentDashboardPageView,
+    StaffDashboardPageView,
+    StaffAllIssuesPageView,
+    AllResolutionsPageView,
+    SeniorStaffDashboardPageView,
+    TicketDetailPageView,
+    StaffTicketDetailPageView,
+)
 from rest_framework.routers import DefaultRouter
 
 #The router will handle creating the appropriate URL patterns
-#for all CRUD operations on the Ticket model.
+#for all CRUD operations on the Ticket and Resolution model.
 router = DefaultRouter()
 router.register(r'tickets',TicketViewSet, basename='ticket')
 router.register(r'resolutions', ResolutionViewSet, basename='resolutions')
 
+
 urlpatterns = [
     path('', include(router.urls)),
+    path('submit-issue/', SubmitIssuePageView.as_view(), name='submit_issue'),
+    path('my-history/', MyHistoryPageView.as_view(), name='my_history'),
+    path('ticket/<int:pk>/', TicketDetailPageView.as_view(), name='ticket_detail'),
+    path('profile/', ProfilePageView.as_view(), name='profile'),
+    path('student-dashboard/', StudentDashboardPageView.as_view(), name='student_dashboard'),
+    path('staff-dashboard/', StaffDashboardPageView.as_view(), name='staff_dashboard'),
+    path('staff-dashboard/ticket/<int:pk>/', StaffTicketDetailPageView.as_view(), name='staff_ticket_detail'),
+    path('staff-dashboard/all-issues/', StaffAllIssuesPageView.as_view(), name='staff_all_issues'),
+    path('staff-dashboard/all-resolutions/', AllResolutionsPageView.as_view(), name='staff_all_resolutions'),
+    path('senior-staff-dashboard/', SeniorStaffDashboardPageView.as_view(), name='senior_staff_dashboard'),
 ]

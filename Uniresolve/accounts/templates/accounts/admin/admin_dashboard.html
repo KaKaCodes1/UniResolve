@@ -1,0 +1,373 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+
+{% block title %}Dashboard - Admin UniResolve{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Admin Dashboard</h2>
+</div>
+
+<!-- Admin Stats Cards -->
+<div class="admin-stats-grid">
+    <!-- Total Issues -->
+    <div class="admin-stat-card">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Total Issues</span>
+                <div class="stat-value">{{ total_tickets_count }}</div>
+                <div class="stat-desc">All tickets submitted across the system</div>
+                <div class="stat-trend {% if total_up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if total_up %}&uarr;{% else %}&darr;{% endif %} {{ total_trend }}% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper icon-blue">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolution Rate -->
+    <div class="admin-stat-card">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Resolution Rate</span>
+                <div class="stat-value">{{ resolution_rate }}%</div>
+                <div class="stat-desc">Based on resolved tickets vs total tickets</div>
+                <div class="stat-trend {% if res_up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if res_up %}&uarr;{% else %}&darr;{% endif %} {{ res_trend }}% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper icon-green">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satisfaction Rate -->
+    <div class="admin-stat-card">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Satisfaction Rate</span>
+                <div class="stat-value">{{ satisfaction_rate }}%</div>
+                <div class="stat-desc">From student resolution confirmations</div>
+                <div class="stat-trend {% if sat_up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if sat_up %}&uarr;{% else %}&darr;{% endif %} {{ sat_trend }}% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper icon-yellow">
+                <i class="fa-regular fa-thumbs-up"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escalation Rate -->
+    <div class="admin-stat-card">
+        <div class="stat-main">
+            <div class="stat-info">
+                <span class="stat-label">Escalation Rate</span>
+                <div class="stat-value">{{ escalation_rate }}%</div>
+                <div class="stat-desc">Tickets escalated to senior staff members</div>
+                <div class="stat-trend {% if esc_up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if esc_up %}&uarr;{% else %}&darr;{% endif %} {{ esc_trend }}% from last week
+                </div>
+            </div>
+            <div class="stat-icon-wrapper icon-red">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-section-grid">
+    <!-- Issues by Category (HTML/CSS Bar Chart) -->
+    <div class="admin-chart-card">
+        <div class="chart-header">
+            <h3><i class="fa-solid fa-chart-simple text-red"></i> Issues by Category</h3>
+        </div>
+        <div class="bar-chart-container">
+            {% for cat in category_data %}
+            <div class="bar-row">
+                <span class="bar-label">{{ cat.category__category_name }}</span>
+                <div class="bar-track">
+                    <!-- This helps calculate the width of the bar based on the count of the category -->
+                    <!-- widthratio calculates: (The number of tickets in this category / The number of tickets in the largest category) × 100-->
+                    <div class="bar-fill" style="width: {% widthratio cat.count max_category_count 100 %}%;"></div>
+                </div>
+                <span class="bar-value">{{ cat.count }}</span>
+            </div>
+            {% empty %}
+            <p class="text-center" style="color:#999; padding: 20px;">No category data available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Status Distribution (Chart.js Pie Chart) -->
+    <div class="admin-chart-card">
+        <div class="chart-header">
+            <h3><i class="fa-solid fa-chart-pie text-red"></i> Status Distribution</h3>
+        </div>
+        <div class="doughnut-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <!-- <div id="statusLegend" class="chart-custom-legend"></div> -->
+    </div>
+</div>
+
+<!-- Pending Staff Approvals Section -->
+<!-- <div class="content-card approvals-card">
+    <div class="card-header">
+        <div class="header-title-group">
+            <i class="fa-solid fa-user-check"></i>
+            <h3>Pending Staff Approvals</h3>
+        </div>
+        <p>Review and approve staff registration requests</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Employee ID</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in pending_staff %}
+                <tr>
+                    <td>{{ staff.get_full_name }}</td>
+                    <td>{{ staff.email }}</td>
+                    <td>{{ staff.staff_profile.employee_id }}</td>
+                    <td>{{ staff.staff_profile.department.department_name }}</td>
+                    <td class="action-buttons">
+                        <button class="btn-approve"
+                            onclick="openApprovalModal({{ staff.id }}, '{{ staff.get_full_name }}')">
+                            <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button class="btn-reject" onclick="rejectStaff({{ staff.id }})">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                        No pending staff approvals at this time.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div> -->
+
+<!-- Approval Modal -->
+<!-- <div id="approvalModal" class="staff-modal">
+    <div class="staff-modal-content approval-modal-content">
+        <div class="staff-modal-header">
+            <h3>Approve Staff Registration</h3>
+            <button class="close-btn" onclick="closeApprovalModal()">&times;</button>
+        </div>
+        <div class="staff-modal-body">
+            <p>Assign a role for <b id="approveStaffName">Staff Member</b> to complete the approval.</p>
+
+            <div class="role-selection-group">
+                <label class="role-option">
+                    <input type="radio" name="staffRole" value="STAFF" checked>
+                    <div class="role-card">
+                        <div class="role-icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <div class="role-text">
+                            <span class="role-title">Regular Staff</span>
+                            <p>Can view and resolve department tickets.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <label class="role-option">
+                    <input type="radio" name="staffRole" value="SENIOR">
+                    <div class="role-card">
+                        <div class="role-icon"><i class="fa-solid fa-user-gear"></i></div>
+                        <div class="role-text">
+                            <span class="role-title">Senior Staff</span>
+                            <p>Access to advanced ticket management and escalations.</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div class="staff-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeApprovalModal()">Cancel</button>
+            <button type="button" class="btn-submit-approve" onclick="submitApproval()">
+                Complete Approval
+            </button>
+        </div>
+    </div>
+</div> -->
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Status Distribution Pie Chart
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+
+        const data = {
+            labels: ['Resolved', 'Pending', 'In Progress', 'Open', 'Closed', 'Transferred', 'Escalated', 'Reopened', 'Rejected'],
+            datasets: [{
+                data: [
+                    // wrapped with number() to ensure it's a number preventing IDE syntax highlighting error
+                    Number("{{ chart_resolved_tickets }}"),
+                    Number("{{ chart_pending_tickets }}"),
+                    Number("{{ chart_in_progress_tickets }}"),
+                    Number("{{ chart_open_tickets }}"),
+                    Number("{{ chart_closed_tickets }}"),
+                    Number("{{ chart_transferred_tickets }}"),
+                    Number("{{ chart_escalated_tickets }}"),
+                    Number("{{ chart_reopened_tickets }}"),
+                    Number("{{ chart_rejected_tickets }}")
+                ],
+                backgroundColor: [
+                    '#039835', // for Resolved
+                    '#f57f17', // for Pending
+                    '#fbc02d', // for In Progress
+                    '#1565c0', // for Open
+                    '#09ef15', // for Closed
+                    '#c2185b', // for Transferred
+                    '#6a1b9a', // for Escalated
+                    '#083d79',  // for Reopened
+                    '#d93025'  // for Rejected
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        };
+
+        const statusChart = new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            padding: 10,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Generate Custom Legend
+        // const legendContainer = document.getElementById('statusLegend');
+        // const labels = data.labels;
+        // const colors = data.datasets[0].backgroundColor;
+
+        // let legendHTML = '';
+        // labels.forEach((label, index) => {
+        //     legendHTML += `
+        //         <div class="legend-item">
+        //             <span class="legend-color" style="background-color: ${colors[index]}"></span>
+        //             <span class="legend-label">${label}</span>
+        //         </div>
+        //     `;
+        // });
+        // legendContainer.innerHTML = legendHTML;
+    });
+
+    let selectedStaffId = null;
+
+    function openApprovalModal(id, name) {
+        selectedStaffId = id;
+        document.getElementById('approveStaffName').textContent = name;
+        document.getElementById('approvalModal').style.display = 'flex';
+    }
+
+    function closeApprovalModal() {
+        document.getElementById('approvalModal').style.display = 'none';
+        selectedStaffId = null;
+    }
+
+    async function submitApproval() {
+        const role = document.querySelector('input[name="staffRole"]:checked').value;
+        const accessToken = localStorage.getItem('access_token');
+
+        try {
+            const response = await fetch('/api/accounts/admin/approve_staff/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: selectedStaffId,
+                    staff_role: role
+                })
+            });
+
+            if (response.ok) {
+                alert('Staff member approved successfully!');
+                location.reload();
+            } else {
+                const data = await response.json();
+                alert('Error: ' + (data.error || 'Failed to approve'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        }
+    }
+
+    async function rejectStaff(id) {
+        if (!confirm('Are you sure you want to reject this registration? The account will be permanently deleted.')) return;
+
+        const accessToken = localStorage.getItem('access_token');
+        try {
+            const response = await fetch('/api/accounts/admin/reject_staff/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: id
+                })
+            });
+
+            if (response.ok) {
+                alert('Request rejected and account deleted.');
+                location.reload();
+            } else {
+                alert('Failed to reject registration.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+{% endblock %}

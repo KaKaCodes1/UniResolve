@@ -1,0 +1,110 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}Ticket Details - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'admin_dashboard' %}">Dashboard</a> &gt;
+    <a href="{% url 'admin_all_issues' %}">All Issues</a> &gt;
+    <span class="active-crumb" id="breadcrumbId">Ticket TICK-...</span>
+</div>
+
+<div class="ticket-detail-container">
+    <!-- Ticket Summary Header (Grey Card) -->
+    <div class="ticket-summary-card">
+        <h2 id="detailTitle" class="ticket-title">Loading Ticket...</h2>
+        <div class="ticket-id-badge" id="detailId">#...</div>
+
+        <div class="ticket-meta">
+            <div class="meta-item">
+                <span class="meta-label">CATEGORY:</span>
+                <span id="detailCategory" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">SUBMITTED BY:</span>
+                <span id="detailOwner" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">DATE SUBMITTED:</span>
+                <span id="detailDate" class="meta-value">...</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">STATUS:</span>
+                <span id="detailStatus" class="status-pill">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Original Issue Section -->
+    <div class="original-issue-section">
+        <h3>DESCRIPTION</h3>
+        <p id="detailDescription" class="issue-text">Loading description...</p>
+
+        <div id="detailAttachmentSection" style="display: none; margin-top: 15px;">
+            <h3>ATTACHMENT</h3>
+            <a id="detailAttachmentLink" href="#" target="_blank" class="attachment-pill">
+                <i class="fa-solid fa-paperclip"></i>
+                <span id="detailAttachmentName">Attachment</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Additional Information Section -->
+    <div class="additional-info-section" id="additionalInfoSection" style="display: none;">
+        <h3>ADDITIONAL INFORMATION</h3>
+        <div id="additionalInfoContent" class="info-content">
+            <!-- Additional info will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Resolution Timeline -->
+    <div class="resolution-timeline-card">
+        <h3>RESOLUTION TIMELINE</h3>
+        <div id="timelineContainer" class="timeline-container">
+            <div class="loading-spinner">Loading timeline...</div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- <script src="{% static 'tickets/js/escalation.js' %}?v=3"></script> -->
+<script src="{% static 'common/js/ticket_details.js' %}"></script>
+<script>
+    const ticketId = window.location.pathname.split('/').filter(Boolean).pop();
+    let currentTicket = null;
+    let currentTicketId = ticketId; // Required for escalation.js
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadTicketDetails();
+    });
+
+    async function loadTicketDetails() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            window.location.href = "{% url 'signin' %}";
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/tickets/${ticketId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                currentTicket = await response.json();
+                populateDetails(currentTicket);
+            } else {
+                alert('Failed to load ticket details.');
+            }
+        } catch (error) {
+            console.error('Error fetching ticket details:', error);
+        }
+    }
+</script>
+{% endblock %}

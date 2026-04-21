@@ -1,0 +1,116 @@
+{% extends 'accounts/base_auth.html' %}
+
+{% block title %}Login - UniResolve{% endblock %}
+
+{% block content %}
+<div class="auth-header">
+    <h2>Welcome To UniResolve</h2>
+    <p>Login to your account</p>
+</div>
+
+<form id="loginForm">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+        <div id="detail_error" class="error-message"></div> <!-- DRF usually returns 'detail' for auth errors -->
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+        <i class="fa-solid fa-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
+    </div>
+
+    <button type="submit" class="btn-primary" id="submitBtn">Login</button>
+</form>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Logging in...';
+
+        // Clear previous errors
+        document.getElementById('detail_error').style.display = 'none';
+        document.getElementById('detail_error').innerText = '';
+
+        const formData = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            const response = await fetch('/api/accounts/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Success! Store tokens.
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+                
+                // Store roles for later redirect if forced password change occurs
+                localStorage.setItem('user_role', data.role);
+                if (data.staff_role) {
+                    localStorage.setItem('staff_role', data.staff_role);
+                }
+
+                if (data.must_change_password) {
+                    window.location.href = "{% url 'force_password_change' %}";
+                    return;
+                }
+
+                alert('Login Successful!');
+                // Redirect to Dashboards based on user role
+                if (data.role === 'Student') {
+                    window.location.href = "{% url 'student_dashboard' %}";
+                } else if (data.role === 'Staff' && data.staff_role === 'SENIOR') {
+                    window.location.href = "{% url 'senior_staff_dashboard' %}";
+                } else if (data.role === 'Staff') {
+                    window.location.href = "{% url 'staff_dashboard' %}";
+                } else if (data.role === 'Admin') {
+                    window.location.href = "{% url 'admin_dashboard' %}";
+                } else {
+                    // Fallback in case of unexpected role
+                    alert('Unknown role: ' + data.role);
+                }
+            } else {
+                // Handle Errors
+                // DRF SimpleJWT returns {'detail': 'No active account found...'} on failure
+                const errorDiv = document.getElementById('detail_error');
+                if (data.detail) {
+                    errorDiv.innerText = data.detail;
+                    errorDiv.style.display = 'block';
+                } else {
+                    errorDiv.innerText = 'Invalid credentials';
+                    errorDiv.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Login';
+        }
+    });
+
+
+</script>
+{% endblock %}

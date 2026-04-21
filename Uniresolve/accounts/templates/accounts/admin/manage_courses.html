@@ -1,0 +1,69 @@
+{% extends 'accounts/admin/base_admindashboard.html' %}
+{% load static %}
+
+{% block title %}Manage Courses - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Courses Management</h2>
+</div>
+
+<!-- Add New Department Card -->
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">Add New Course</h3>
+        <p class="management-card-subtitle">Enter the course name to add to the system</p>
+    </div>
+    <div class="management-card-body">
+        <form id="addCourseForm" class="add-management-form">
+            <div class="form-group" id="courseNameGroup">
+                <label for="courseName">Course Name </label>
+                <input type="text" id="courseName" class="management-input" placeholder="Enter course name..." required>
+            </div>
+            <div class="form-group" id="departmentSelectGroup">
+                <label for="selectDepartment">Select Department</label>
+                <select id="selectDepartment">
+                    <option value="">-- Choose Department --</option>
+                    <!-- Departments loaded asynchronously by escalation.js -->
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" id="addCourseBtn">
+                <i class="fa-solid fa-plus"></i> Add Course
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- All Courses List Card -->
+<div class="management-card">
+    <div class="management-card-header">
+        <h3 class="management-card-title">All Courses</h3>
+        <p class="management-card-subtitle" id="coursesCount">0 courses in the system</p>
+    </div>
+    <div class="management-card-body">
+        <div class="management-table-container">
+            <table class="management-table" id="coursesTable">
+                <thead>
+                    <tr>
+                        <th class="col-name">Course Name</th>
+                        <th class="col-name">Department</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="coursesTableBody">
+                    <!-- Loading state -->
+                    <tr id="loadingCoursesRow">
+                        <td colspan="3" class="text-center">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading courses...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'accounts/js/manage_courses.js' %}"></script>
+{% endblock %}

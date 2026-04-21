@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, StudentProfile, StaffProfile
+from .models import User, StudentProfile, StaffProfile, Notification 
 
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('first_name', 'last_name', 'email')
-    list_filter = ('role', 'is_staff')
+    list_display = ('first_name', 'last_name', 'email','role', 'must_change_password','is_active')
+    list_filter = ('role', 'must_change_password','is_active')
     search_fields = ('first_name', 'last_name', 'email', 'student_profile__reg_number', 'staff_profile__employee_id')
 
     fieldsets = UserAdmin.fieldsets + (
@@ -18,7 +18,7 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
-    list_display =('get_user_email', 'get_full_name', 'reg_number', 'program')
+    list_display =('get_user_email', 'get_full_name', 'reg_number', 'course')
     search_fields =('user__email', 'user__first_name', 'reg_number')
     list_select_related =('user',)
 
@@ -35,9 +35,9 @@ class StudentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(StaffProfile)
 class StaffProfileAdmin(admin.ModelAdmin):
-    list_display = ('get_user_email', 'get_full_name', 'employee_id', 'department')
+    list_display = ('get_user_email', 'get_full_name', 'employee_id', 'department','staff_role')
     search_fields = ('user__email', 'employee_id', 'department__name')
-    list_filter = ('department',)
+    list_filter = ('department','staff_role')
     list_select_related = ('user', 'department')
 
     def get_user_email(self,obj):
@@ -50,3 +50,11 @@ class StaffProfileAdmin(admin.ModelAdmin):
     def get_full_name(self,obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
     get_full_name.short_description = 'Name'
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'message', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('user__email', 'message')
+    list_select_related = ('user',)
+

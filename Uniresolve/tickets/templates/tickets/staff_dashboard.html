@@ -1,0 +1,199 @@
+{% extends 'tickets/base_staffdashboard.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard - UniResolve{% endblock %}
+
+
+{% block content %}
+<div class="page-header">
+    <h2>Staff Dashboard</h2>
+</div>
+
+<!-- Key Performance Indicators (KPI) Cards -->
+<!-- These cards display the high-level metrics for the staff member's department -->
+<div class="dashboard-stats">
+    <!-- Total Issues Card -->
+    <div class="stat-card">
+        <span class="stat-label">Total Issues</span>
+        <!-- ID 'totalTickets' is targeted by JS to insert the count -->
+        <div class="stat-value" id="totalTickets">{{ total_tickets }}</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-file-lines"></i>
+            <span>All department tickets</span>
+        </div>
+    </div>
+
+    <!-- Open Issues Card -->
+    <div class="stat-card">
+        <span class="stat-label">Open</span>
+        <!-- ID 'openTickets' is targeted by JS -->
+        <div class="stat-value" id="openTickets">{{ open_tickets }}</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-folder-open"></i>
+            <span>New arrivals</span>
+        </div>
+    </div>
+
+    <!-- Pending Issues Card -->
+    <div class="stat-card">
+        <span class="stat-label">Pending</span>
+        <!-- ID 'pendingTickets' is targeted by JS -->
+        <div class="stat-value" id="pendingTickets">{{ pending_tickets }}</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-clock"></i>
+            <span>Awaiting action</span>
+        </div>
+    </div>
+
+    <!-- Resolved Issues Card -->
+    <div class="stat-card">
+        <span class="stat-label">Resolved</span>
+        <!-- ID 'resolvedTickets' is targeted by JS -->
+        <div class="stat-value" id="resolvedTickets">{{ resolved_tickets }}</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-circle-check"></i>
+            <span>Completed</span>
+        </div>
+    </div>
+</div>
+
+<!-- Incoming Issues Queue -->
+<!-- This table displays specifically the NEW OPEN issues that need attention -->
+<div class="content-card">
+    <div class="card-header">
+        <h3>Incoming/Unresolved Issues Queue</h3>
+        <p>All reported issues for your department requiring attention</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="history-table dashboard-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Student Name</th>
+                    <th>Category</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Timeframe</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <!-- The body is empty initially and populated by JavaScript -->
+            <tbody id="ticketTableBody">
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner">Loading tickets...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'tickets/js/escalation.js' %}"></script>
+<script src="{% static 'common/js/get_timeframe.js' %}"></script>
+<script>
+    // Global variable to store current table data
+    let latestTickets = [];
+    let currentTicketId = null;
+
+    // Execute when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', loadStaffDashboardData);
+
+    /**
+     * Fetches dashboard statistics and ticket data from the API
+     * and updates the DOM elements.
+     */
+    async function loadStaffDashboardData() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            console.warn("No access token found. Redirecting to login...");
+            // Optional: window.location.href = "{% url 'signin' %}";
+            return;
+        }
+
+        try {
+            // Fetch data from our new API endpoint
+            const response = await fetch('/api/v1/tickets/staffdashboard_stats/', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                latestTickets = data.incoming_tickets; // Store for modal access
+
+                // --- Update Statistics Cards ---
+                updateElementText('totalTickets', data.total_tickets);
+                updateElementText('openTickets', data.open_tickets);
+                updateElementText('pendingTickets', data.pending_tickets);
+                updateElementText('resolvedTickets', data.resolved_tickets);
+
+                // --- Update Recent Issues Table ---
+                const tableBody = document.getElementById('ticketTableBody');
+                tableBody.innerHTML = ''; // Clear loading spinner
+
+                if (data.incoming_tickets.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 30px;">
+                                <p>No new open tickets found.</p>
+                            </td>
+                        </tr>
+                     `;
+                } else {
+                    // Iterate through each ticket and create a table row
+                    data.incoming_tickets.forEach(ticket => {
+                        const row = document.createElement('tr');
+
+                        const date = new Date(ticket.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric', month: 'numeric', day: 'numeric'
+                        });
+                        const timeframeHTML = getTimeframeDisplay(ticket.due_date, ticket.status);
+
+                        row.innerHTML = `
+                            <td><span class="ticket-id">#${ticket.id}</span></td>
+                            <td>${ticket.owner || 'N/A'}</td> 
+                            <td>${ticket.category_name}</td>
+                            <td class="ticket-subject">${ticket.title}</td>
+                            <td>${date}</td>
+                            <td>${timeframeHTML}</td>
+                            <td>
+                                <span class="status-badge status-${ticket.status.toLowerCase()}">
+                                    ${ticket.status}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/api/v1/staff-dashboard/ticket/${ticket.id}/" class="btn-${ticket.status === 'RESOLVED' ? 'secondary' : 'primary'} btn-sm" style="text-decoration: none;">
+                                    ${ticket.status === 'RESOLVED' ? 'View' : 'Resolve'}
+                                </a>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+
+            } else {
+                console.error("Failed to load staff dashboard data", response.status);
+            }
+        } catch (e) {
+            console.error("Error loading dashboard data:", e);
+        }
+    }
+
+
+
+    /**
+     * Helper function to safely update text content of an element
+     */
+    function updateElementText(elementId, text) {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = text;
+    }
+</script>
+{% endblock %}
