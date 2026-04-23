@@ -485,16 +485,16 @@ else:
 | **Events That Trigger Notifications** | New ticket submitted, ticket resolved/pending/in-progress, ticket escalated (manual + auto), ticket transferred, additional info submitted, feedback submitted (closed/reopened), deadline warning. |
 | **Recipient Filtering** | `must_change_password=False` and `is_active=True` — un-onboarded and inactive staff are excluded. |
 
-### 4.8 Asynchronous Email Notifications
+### 4.8 Hybrid Asynchronous Email Notifications
 
 | Aspect | Detail |
 |---|---|
 | **Source** | `accounts/utils/email_notification_util.py` |
 | **Mechanism** | Python `threading.Thread` subclass (`EmailThread`). Each email is fired in a separate thread to avoid blocking the request-response cycle. |
 | **Integration** | `trigger_async_emails(notifications)` accepts a single or list of `Notification` objects. Called immediately after in-app notifications are created. |
-| **Email Backend** | `django.core.mail.backends.console.EmailBackend` (dev mode — prints to console). |
-| **Format** | Plain text. Includes user's first name, notification message, and link. |
-| **Sender** | `noreply@uniresolve.edu` |
+| **Routing / Backend** | Hybrid approach. If the recipient is in `settings.WHITELISTED_EMAILS`, the email is sent using the configured SMTP backend (e.g., Gmail). All other addresses fallback safely to `django.core.mail.backends.console.EmailBackend`. |
+| **Format** | Plain text. Includes user's first name, notification message, and absolute clickable link to the portal. |
+| **Sender** | Dynamically uses `EMAIL_HOST_USER` with the name `"UniResolve Automated"`, falling back to `noreply@uniresolve.edu`. |
 
 ### 4.9 Manual Escalation (Two-Tier)
 
@@ -717,7 +717,7 @@ The admin dashboard is **rendered server-side** via `AdminDashboardPageView.get_
 | **DRF Auth** | `JWTAuthentication` (global default) |
 | **Static Files** | Standard Django static serving per app |
 | **Media Files** | `media/` directory, served in DEBUG mode |
-| **Email Backend** | Console (dev) |
+| **Email Backend** | Hybrid: SMTP via `EMAIL_HOST_USER` + Console fallback (credentials in `.env`) |
 | **Time Zone** | UTC |
 
 ---
