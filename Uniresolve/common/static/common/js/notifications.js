@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     dropdown.innerHTML = `
         <div class="notification-header">
             <h4>Notifications</h4>
-            <span class="mark-all-read">Mark all as read</span>
         </div>
         <div class="notification-list"></div>
     `;
@@ -111,3 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Poll every 3 minutes
     setInterval(fetchNotifications, 180000);
 });
+
+// remember to add this back as well as create its function
+// <span class="mark-all-read">Mark all as read</span>
+
