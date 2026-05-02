@@ -111,6 +111,4 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchNotifications, 180000);
 });
 
-// remember to add this back as well as create its function
-// <span class="mark-all-read">Mark all as read</span>
 
