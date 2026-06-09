@@ -245,19 +245,19 @@ class TicketViewSet(viewsets.ModelViewSet):
         staff_dept = user.staff_profile.department
 
         # Filter tickets by the department's current queue
-        tickets = Ticket.objects.filter(current_department=staff_dept)
+        dept_tickets = Ticket.objects.filter(current_department=staff_dept)
 
-        # Enforce visibility rules based on seniority
+        # Enforce visibility rules - Junior staff can only see non-escalated tickets
         if user.staff_profile.staff_role == 'STAFF':
-            tickets = tickets.filter(is_escalated=False)
+            non_escalated_dept_tickets = dept_tickets.filter(is_escalated=False)
         
         # Prepare statistics
         stats = {
-            'total_tickets': tickets.count(),
-            'open_tickets': tickets.filter(status='OPEN').count(),
-            'pending_tickets': tickets.filter(status='PENDING').count(),
-            'resolved_tickets': tickets.filter(status='RESOLVED').count(),
-            'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED','REJECTED']).order_by('-created_at')[:5], many=True).data
+            'total_tickets': dept_tickets.count(),
+            'open_tickets': dept_tickets.filter(status='OPEN').count(),
+            'pending_tickets': non_escalated_dept_tickets.filter(status='PENDING').count(),
+            'resolved_tickets': non_escalated_dept_tickets.filter(status='RESOLVED').count(),
+            'incoming_tickets': TicketSerializer(non_escalated_dept_tickets.exclude(status__in=['RESOLVED', 'CLOSED','REJECTED']).order_by('-created_at')[:5], many=True).data
         }
         return Response(stats)
 
@@ -277,10 +277,10 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         stats = {
             'total_tickets': tickets.count(),
-            'open_tickets': tickets.filter(status='OPEN').count(),
+            # 'open_tickets': tickets.filter(status='OPEN').count(),
             'pending_tickets': tickets.filter(status='PENDING').count(),
             'resolved_tickets': tickets.filter(status='RESOLVED').count(),
-            'transferred_tickets': tickets.filter(status='TRANSFERRED').count(),
+            # 'transferred_tickets': tickets.filter(status='TRANSFERRED').count(),
             'escalated_tickets': tickets.filter(status='ESCALATED').count(),
             'incoming_tickets': TicketSerializer(tickets.exclude(status__in=['RESOLVED', 'CLOSED','REJECTED']).order_by('-created_at')[:5], many=True).data
         }
