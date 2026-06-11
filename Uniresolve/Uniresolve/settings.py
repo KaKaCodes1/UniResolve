@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'tickets',
     'organization',
     'common',
+    'administration',
 ]
 
 MIDDLEWARE = [
