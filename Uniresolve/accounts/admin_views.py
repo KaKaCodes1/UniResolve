@@ -2,14 +2,14 @@ from rest_framework import permissions, viewsets
 import openpyxl
 from datetime import timedelta
 from django.utils import timezone
-from .validators import validate_excel_file
+from administration.validators import validate_excel_file
 from .serializers import UserProfileSerializer
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView 
 from organization.models import Department, Category 
 from rest_framework.response import Response 
 from django.http import HttpResponse
-from .excel_generator import generate_template_workbook
+from administration.excel_generator import generate_template_workbook
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
