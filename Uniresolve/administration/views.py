@@ -28,7 +28,7 @@ User = get_user_model()
 
 @method_decorator(never_cache, name='dispatch')
 class AdminDashboardPageView(TemplateView):
-    template_name = 'accounts/admin/admin_dashboard.html'
+    template_name = 'administration/admin_dashboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -139,7 +139,7 @@ class AdminDashboardPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllStaffPageView(TemplateView):
-    template_name = 'accounts/admin/admin_allstaff.html'
+    template_name = 'administration/admin_allstaff.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -152,7 +152,7 @@ class AdminAllStaffPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllStudentsPageView(TemplateView):
-    template_name = 'accounts/admin/admin_allstudents.html'
+    template_name = 'administration/admin_allstudents.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -165,15 +165,15 @@ class AdminAllStudentsPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminBulkImportPageView(TemplateView):
-    template_name = 'accounts/admin/bulk_import.html'
+    template_name = 'administration/bulk_import.html'
 
 @method_decorator(never_cache, name='dispatch')
 class AdminTicketDetailView(TemplateView):
-    template_name = 'accounts/admin/admin_ticket_detail.html'
+    template_name = 'administration/admin_ticket_detail.html'
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllIssuesPageView(TemplateView):
-    template_name = 'accounts/admin/admin_allissues.html'
+    template_name = 'administration/admin_allissues.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -187,7 +187,7 @@ class AdminAllIssuesPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminCriticalTicketsPageView(TemplateView):
-    template_name = 'accounts/admin/admin_critical_tickets.html'
+    template_name = 'administration/admin_critical_tickets.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -200,7 +200,7 @@ class AdminCriticalTicketsPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminAllResolutionsPageView(TemplateView):
-    template_name = 'accounts/admin/admin_allresolutions.html'
+    template_name = 'administration/admin_allresolutions.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -213,15 +213,15 @@ class AdminAllResolutionsPageView(TemplateView):
 
 @method_decorator(never_cache, name='dispatch')
 class AdminManageDepartmentsPageView(TemplateView):
-    template_name = 'accounts/admin/manage_departments.html'   
+    template_name = 'administration/manage_departments.html'   
 
 @method_decorator(never_cache, name='dispatch')
 class AdminManageCoursesPageView(TemplateView):
-    template_name = 'accounts/admin/manage_courses.html'   
+    template_name = 'administration/manage_courses.html'   
 
 @method_decorator(never_cache, name='dispatch')
 class AdminManageIssueCategoriesPageView(TemplateView):
-    template_name = 'accounts/admin/manage_issue_categories.html'   
+    template_name = 'administration/manage_issue_categories.html'   
             
 #Viewsets
 class UsersViewSet(viewsets.ReadOnlyModelViewSet):
@@ -231,6 +231,7 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
     def check_admin(self, user):
         return user.is_authenticated and user.role == 'Admin'
 
+    # Retrieves a paginated list of all staff members, with optional filtering and searching.
     @action(detail=False, methods=['get'])
     def all_staff(self, request):
         if not self.check_admin(request.user):
@@ -286,6 +287,7 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
             'total_count': paginator.count
         })
 
+    # Retrieves a paginated list of all students, with optional filtering and searching.
     @action(detail=False, methods=['get'])
     def all_students(self, request):
         if not self.check_admin(request.user):
@@ -343,6 +345,7 @@ class UsersViewSet(viewsets.ReadOnlyModelViewSet):
             'total_count': paginator.count
         })
 
+    # Updates a specific user's active status and role (specifically for staff members).
     @action(detail=True, methods=['patch'])
     def update_user(self, request, pk=None):
         if not self.check_admin(request.user):
@@ -387,6 +390,7 @@ class AdminViewSet(viewsets.GenericViewSet):
     def check_admin(self, user):
         return user.is_authenticated and user.role == 'Admin'
 
+    # Generates and downloads an Excel template to be used for bulk importing users.
     @action(detail=False, methods=['get'])
     def download_template(self, request):
         if not self.check_admin(request.user):
@@ -404,6 +408,7 @@ class AdminViewSet(viewsets.GenericViewSet):
         wb.save(response)
         return response
 
+    # Processes an uploaded Excel file to create multiple user accounts in bulk.
     @action(detail=False, methods=['post'])
     def bulk_import(self, request):
         if not self.check_admin(request.user):
@@ -540,6 +545,7 @@ class AdminViewSet(viewsets.GenericViewSet):
             return Response({'error': f'Failed to process file: {str(e)}'}, status=500)
 
 
+    # Fetches a paginated list of all issues (tickets) with support for filtering and searching.
     @action(detail=False, methods=['get'], url_path='all-issues')
     def get_all_issues(self, request):
         """
@@ -601,6 +607,7 @@ class AdminViewSet(viewsets.GenericViewSet):
             'total_count': paginator.count
         })
 
+    # Retrieves tickets that have passed their due date and remain unresolved.
     @action(detail=False, methods=['get'], url_path='critical-tickets')
     def get_critical_tickets(self, request):
         """
@@ -662,6 +669,7 @@ class AdminViewSet(viewsets.GenericViewSet):
             'total_count': paginator.count
         })
 
+    # Retrieves a paginated list of all ticket resolutions with optional filtering and searching.
     @action(detail=False, methods=['get'], url_path='all-resolutions')
     def all_resolutions(self, request):
         if not self.check_admin(request.user):
