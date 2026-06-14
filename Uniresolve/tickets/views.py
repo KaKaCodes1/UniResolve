@@ -157,7 +157,13 @@ class StaffAllIssuesPageView(TemplateView):
         if user.is_authenticated and user.role == 'Staff' and hasattr(user, 'staff_profile') and user.staff_profile.department:
              # Pass categories for the dropdown filter
              staff_dept = user.staff_profile.department
-             context['categories'] = Category.objects.filter(department=staff_dept)
+             
+             # Check if department has any courses, if so, pass academic categories
+             # else pass only department categories
+             if staff_dept.courses.exists():
+                 context['categories'] = Category.objects.filter(Q(department=staff_dept) | Q(is_academic=True))
+             else:
+                 context['categories'] = Category.objects.filter(department=staff_dept)
              context['status_choices'] = Ticket.status_choices
         return context
 

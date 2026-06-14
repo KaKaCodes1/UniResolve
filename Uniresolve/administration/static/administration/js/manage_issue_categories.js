@@ -94,8 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="text" class="issue-category-name-input hidden" value="${issueCategory.category_name}">
                 </td>
                 <td class="col-name">
-                    <span class="issue-category-department-display">${issueCategory.department_name}</span>
+                    <span class="issue-category-department-display">${issueCategory.department_name || 'Global (Academic)'}</span>
                     <select class="issue-category-department-select hidden">
+                        <option value="" ${!issueCategory.department ? 'selected' : ''}>-- No Department (Global/Academic) --</option>
                         ${allDepartments.map(dept => `<option value="${dept.id}" ${dept.id === issueCategory.department ? 'selected' : ''}>${dept.department_name}</option>`).join('')}
                     </select>
                 </td>
@@ -128,10 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const newName = issueCategoryNameInput.value.trim();
-        const departmentId = document.getElementById('selectDepartment').value;
-        const isAcademic = document.getElementById('isAcademic').value;
+        const departmentId = document.getElementById('selectDepartment').value || null;
+        const isAcademic = document.getElementById('isAcademic').value === 'true';
         const timeframe = document.getElementById('timeframe').value;
-        if (!newName || !departmentId) return;
+        if (!newName) return;
+        if (!isAcademic && !departmentId) {
+            alert('Department is required for non-academic categories.', 'error');
+            return;
+        }
 
         // Set loading state on button
         const originalBtnHTML = addIssueCategoryBtn.innerHTML;
@@ -200,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Focus and select input
         inputField.focus();
-        // Optional: cancel edit if clicking outside or pressing escape
+        // Cancel edit by pressing escape and save by pressing enter
         inputField.addEventListener('keyup', (e) => {
             if (e.key === 'Escape') {
                 cancelEdit(row);
@@ -233,11 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset select dropdown to what is currently displayed
         const currentDeptName = deptDisplaySpan.textContent;
-        Array.from(deptSelect.options).forEach(opt => {
-            if (opt.textContent === currentDeptName) {
-                deptSelect.value = opt.value;
-            }
-        });
+        if (currentDeptName === 'Global (Academic)') {
+            deptSelect.value = '';
+        } else {
+            Array.from(deptSelect.options).forEach(opt => {
+                if (opt.textContent === currentDeptName) {
+                    deptSelect.value = opt.value;
+                }
+            });
+        }
 
         // Reset isAcademicSelect
         const currentIsAcademic = isAcademicDisplay.textContent;
@@ -267,12 +276,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAcademicSelect = row.querySelector('.issue-category-is-academic-select');
         const timeframeInput = row.querySelector('.issue-category-timeframe-input');
         const newName = inputField.value.trim();
-        const newDeptId = deptSelect.value;
-        const newIsAcademic = isAcademicSelect.value;
+        const newDeptId = deptSelect.value || null;
+        const newIsAcademic = isAcademicSelect.value === 'true';
         const newTimeframe = timeframeInput.value;
 
         if (!newName) {
             alert('Issue category name cannot be empty', 'error');
+            return;
+        }
+        if (!newIsAcademic && !newDeptId) {
+            alert('Department is required for non-academic categories', 'error');
             return;
         }
 
@@ -305,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isAcademicDisplay = row.querySelector('.issue-category-is-academic-display');
             const timeframeDisplay = row.querySelector('.issue-category-timeframe-display');
             displaySpan.textContent = newName;
-            deptDisplaySpan.textContent = deptSelect.options[deptSelect.selectedIndex].text;
-            isAcademicDisplay.textContent = newIsAcademic === 'true' ? 'Yes' : 'No';
+            deptDisplaySpan.textContent = deptSelect.value ? deptSelect.options[deptSelect.selectedIndex].text : 'Global (Academic)';
+            isAcademicDisplay.textContent = newIsAcademic === true ? 'Yes' : 'No';
             timeframeDisplay.textContent = newTimeframe + ' hrs';
             alert('Issue category updated successfully', 'success');
 
@@ -371,33 +384,4 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // function showToast(message, type = 'info') {
-    //     // We'll use a simple alert for now, but a real toast should be used in production
-    //     // Assuming there isn't a global toast system based on current files
-    //     // But if there is, replace this with the global toast function
-    //     const toastDiv = document.createElement('div');
-    //     toastDiv.className = `custom-toast ${type}`;
-    //     toastDiv.textContent = message;
-
-    //     // Basic styling for the isolated toast directly injected
-    //     Object.assign(toastDiv.style, {
-    //         position: 'fixed',
-    //         bottom: '20px',
-    //         right: '20px',
-    //         padding: '12px 24px',
-    //         background: type === 'error' ? '#c62828' : '#2e7d32',
-    //         color: 'white',
-    //         borderRadius: '4px',
-    //         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-    //         zIndex: '9999',
-    //         transition: 'opacity 0.3s ease'
-    //     });
-
-    //     document.body.appendChild(toastDiv);
-
-    //     setTimeout(() => {
-    //         toastDiv.style.opacity = '0';
-    //         setTimeout(() => toastDiv.remove(), 300);
-    //     }, 3000);
-    // }
 });
