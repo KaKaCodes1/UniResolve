@@ -74,7 +74,7 @@ function populateDetails(ticket) {
     if (addInfoSection) {
         let addInfoContent = document.getElementById('additionalInfoContent'); 
         
-        // Render History
+        // Render Additional Information submitted
         if (addInfoContent) {
             if (ticket.additional_info && ticket.additional_info.length > 0) {
                 addInfoSection.style.display = 'block';
@@ -214,7 +214,8 @@ function populateDetails(ticket) {
     // Staff Context - Action Area
     const actionArea = document.getElementById('staffActionArea');
     if (actionArea) {
-        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED') {
+        if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED' || ticket.status === 'PENDING') 
+        {
             actionArea.style.display = 'none';
         } else {
             actionArea.style.display = 'block';
