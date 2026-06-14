@@ -1,4 +1,8 @@
 import threading
+# Threading allows UniResolve to run tasks asynchronously in a separate flow of execution.
+# This prevents the web application from freezing or lagging while waiting for external mail servers (SMTP) to respond.
+# By subclassing threading.Thread, we offload the time-consuming SMTP network request to a background thread.
+# This keeps HTTP requests lightning-fast, providing an optimal and responsive user experience without blocking the main request-response cycle."
 from django.core.mail import EmailMessage, get_connection
 from django.conf import settings
 from email.utils import format_datetime
