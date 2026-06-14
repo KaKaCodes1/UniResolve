@@ -8,7 +8,7 @@ function openResolutionModal(ticketId, ticketTitle, staffName, status, fullFeedb
     statusSpan.className = `status-badge status-${status.toLowerCase()}`;
     statusSpan.textContent = status;
 
-    // Optional department
+    // Optional department - will not be visible for department staff
     const deptContainer = document.getElementById('modalDepartmentContainer');
     if (department) {
         document.getElementById('modalDepartment').textContent = department;

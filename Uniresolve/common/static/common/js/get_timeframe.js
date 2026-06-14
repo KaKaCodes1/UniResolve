@@ -5,7 +5,7 @@
 function getTimeframeDisplay(dueDateString, status) {
     if (!dueDateString) return '<span style="color: gray;">N/A</span>';
 
-    // If the ticket is resolved or transferred, don't show overdue status
+    // Check status and return appropriate text
     if (status === 'RESOLVED' || status === 'CLOSED') {
         return '<span style="color: gray;">Completed</span>';
     }
@@ -28,13 +28,16 @@ function getTimeframeDisplay(dueDateString, status) {
         absDiffMs = Math.abs(diffMs);
     }
 
-    const diffDays = Math.floor(absDiffMs / (1000 * 60 * 60 * 24));
+    // Calculate whole days and subtract them from the total millisecond difference
+    const diffDays = Math.floor(absDiffMs / (1000 * 60 * 60 * 24)); // 1 day = 1000ms * 60s * 60m * 24h
     absDiffMs -= diffDays * (1000 * 60 * 60 * 24);
 
-    const diffHours = Math.floor(absDiffMs / (1000 * 60 * 60));
+    // Calculate remaining whole hours and subtract them from the remainder
+    const diffHours = Math.floor(absDiffMs / (1000 * 60 * 60)); // 1 hour = 1000ms * 60s * 60m
     absDiffMs -= diffHours * (1000 * 60 * 60);
 
-    const diffMinutes = Math.floor(absDiffMs / (1000 * 60));
+    // Calculate remaining whole minutes
+    const diffMinutes = Math.floor(absDiffMs / (1000 * 60)); // 1 minute = 1000ms * 60s
 
     let color = '#2e7d32'; // Default Green (Safe)
     if (isOverdue) {
@@ -56,7 +59,7 @@ function getTimeframeDisplay(dueDateString, status) {
     }
 
     if (textParts.length === 0) {
-        textParts.push('Just now');
+        textParts.push('Few Seconds');
     }
 
     let textStr = textParts.join(' ');
