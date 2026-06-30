@@ -402,6 +402,7 @@ class AdminViewSet(viewsets.GenericViewSet):
 
         wb = generate_template_workbook(role)
         
+        # Prepare the HTTP response to force a file download of the generated Excel workbook
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={role}_Import_Template.xlsx'
         
