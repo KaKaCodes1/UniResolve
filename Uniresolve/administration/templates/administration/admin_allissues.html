@@ -1,27 +1,35 @@
-{% extends 'accounts/admin/base_admindashboard.html' %}
+{% extends 'administration/base_admindashboard.html' %}
 {% load static %}
 
-{% block title %}Critical Tickets - Admin Dashboard{% endblock %}
+{% block title %}All Issues - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h2>Critical Tickets (Overdue SLAs)</h2>
-    <p>Tickets that have breached their designated resolution timeframe.</p>
+    <h2>All Issues</h2>
 </div>
 
 <!-- Filters Section -->
 <div class="filters-card">
     <div class="filters-header">
         <h3 class="filters-title">Filters</h3>
-        <p class="filters-subtitle">Search and filter critical tickets</p>
+        <p class="filters-subtitle">Search and filter all issues</p>
     </div>
 
     <div class="search-row">
         <input type="text" id="searchInput" class="search-input"
-            placeholder="Search by ticket ID, subject, student name...">
+            placeholder="Search by ticket ID, subject, student name or reg number...">
     </div>
 
     <div class="filters-row">
+        <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" class="filter-select">
+                <option value="All Statuses">All Statuses</option>
+                {% for value, name in status_choices %}
+                <option value="{{ value }}">{{ name|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="filter-group">
             <label for="categoryFilter">Category</label>
             <select id="categoryFilter" class="filter-select">
@@ -46,7 +54,7 @@
 <!-- Issues List -->
 <div class="content-card">
     <div class="card-header">
-        <h3>Critical Issues List</h3>
+        <h3>Issues List</h3>
         <span class="issues-count" id="issuesCount">Loading...</span>
     </div>
 
@@ -59,14 +67,15 @@
                     <th>Category</th>
                     <th>Title</th>
                     <th>Department</th>
-                    <th>Due Date</th>
+                    <th>Date</th>
                     <th>Status</th>
+                    <!-- <th>Action</th> -->
                 </tr>
             </thead>
             <tbody id="ticketTableBody">
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px;">
-                        <div class="loading-spinner">Loading critical tickets...</div>
+                        <div class="loading-spinner">Loading tickets...</div>
                     </td>
                 </tr>
             </tbody>
@@ -81,7 +90,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'common/js/get_timeframe.js' %}"></script>
 <script>
     let currentPage = 1
 
@@ -90,11 +98,17 @@
 
         // Event listeners for filters
         document.getElementById('searchInput').addEventListener('input', debounce(loadTickets, 500));
+        document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
         document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
         document.getElementById('departmentFilter').addEventListener('change', () => { currentPage = 1; loadTickets(); });
     });
 
     // Debounce helper
+    /*
+    Prevents a function from being called too frequently. 
+    It forces the function to wait until the user has stopped typing for 
+    500ms before executing. 
+    */
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -113,7 +127,7 @@
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px;">
-                        <div class="loading-spinner">Loading critical tickets...</div>
+                        <div class="loading-spinner">Loading tickets...</div>
                     </td>
                 </tr>`;
         }
@@ -123,10 +137,12 @@
         currentPage = page;
         // Gather current state from DOM elements
         const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
         const category = document.getElementById('categoryFilter').value;
         const department = document.getElementById('departmentFilter').value;
 
-        let url = `/api/accounts/admin/critical-tickets/?search=${encodeURIComponent(search)}&page=${page}`;
+        let url = `/api/administration/admin/all-issues/?search=${encodeURIComponent(search)}&page=${page}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
         if (category) url += `&category=${encodeURIComponent(category)}`;
         if (department) url += `&department=${encodeURIComponent(department)}`;
 
@@ -170,7 +186,7 @@
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align:center; color: red;">
-                        No critical tickets found.
+                        No tickets found.
                     </td>
                 </tr>`;
             return;
@@ -178,24 +194,15 @@
 
         tickets.forEach(ticket => {
             const row = document.createElement('tr');
-            // Format due date in red if overdue
-            const dueDate = new Date(ticket.due_date);
-            const dateStr = dueDate.toLocaleString();
-            
-            // Get dynamic timeframe
-            const timeframeHtml = getTimeframeDisplay(ticket.due_date, ticket.status);
-            
-            // Note: Clicks route securely to the ticket detail page
-            row.onclick = () => window.location.href = '/api/accounts/admin-dashboard/ticket/' + ticket.id + '/';
-            row.style.cursor = 'pointer';
-            
+            const date = new Date(ticket.created_at).toLocaleDateString();
+            row.onclick = () => window.location.href = '/api/administration/admin-dashboard/ticket/' + ticket.id + '/';
             row.innerHTML = `
                 <td><span class="ticket-id">#${ticket.id}</span></td>
                 <td>${ticket.owner || 'N/A'}</td>
                 <td>${ticket.category_name || 'N/A'}</td>
                 <td class="ticket-subject">${ticket.title}</td>
                 <td>${ticket.current_department_name || 'N/A'}</td>
-                <td><div>${dateStr}</div><div style="margin-top: 4px; font-size: 0.85rem;">${timeframeHtml}</div></td>
+                <td>${date}</td>
                 <td>
                     <span class="status-badge status-${ticket.status.toLowerCase()}">${ticket.status}</span>
                 </td>
@@ -203,13 +210,13 @@
             tableBody.appendChild(row);
         });
     }
-
     function renderPagination(data) {
         const paginationControls = document.getElementById('paginationControls');
         paginationControls.innerHTML = '';
 
         if (data.total_pages <= 1) return;
 
+        //Previous
         const prevBtn = document.createElement('button');
         prevBtn.innerText = 'Previous';
         prevBtn.className = 'page-btn';
@@ -217,12 +224,14 @@
         prevBtn.onclick = () => loadTickets(data.current_page - 1);
         paginationControls.appendChild(prevBtn);
 
+        // Page number
         const pageInd = document.createElement('span');
         pageInd.style.alignSelf = 'center';
         pageInd.style.color = '#666';
         pageInd.innerText = ` Page ${data.current_page} of ${data.total_pages} `;
         paginationControls.appendChild(pageInd);
 
+        //Next
         const nextBtn = document.createElement('button');
         nextBtn.innerText = 'Next';
         nextBtn.className = 'page-btn';
@@ -230,5 +239,6 @@
         nextBtn.onclick = () => loadTickets(data.current_page + 1);
         paginationControls.appendChild(nextBtn);
     }
+
 </script>
 {% endblock %}

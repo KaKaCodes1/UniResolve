@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 from organization.models import Course, Department
 from rest_framework_simplejwt.views import TokenObtainPairView 
 from rest_framework.response import Response 
+from tickets.utils.auto_escalate_util import auto_escalate_overdue_tickets, issue_deadline_warnings
 
 User = get_user_model()
 
@@ -71,11 +72,14 @@ class CustomLoginView(TokenObtainPairView):
         
         return Response(serializer.validated_data, status=200)
 
+# View to list all notifications of a user
 class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        issue_deadline_warnings()
+        auto_escalate_overdue_tickets()
         return self.request.user.notifications.all()
 
 # View to mark a notification as read

@@ -1,4 +1,4 @@
-{% extends 'accounts/admin/base_admindashboard.html' %}
+{% extends 'administration/base_admindashboard.html' %}
 {% load static %}
 
 {% block title %}All Students - Admin Dashboard{% endblock %}
@@ -170,7 +170,7 @@
         const status = statusFilter.value;
         const course = courseFilter.value;
 
-        let url = `/api/accounts/users/all_students/?search=${encodeURIComponent(search)}&page=${page}`;
+        let url = `/api/administration/users/all_students/?search=${encodeURIComponent(search)}&page=${page}`;
         if (dept) url += `&department=${encodeURIComponent(dept)}`;
         if (status) url += `&status=${encodeURIComponent(status)}`;
         if (course) url += `&course=${encodeURIComponent(course)}`;
@@ -272,7 +272,7 @@
 
     // async function downloadTemplate(role) {
     //     try {
-    //         const response = await fetch(`/api/accounts/admin/download_template/?role=${role}`, {
+    //         const response = await fetch(`/api/administration/admin/download_template/?role=${role}`, {
     //             headers: {
     //                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
     //             }
@@ -342,7 +342,7 @@
         };
 
         try {
-            const response = await fetch(`/api/accounts/users/${currentEditUserId}/update_user/`, {
+            const response = await fetch(`/api/administration/users/${currentEditUserId}/update_user/`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`,

@@ -70,6 +70,7 @@ class StudentDashboardPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
+        issue_deadline_warnings() # Evaluate deadline warnings
         auto_escalate_overdue_tickets()  # Evaluate overdue tickets before querying
         
         # Initialize default values
@@ -105,8 +106,8 @@ class StaffDashboardPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         
         # Initialize default values
         context['total_tickets'] = 0
@@ -129,8 +130,8 @@ class SeniorStaffDashboardPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         
         # Initialize default values
         context['total_tickets'] = 0
@@ -157,7 +158,13 @@ class StaffAllIssuesPageView(TemplateView):
         if user.is_authenticated and user.role == 'Staff' and hasattr(user, 'staff_profile') and user.staff_profile.department:
              # Pass categories for the dropdown filter
              staff_dept = user.staff_profile.department
-             context['categories'] = Category.objects.filter(department=staff_dept)
+             
+             # Check if department has any courses, if so, pass academic categories
+             # else pass only department categories
+             if staff_dept.courses.exists():
+                 context['categories'] = Category.objects.filter(Q(department=staff_dept) | Q(is_academic=True))
+             else:
+                 context['categories'] = Category.objects.filter(department=staff_dept)
              context['status_choices'] = Ticket.status_choices
         return context
 
@@ -186,8 +193,8 @@ class TicketViewSet(viewsets.ModelViewSet):
     permission_classes =[permissions.IsAuthenticated]
 
     def get_queryset(self):
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         user = self.request.user
 
         #Students only see tickets they created
@@ -213,8 +220,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def dashboard_stats(self, request):
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         user = request.user
         if not user.is_authenticated or user.role != 'Student':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -232,8 +239,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def staffdashboard_stats(self, request):
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         user = request.user
         if not user.is_authenticated or user.role != 'Staff':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -263,8 +270,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def seniorstaffdashboard_stats(self, request):
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         user = request.user
         if not user.is_authenticated or user.role != 'Staff':
              return Response({'error': 'Unauthorized'}, status=403)
@@ -326,8 +333,8 @@ class TicketViewSet(viewsets.ModelViewSet):
         API endpoint for the "All Issues" page with search, filter, and pagination.
         This allows staff to view only department-specific tickets.
         """
-        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         issue_deadline_warnings() # Evaluate deadline warnings
+        auto_escalate_overdue_tickets() # Evaluate overdue tickets before querying
         user = request.user
         
         # 1. Security Check: Only Staff members are allowed

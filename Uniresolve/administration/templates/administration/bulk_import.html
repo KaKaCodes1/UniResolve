@@ -1,4 +1,4 @@
-{% extends 'accounts/admin/base_admindashboard.html' %}
+{% extends 'administration/base_admindashboard.html' %}
 {% load static %}
 
 {% block title %}Bulk Import Users - Admin Dashboard{% endblock %}
@@ -98,7 +98,7 @@
 <script>
     async function downloadTemplate(role) {
         try {
-            const response = await fetch(`/api/accounts/admin/download_template/?role=${role}`, {
+            const response = await fetch(`/api/administration/admin/download_template/?role=${role}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
@@ -262,7 +262,7 @@
         formData.append('role', selectedRole);
 
         try {
-            const response = await fetch('/api/accounts/admin/bulk_import/', {
+            const response = await fetch('/api/administration/admin/bulk_import/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),

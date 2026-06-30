@@ -1,4 +1,4 @@
-{% extends 'accounts/admin/base_admindashboard.html' %}
+{% extends 'administration/base_admindashboard.html' %}
 
 {% block title %}Dashboard - Admin UniResolve{% endblock %}
 
@@ -318,7 +318,7 @@
         const accessToken = localStorage.getItem('access_token');
 
         try {
-            const response = await fetch('/api/accounts/admin/approve_staff/', {
+            const response = await fetch('/api/administration/admin/approve_staff/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -348,7 +348,7 @@
 
         const accessToken = localStorage.getItem('access_token');
         try {
-            const response = await fetch('/api/accounts/admin/reject_staff/', {
+            const response = await fetch('/api/administration/admin/reject_staff/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
