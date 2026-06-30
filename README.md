@@ -1,8 +1,6 @@
 # UniResolve - Digital Issue Reporting System (MVP)
 
-**UniResolve** is a backend-focused RESTful API designed to streamline issue reporting for Higher Education Institutions. It allows students to digitally log academic or administrative complaints and enables staff to track, resolve, and provide feedback on these issues.
-
-This project is built as a Minimum Viable Product (MVP) for the ALX Backend Engineering program and serves as the foundation for a Final Year Research Project.
+**UniResolve** is a system designed to streamline issue reporting for Higher Education Institutions. It allows students to digitally log academic or administrative complaints and enables staff to track, resolve, and provide feedback on these issues.
 
 ##  Tech Stack
 * **Language:** Python 
