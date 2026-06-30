@@ -539,40 +539,6 @@ class AdminViewSet(viewsets.GenericViewSet):
         except Exception as e:
             return Response({'error': f'Failed to process file: {str(e)}'}, status=500)
 
-    # @action(detail=False, methods=['post'])
-    # def approve_staff(self, request):
-    #     if not self.check_admin(request.user):
-    #         return Response({'error': 'Unauthorized'}, status=403)
-        
-    #     user_id = request.data.get('user_id')
-    #     staff_role = request.data.get('staff_role', 'STAFF') # STAFF or SENIOR
-
-    #     try:
-    #         user = User.objects.get(id=user_id, role='Staff')
-    #         user.is_active = True
-    #         user.save()
-
-    #         if hasattr(user, 'staff_profile'):
-    #             profile = user.staff_profile
-    #             profile.staff_role = staff_role
-    #             profile.save()
-            
-    #         return Response({'message': f'Staff member {user.get_full_name()} approved as {staff_role}.'})
-    #     except User.DoesNotExist:
-    #         return Response({'error': 'User not found or not a staff member'}, status=404)
-
-    # @action(detail=False, methods=['post'])
-    # def reject_staff(self, request):
-    #     if not self.check_admin(request.user):
-    #         return Response({'error': 'Unauthorized'}, status=403)
-        
-    #     user_id = request.data.get('user_id')
-    #     try:
-    #         user = User.objects.get(id=user_id, role='Staff', is_active=False)
-    #         user.delete()
-    #         return Response({'message': 'Registration request rejected and account deleted.'})
-    #     except User.DoesNotExist:
-    #         return Response({'error': 'Pending staff request not found'}, status=404)
 
     @action(detail=False, methods=['get'], url_path='all-issues')
     def get_all_issues(self, request):

@@ -24,15 +24,15 @@
     </div>
 
     <!-- Open Issues Card -->
-    <div class="stat-card">
+    <!-- <div class="stat-card">
         <span class="stat-label">Open</span>
-        <!-- ID 'openTickets' is targeted by JS -->
+        ID 'openTickets' is targeted by JS
         <div class="stat-value" id="openTickets">{{ open_tickets }}</div>
         <div class="stat-footer">
             <i class="fa-regular fa-folder-open"></i>
             <span>New arrivals</span>
         </div>
-    </div>
+    </div> -->
 
     <!-- Pending Issues Card -->
     <div class="stat-card">
@@ -64,16 +64,6 @@
         <div class="stat-footer">
             <i class="fa-solid fa-triangle-exclamation"></i>
             <span>Escalated</span>
-        </div>
-    </div>
-
-    <div class="stat-card">
-        <span class="stat-label">Transferred</span>
-        <!-- ID 'transferredTickets' is targeted by JS -->
-        <div class="stat-value" id="transferredTickets">{{ transferred_tickets }}</div>
-        <div class="stat-footer">
-            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-            <span>Transferred</span>
         </div>
     </div>
 </div>
@@ -151,11 +141,10 @@
 
                 // --- Update Statistics Cards ---
                 updateElementText('totalTickets', data.total_tickets);
-                updateElementText('openTickets', data.open_tickets);
+                //updateElementText('openTickets', data.open_tickets);
                 updateElementText('pendingTickets', data.pending_tickets);
                 updateElementText('resolvedTickets', data.resolved_tickets);
                 updateElementText('escalatedTickets', data.escalated_tickets);
-                updateElementText('transferredTickets', data.transferred_tickets);
 
                 // --- Update Recent Issues Table ---
                 const tableBody = document.getElementById('ticketTableBody');

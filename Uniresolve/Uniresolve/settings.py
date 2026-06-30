@@ -177,6 +177,16 @@ if not DEBUG:
     # Enforce HTTPS
     SECURE_SSL_REDIRECT = True #Forces all non-HTTPS traffic to redirect to HTTPS.
 
-# Email Settings for local testing
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Settings (Hybrid configuration)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
+# Credentials loaded from .env
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+# Whitelist of emails that should actually receive emails
+_whitelist_str = os.getenv('WHITELISTED_EMAILS', '')
+WHITELISTED_EMAILS = [e.strip() for e in _whitelist_str.split(',') if e.strip()]
